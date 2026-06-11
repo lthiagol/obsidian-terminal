@@ -16,6 +16,9 @@ func (m Model) handleBrowseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case MatchRune(msg, m.keys.Help):
 		m.enterHelpMode()
 		return m, nil
+	case MatchRune(msg, 'T'):
+		m.enterTagsMode()
+		return m, nil
 	case msg.Type == tea.KeyEnter:
 		entry := m.fileTree.SelectedEntry()
 		if entry != nil {
@@ -215,4 +218,39 @@ func (m Model) handleBacklinkKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 	return m, nil
+}
+
+func (m Model) handleTagsKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch {
+	case msg.Type == tea.KeyEsc:
+		m.mode = m.prevMode
+		return m, nil
+	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+		m.tagList.MoveDown()
+		return m, nil
+	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+		m.tagList.MoveUp()
+		return m, nil
+	case msg.Type == tea.KeyEnter:
+		tag := m.tagList.SelectedTag()
+		if tag != "" {
+			files := m.tagList.SelectedFiles()
+			pathSet := make(map[string]bool)
+			for _, f := range files {
+				pathSet[f] = true
+			}
+			m.fileTree.ApplyPathFilter(pathSet)
+			m.tagFilter = tag
+			m.mode = ModeBrowse
+			m.addToast("Filtered by #"+tag, ToastInfo)
+		}
+		return m, nil
+	}
+	return m, nil
+}
+
+func (m *Model) enterTagsMode() {
+	m.prevMode = m.mode
+	m.mode = ModeTags
+	m.tagList = NewTagList(m.tagIndex)
 }

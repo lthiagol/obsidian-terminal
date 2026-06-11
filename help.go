@@ -39,6 +39,7 @@ func buildHelpLines() []string {
 			bindings: []string{
 				"Enter — open note / toggle folder",
 				"← →   — collapse / expand folder",
+				"T     — browse tags",
 			},
 		},
 		{

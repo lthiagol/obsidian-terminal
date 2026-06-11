@@ -23,6 +23,7 @@ const (
 	ModeSearch
 	ModeFind
 	ModeHelp
+	ModeTags
 )
 
 func (m Mode) String() string {
@@ -37,6 +38,8 @@ func (m Mode) String() string {
 		return "FIND"
 	case ModeHelp:
 		return "HELP"
+	case ModeTags:
+		return "TAGS"
 	default:
 		return "???"
 	}
@@ -81,6 +84,10 @@ type Model struct {
 	backlinkIndex map[string][]string
 	backlinkPanel BacklinkPanel
 	backlinkMode  bool
+
+	tagIndex  map[string][]string
+	tagList   TagList
+	tagFilter string
 }
 
 // NewModel creates a Model by scanning the vault at cfg.VaultPath.
@@ -137,6 +144,7 @@ func NewModel(cfg *Config) Model {
 		vault:         tree,
 		searchIndex:   indexes.Search,
 		backlinkIndex: indexes.Backlinks,
+		tagIndex:      indexes.Tags,
 		allPaths:      paths,
 		keys:          keys,
 		config:        cfg,
@@ -229,6 +237,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleFindKey(msg)
 		case ModeHelp:
 			return m.handleHelpKey(msg)
+		case ModeTags:
+			return m.handleTagsKey(msg)
 		}
 	}
 
@@ -264,6 +274,8 @@ func (m Model) View() string {
 		rightPanel = m.renderFind()
 	case ModeHelp:
 		rightPanel = m.renderHelp()
+	case ModeTags:
+		rightPanel = m.tagList.View()
 	case ModeView:
 		if m.backlinkMode {
 			viewerHeight := (m.height - 1) * 7 / 10
@@ -365,6 +377,7 @@ func (m *Model) rescanVault() {
 	m.vault = tree
 	m.searchIndex = indexes.Search
 	m.backlinkIndex = indexes.Backlinks
+	m.tagIndex = indexes.Tags
 	m.allPaths = allPaths(tree)
 	m.fileTree = NewFileTree(tree)
 

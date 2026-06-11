@@ -1,6 +1,6 @@
 # M20 — Tag Browsing & Filtering
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -88,16 +88,16 @@ Statusbar: ModeTags shows tag count + active filter.
 
 ## Completion Criteria
 
-- [ ] `tags.go` created with TagList and TagEntry types
-- [ ] Tag browser shows all tags sorted by count
-- [ ] `T` keybinding opens tag browser in Browse mode
-- [ ] Enter on tag filters file tree to show only matching files
-- [ ] Directories kept if any descendant matches filter
-- [ ] Tag normalization: `#Tag`, `TAG` all become `tag`
-- [ ] Multiple tags per file handled correctly
-- [ ] Filter reapplied after rescan
-- [ ] Help text updated
-- [ ] KEYBINDINGS.md updated
-- [ ] `make test` passes
-- [ ] `make vet` exits 0
-- [ ] Manual test: tag browser and filtering work correctly
+- [x] `tags.go` created with TagList and TagEntry types
+- [x] Tag browser shows all tags sorted by count
+- [x] `T` keybinding opens tag browser in Browse mode
+- [x] Enter on tag filters file tree to show only matching files
+- [x] Directories kept if any descendant matches filter
+- [x] Tag normalization: `#Tag`, `TAG` all become `tag`
+- [x] Multiple tags per file handled correctly
+- [x] Filter reapplied after rescan
+- [x] Help text updated
+- [x] KEYBINDINGS.md updated
+- [x] `make test` passes
+- [x] `make vet` exits 0
+- [x] Manual test: tag browser and filtering work correctly

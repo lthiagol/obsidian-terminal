@@ -1,6 +1,7 @@
 package main
 
 import (
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -225,6 +226,37 @@ func (ft *FileTree) MoveToY(y int) {
 		y = len(ft.items) - 1
 	}
 	ft.cursor = y
+}
+
+func (ft *FileTree) ApplyPathFilter(paths map[string]bool) {
+	var filtered []treeItem
+	for _, item := range ft.items {
+		if item.entry.IsDir {
+			hasMatchingDescendant := false
+			for _, fi := range ft.items {
+				if !fi.entry.IsDir && strings.HasPrefix(fi.entry.Path, item.entry.Path+string(filepath.Separator)) && paths[fi.entry.Path] {
+					hasMatchingDescendant = true
+					break
+				}
+			}
+			if hasMatchingDescendant {
+				filtered = append(filtered, item)
+			}
+		} else if paths[item.entry.Path] {
+			filtered = append(filtered, item)
+		}
+	}
+	ft.items = filtered
+	ft.cursor = 0
+}
+
+func (ft *FileTree) ResetFilter(vault *VaultEntry) {
+	var items []treeItem
+	for _, child := range vault.Children {
+		items = append(items, flattenTree(child, 0, !child.IsDir)...)
+	}
+	ft.items = items
+	ft.cursor = 0
 }
 
 func (ft FileTree) View() string {
