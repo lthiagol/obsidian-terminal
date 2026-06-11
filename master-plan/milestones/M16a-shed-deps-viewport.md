@@ -1,6 +1,6 @@
 # M16a — Replace Viewport Dependency
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -87,10 +87,10 @@ Run `go mod tidy` to remove:
 
 ## Completion Criteria
 
-- [ ] Custom viewport implementation in `viewport.go`
-- [ ] `viewer.go` uses custom viewport instead of bubbles/viewport
-- [ ] Window resize triggers content re-render
-- [ ] `make test` passes all existing tests
-- [ ] `make vet` exits 0
-- [ ] `go mod tidy` removes bubbles dependency
-- [ ] Manual test: scrolling, resizing, all viewport features work
+- [x] Custom viewport implementation in `viewport.go`
+- [x] `viewer.go` uses custom viewport instead of bubbles/viewport
+- [x] Window resize triggers content re-render
+- [x] `make test` passes all existing tests
+- [x] `make vet` exits 0
+- [x] `go mod tidy` removes bubbles dependency
+- [x] Manual test: scrolling, resizing, all viewport features work

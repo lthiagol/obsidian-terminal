@@ -3,7 +3,7 @@
 **Last updated:** 2026-06-11
 **Language:** Go 1.24+
 **Framework:** Bubble Tea + Bubbles + Lipgloss
-**Dependencies:** bubbletea, bubbles, lipgloss, gopkg.in/yaml.v3 (4 total)
+**Dependencies:** bubbletea, lipgloss, gopkg.in/yaml.v3 (3 total)
 **Target:** Read-only TUI markdown viewer for Obsidian vaults
 
 ## Goals
@@ -55,7 +55,7 @@
 | M13: Theme System & Color Palettes | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M14: Code Organization & Package Structure | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M15: Polish & Complete Remaining Gaps | ✅ done | 3 | 2026-06-11 | 2026-06-11 |
-| M16a: Replace Viewport Dependency | ⏳ pending | 0 | — | — |
+| M16a: Replace Viewport Dependency | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M16b: Replace YAML Dependency | ⏳ pending | 0 | — | — |
 | M17: Performance (Profile-Driven) | ⏳ pending | 0 | — | — |
 | M18: Mouse Support | ⏳ pending | 0 | — | — |

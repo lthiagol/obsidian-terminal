@@ -179,6 +179,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			viewerWidth = 10
 		}
 		m.viewer.SetSize(viewerWidth, m.height-1)
+		if m.activeNote != nil {
+			m.viewer.SetContent(m.activeNote.Body, viewerWidth)
+		}
 		m.ready = true
 		return m, nil
 

@@ -3,14 +3,12 @@ package main
 import (
 	"strings"
 
-	"github.com/charmbracelet/bubbles/viewport"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/lthiagol/obsidian-terminal/internal/markdown"
 )
 
 // MarkdownViewer renders and navigates markdown content.
 type MarkdownViewer struct {
-	viewport     viewport.Model
+	viewport     viewport
 	rawMarkdown  string
 	links        []markdown.WikiLink
 	selectedLink int
@@ -19,7 +17,7 @@ type MarkdownViewer struct {
 
 // NewViewer creates a MarkdownViewer with the given renderer style.
 func NewViewer(style markdown.RendererStyle) MarkdownViewer {
-	vp := viewport.New(80, 20)
+	vp := newViewport(80, 20)
 	return MarkdownViewer{
 		viewport:     vp,
 		selectedLink: -1,
@@ -53,12 +51,6 @@ func (v *MarkdownViewer) SetContent(md string, width int) {
 	v.viewport.SetContent(rendered)
 	v.links = markdown.ExtractWikiLinks(lines)
 	v.selectedLink = -1
-}
-
-func (v *MarkdownViewer) Update(msg tea.Msg) (MarkdownViewer, tea.Cmd) {
-	var cmd tea.Cmd
-	v.viewport, cmd = v.viewport.Update(msg)
-	return *v, cmd
 }
 
 func (v MarkdownViewer) View() string {

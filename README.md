@@ -124,28 +124,7 @@ This TUI is read-only by design — no editing, no writing to the vault.
 |---------|---------|---------|
 | [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea) | v1.3.10 | TUI framework (Elm Architecture) |
 | [charmbracelet/lipgloss](https://github.com/charmbracelet/lipgloss) | v1.1.0 | Terminal styling and layout |
-| [charmbracelet/bubbles](https://github.com/charmbracelet/bubbles) | v1.0.0 | TUI components (viewport) |
-| [charmbracelet/x/ansi](https://github.com/charmbracelet/x) | v0.11.6 | ANSI escape sequence handling |
-| [charmbracelet/x/cellbuf](https://github.com/charmbracelet/x) | v0.0.15 | Terminal cell buffer |
-| [charmbracelet/x/term](https://github.com/charmbracelet/x) | v0.2.2 | Terminal capabilities |
-| [charmbracelet/colorprofile](https://github.com/charmbracelet/colorprofile) | v0.4.1 | Terminal color profile detection |
 | [go-yaml/yaml](https://gopkg.in/yaml.v3) | v3.0.1 | YAML config parsing |
-| [muesli/termenv](https://github.com/muesli/termenv) | v0.16.0 | Terminal output helpers |
-| [muesli/ansi](https://github.com/muesli/ansi) | — | ANSI sequence utilities |
-| [muesli/cancelreader](https://github.com/muesli/cancelreader) | v0.2.2 | Cancellable io.Reader |
-| [mattn/go-runewidth](https://github.com/mattn/go-runewidth) | v0.0.19 | East Asian character width |
-| [mattn/go-isatty](https://github.com/mattn/go-isatty) | v0.0.20 | TTY detection |
-| [mattn/go-localereader](https://github.com/mattn/go-localereader) | v0.0.1 | Locale-aware reader |
-| [rivo/uniseg](https://github.com/rivo/uniseg) | v0.4.7 | Unicode segmentation |
-| [lucasb-eyer/go-colorful](https://github.com/lucasb-eyer/go-colorful) | v1.3.0 | Color manipulation |
-| [clipperhouse/uax29](https://github.com/clipperhouse/uax29) | v2.5.0 | Unicode word segmentation |
-| [clipperhouse/displaywidth](https://github.com/clipperhouse/displaywidth) | v0.9.0 | Display width helpers |
-| [clipperhouse/stringish](https://github.com/clipperhouse/stringish) | v0.1.1 | String utilities |
-| [erikgeiser/coninput](https://github.com/erikgeiser/coninput) | — | Console input handling |
-| [xo/terminfo](https://github.com/xo/terminfo) | — | Terminfo database |
-| [aymanbagabas/go-osc52](https://github.com/aymanbagabas/go-osc52) | v2.0.1 | OSC52 clipboard |
-| [golang/x/sys](https://pkg.go.dev/golang.org/x/sys) | v0.38.0 | Low-level OS primitives |
-| [golang/x/text](https://pkg.go.dev/golang.org/x/text) | v0.3.8 | Unicode text handling |
 
 ## License
 
