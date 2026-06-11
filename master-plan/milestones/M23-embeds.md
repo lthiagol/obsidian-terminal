@@ -47,16 +47,50 @@ lines = markdown.ResolveEmbeds(lines, resolveEmbed)
 ### Edge cases
 
 - Embed target doesn't exist → render placeholder "(embed not found: target)"
-- Circular embeds (A embeds B, B embeds A) → no recursion guard needed since we only load top-level embeds (not recursive)
+- Circular embeds (A embeds B, B embeds A) → **add recursion guard**: track visited targets, max depth 2
 - Heading not found → render full note content
 - Embed width → use same viewport width
+- Nested embeds (A embeds B which embeds C) → limit to depth 2
+
+### Implementation Notes
+
+**Recursion guard:** Add a `visited` set to ResolveEmbeds:
+
+```go
+func ResolveEmbeds(lines []MarkdownLine, resolve EmbedResolver, visited map[string]bool, depth int) []MarkdownLine {
+    if depth > 2 {
+        return lines  // stop recursion
+    }
+    // ... for each embed:
+    if visited[target] {
+        // render "(circular embed detected)"
+        continue
+    }
+    visited[target] = true
+    // ... resolve and recurse with depth+1
+}
+```
 
 ### Implementation order
 
 1. Add BlockEmbed type + embed fields to MarkdownLine
 2. Parse `![[` syntax in ParseMarkdown
-3. Add ResolveEmbeds + sentinel types
+3. Add ResolveEmbeds with recursion guard + sentinel types
 4. Add renderEmbedBlock
 5. Add extractSection to vault.go
 6. Wire into viewer.go SetContent
 7. Write tests
+
+## Completion Criteria
+
+- [ ] BlockEmbed type added to markdown.go
+- [ ] `![[note]]` and `![[note#heading]]` syntax parsed
+- [ ] ResolveEmbeds function with recursion guard (max depth 2)
+- [ ] Circular embed detection and placeholder rendering
+- [ ] Embeds rendered with left border and source header
+- [ ] `extractSection` extracts heading content correctly
+- [ ] Missing embed target shows "(embed not found: target)"
+- [ ] Missing heading renders full note
+- [ ] `make test` passes
+- [ ] `make vet` exits 0
+- [ ] Manual test: embeds render correctly, no infinite loops

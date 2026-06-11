@@ -31,8 +31,11 @@
 | Symlinks | Shown as-is in tree |
 | Skip dirs | .obsidian, .git, .trash, node_modules, archive, dot-prefixed |
 | Test framework | Go stdlib `testing` + Bubble Tea program tests |
+| Keybinding reference | [KEYBINDINGS.md](../KEYBINDINGS.md) |
 
 ## Progress
+
+### Phase 1: Foundation
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
@@ -52,21 +55,77 @@
 | M13: Theme System & Color Palettes | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M14: Code Organization & Package Structure | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M15: Polish & Complete Remaining Gaps | ✅ done | 3 | 2026-06-11 | 2026-06-11 |
-| M16: Shed Dependencies | ⏳ pending | 0 | — | — |
-| M17: Performance: Hot Path Optimizations | ⏳ pending | 0 | — | — |
+| M16a: Replace Viewport Dependency | ⏳ pending | 0 | — | — |
+| M16b: Replace YAML Dependency | ⏳ pending | 0 | — | — |
+| M17: Performance (Profile-Driven) | ⏳ pending | 0 | — | — |
 | M18: Mouse Support | ⏳ pending | 0 | — | — |
+
+### Phase 2: Core Indexes
+
+| Milestone | Status | Tests | Started | Completed |
+|-----------|--------|-------|---------|-----------|
+| M18.5: Vault Index System | ⏳ pending | 0 | — | — |
+
+### Phase 3: Navigation Features
+
+| Milestone | Status | Tests | Started | Completed |
+|-----------|--------|-------|---------|-----------|
 | M19: Backlinks Panel | ⏳ pending | 0 | — | — |
 | M20: Tag Browsing & Filtering | ⏳ pending | 0 | — | — |
-| M21: Multiple Vault Profiles | ⏳ pending | 0 | — | — |
-| M22: Custom Themes | ⏳ pending | 0 | — | — |
-| M23: Embedded Block Embeds | ⏳ pending | 0 | — | — |
 | M24: Pinned Notes | ⏳ pending | 0 | — | — |
 | M25: Outline / Table of Contents | ⏳ pending | 0 | — | — |
 | M26: Daily Notes + Recent Notes | ⏳ pending | 0 | — | — |
+
+### Phase 4: Vault Management
+
+| Milestone | Status | Tests | Started | Completed |
+|-----------|--------|-------|---------|-----------|
+| M21: Multiple Vault Profiles | ⏳ pending | 0 | — | — |
+| M22: Custom Themes | ⏳ pending | 0 | — | — |
+
+### Phase 5: Markdown Features
+
+| Milestone | Status | Tests | Started | Completed |
+|-----------|--------|-------|---------|-----------|
+| M23: Embedded Block Embeds | ⏳ pending | 0 | — | — |
 | M27: Checkboxes + Frontmatter Display | ⏳ pending | 0 | — | — |
 | M28: Markdown Tables | ⏳ pending | 0 | — | — |
+
+### Phase 6: UX Polish
+
+| Milestone | Status | Tests | Started | Completed |
+|-----------|--------|-------|---------|-----------|
 | M29: Command Palette | ⏳ pending | 0 | — | — |
+
+### Phase 7: Future (Low Priority)
+
+| Milestone | Status | Tests | Started | Completed |
+|-----------|--------|-------|---------|-----------|
 | M97: Export to PDF/HTML | ⏳ pending | 0 | — | — |
 | M98: Image Preview | ⏳ pending | 0 | — | — |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
-| **Total** | | **98** | | |
+
+**Total Tests:** 98
+
+## Milestone Dependencies
+
+```
+M18.5 (Vault Index System)
+  ├── M19 (Backlinks) — uses backlink index
+  └── M20 (Tags) — uses tag index
+
+M16a (Viewport) should be done before M17 (Performance)
+M16b (YAML) should be done before M27 (Frontmatter Display)
+```
+
+## Keybinding Conflicts Resolved
+
+All keybindings are documented in [KEYBINDINGS.md](../KEYBINDINGS.md). Key resolutions:
+
+- `t` — Outline (View mode only)
+- `T` — Tag browser (Browse mode only)
+- `p` — Pin note (Browse/View modes)
+- `P` — Profile switcher (Browse mode only)
+- `b` — Backlinks (View mode only)
+
+No conflicts: same key can have different actions in different modes.

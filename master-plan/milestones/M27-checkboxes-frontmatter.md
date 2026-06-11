@@ -43,3 +43,22 @@ Update `SetContent` to prepend frontmatter block before rendered markdown.
 4. Add renderFrontmatter to viewer.go
 5. Update SetContent
 6. Write tests
+
+## Implementation Notes
+
+**Frontmatter parsing:** After M16b (YAML replacement), use the custom YAML parser to extract frontmatter fields for display. For complex values (arrays, objects), render as raw YAML text.
+
+## Completion Criteria
+
+- [ ] Checkbox parsing: `- [ ]` and `- [x]`/`- [X]` detected
+- [ ] Checkboxes rendered with styled icons (✓ or ☐)
+- [ ] Success color for checked, dimmed for unchecked
+- [ ] Checkbox + inline formatting works (`- [x] **done**`)
+- [ ] Frontmatter block rendered above note content
+- [ ] Frontmatter has border and header
+- [ ] Key:value pairs displayed correctly
+- [ ] Complex values (arrays) shown as raw YAML
+- [ ] No frontmatter → no block shown
+- [ ] `make test` passes
+- [ ] `make vet` exits 0
+- [ ] Manual test: checkboxes and frontmatter render correctly

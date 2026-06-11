@@ -6,13 +6,25 @@
 
 Add a tag browser mode to explore all vault tags and filter the file tree by selected tag.
 
+## Keybinding
+
+**Key:** `T` (uppercase)
+**Mode:** Browse mode only
+**Rationale:** Mnemonic for "Tags", uppercase to avoid conflict with `t` (outline) in View mode
+
+See [KEYBINDINGS.md](../../KEYBINDINGS.md) for complete keybinding reference.
+
+## Prerequisites
+
+- M18.5 (Vault Index System) must be completed first
+
 ## Implementation Plan
 
-### 1. Build tag index in `ScanVault` (`vault.go`)
+### 1. Use tag index from VaultIndexes
 
-Change `ScanVault` signature: add `map[string][]string` return (tag → file paths).
+The tag index is already built in M18.5. Access via `m.tagIndex` (populated from `indexes.Tags`).
 
-During WalkDir, after setting `searchIndex[relPath]`, parse frontmatter and extract tags. Normalize: strip leading `#`, lowercase, skip empty.
+No changes needed to `ScanVault` - just use the existing index.
 
 ### 2. New file: `tags.go`
 
@@ -30,7 +42,9 @@ func (tl TagList) View() string  // styled list "#tagname (count)"
 
 Add `ModeTags` to Mode enum + String() case.
 
-Add fields: `tagIndex map[string][]string`, `tagList TagList`, `tagCursor int`, `tagFilter string`, `treeUnfiltered []treeItem`
+Add fields: `tagList TagList`, `tagFilter string`, `treeUnfiltered []treeItem`
+
+Note: `tagIndex` is already in Model from M18.5.
 
 Add methods: `applyTagFilter(tag string)`, `clearTagFilter()`
 
@@ -40,7 +54,7 @@ Add `ApplyPathFilter(paths map[string]bool)` — rebuilds `items` to only includ
 
 ### 5. Keybinding + handlers (`handlers.go`, `keys.go`)
 
-Add `BrowseTags rune` (`t`) to KeyMap.  
+Add `BrowseTags rune` (`T`) to KeyMap.  
 In `handleBrowseKey`: `case MatchRune(msg, m.keys.BrowseTags): m.enterTagsMode()`
 
 New handler: `handleTagsKey()` — Esc back, j/k move cursor, Enter applies tag filter and returns to browse mode with toast.
@@ -62,13 +76,28 @@ Statusbar: ModeTags shows tag count + active filter.
 
 ### Implementation order
 
-1. Add tag extraction to ScanVault (vault.go)
-2. Create tags.go with TagList
-3. Add ModeTags + fields to Model
-4. Add ApplyPathFilter to tree.go
-5. Add applyTagFilter/clearTagFilter to model.go
-6. Add BrowseTags key, enterTagsMode, handleTagsKey
-7. Wire dispatch + rendering
-8. Add ModeTags color to theme.go
-9. Update statusbar hints
-10. Write tests
+1. Create tags.go with TagList
+2. Add ModeTags + fields to Model
+3. Add ApplyPathFilter to tree.go
+4. Add applyTagFilter/clearTagFilter to model.go
+5. Add BrowseTags key (`T`), enterTagsMode, handleTagsKey
+6. Wire dispatch + rendering
+7. Add ModeTags color to theme.go
+8. Update statusbar hints
+9. Write tests
+
+## Completion Criteria
+
+- [ ] `tags.go` created with TagList and TagEntry types
+- [ ] Tag browser shows all tags sorted by count
+- [ ] `T` keybinding opens tag browser in Browse mode
+- [ ] Enter on tag filters file tree to show only matching files
+- [ ] Directories kept if any descendant matches filter
+- [ ] Tag normalization: `#Tag`, `TAG` all become `tag`
+- [ ] Multiple tags per file handled correctly
+- [ ] Filter reapplied after rescan
+- [ ] Help text updated
+- [ ] KEYBINDINGS.md updated
+- [ ] `make test` passes
+- [ ] `make vet` exits 0
+- [ ] Manual test: tag browser and filtering work correctly

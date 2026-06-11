@@ -47,3 +47,18 @@ After `lookupPalette(themeName)`, if `cfg.CustomTheme != nil`, call `paletteFrom
 3. Add paletteFromCustom + rebuildDerivedStyles to theme.go
 4. Wire into NewModel in model.go
 5. Write tests
+
+## Completion Criteria
+
+- [ ] CustomTheme struct added to config.go
+- [ ] `parseHexColor` validates and parses hex colors (#RGB and #RRGGBB)
+- [ ] `paletteFromCustom` applies overrides to base palette
+- [ ] `rebuildDerivedStyles` rebuilds TreeStyle, ViewerStyle, etc.
+- [ ] Custom theme applied after base theme lookup
+- [ ] Invalid hex color shows warning toast, falls back to base
+- [ ] Empty custom_theme (`{}`) keeps base palette unchanged
+- [ ] Missing fields keep base palette values
+- [ ] Theme + custom override works (e.g., dracula + custom accent)
+- [ ] `make test` passes
+- [ ] `make vet` exits 0
+- [ ] Manual test: custom theme overrides work correctly

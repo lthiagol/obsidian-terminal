@@ -80,6 +80,10 @@ skip_dirs:
 
 ## Keybindings
 
+See [KEYBINDINGS.md](KEYBINDINGS.md) for the complete keybinding reference, including planned features and conflict resolution rules.
+
+### Quick Reference
+
 | Key | Action |
 |-----|--------|
 | `j` / `↓` | Move down |

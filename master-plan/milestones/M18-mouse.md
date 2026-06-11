@@ -99,3 +99,36 @@ func (s State) SelectedIndex() int { ... }   // return s.selected
 4. Refactor `handlers.go` Enter cases to use shared helpers
 5. Write tests in `mouse_test.go`
 6. Run `make test && make vet`
+
+## Implementation Notes
+
+**Pointer receiver issue:** Model uses value receivers, but `lastClickTime` needs to persist across Update calls. Solution: store click state in a separate struct or use a pointer field.
+
+```go
+type clickState struct {
+    lastTime time.Time
+    lastX    int
+    lastY    int
+}
+
+type Model struct {
+    // ... existing fields ...
+    click *clickState  // pointer to persist across value copies
+}
+```
+
+Initialize in NewModel: `click: &clickState{}`
+
+## Completion Criteria
+
+- [ ] `mouse.go` created with all mouse handlers
+- [ ] Tree: click selects, double-click opens, wheel scrolls
+- [ ] Viewer: wheel scrolls (forward to viewport)
+- [ ] Search: click selects result, double-click opens
+- [ ] Help: wheel scrolls
+- [ ] Double-click detection works (500ms, 1 cell tolerance)
+- [ ] `openTreeItem` and `openSearchResult` extracted to shared helpers
+- [ ] `SetSelected`/`SelectedIndex` added to search.State
+- [ ] `make test` passes
+- [ ] `make vet` exits 0
+- [ ] Manual test: mouse works in all panels

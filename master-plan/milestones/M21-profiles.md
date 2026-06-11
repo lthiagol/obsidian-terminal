@@ -4,7 +4,15 @@
 
 ## Goal
 
-Configure multiple vault profiles in config, switch between them with `--profile` flag and in-app picker (`Ctrl+P`).
+Configure multiple vault profiles in config, switch between them with `--profile` flag and in-app picker (`P` in Browse mode).
+
+## Keybinding
+
+**Key:** `P` (uppercase)
+**Mode:** Browse mode only
+**Rationale:** Mnemonic for "Profile", uppercase to be distinct
+
+See [KEYBINDINGS.md](../../KEYBINDINGS.md) for complete keybinding reference.
 
 ## Implementation Plan
 
@@ -53,6 +61,8 @@ In `handleBrowseKey`: add `ProfileSwitch rune` (`P`) that opens picker from brow
 
 In `Update()`: check `pendingProfileSwitch`, apply profile settings, rescan vault.
 
+Note: Consider using a Cmd-based approach instead of `pendingProfileSwitch` field for better Bubble Tea idiomatic style.
+
 ### 6. View() — picker rendering
 
 Render picker full-screen centered when in `ModeProfilePicker`.
@@ -63,7 +73,8 @@ Render picker full-screen centered when in `ModeProfilePicker`.
 - Missing profile: error + exit
 - No path in profile: error
 - In-app switch while viewing note: note discarded, full rescan
-- No profiles defined: picker never shown, `Ctrl+P` no-op
+- No profiles defined: picker never shown, `P` no-op
+- Profile with invalid theme: show warning, use default theme
 
 ### Implementation order
 
@@ -73,7 +84,25 @@ Render picker full-screen centered when in `ModeProfilePicker`.
 4. Modify NewModel for picker mode
 5. Create profile_picker.go
 6. Add handleProfilePickerKey
-7. Add ProfileSwitch keybinding
+7. Add ProfileSwitch keybinding (`P`)
 8. Wire dispatch + rendering
-9. Handle in-app switching with pendingProfileSwitch
+9. Handle in-app switching
 10. Write tests
+
+## Completion Criteria
+
+- [ ] Profile struct added to config.go
+- [ ] `profiles` map in config for multiple vault profiles
+- [ ] `--profile` CLI flag implemented
+- [ ] Profile picker mode with centered list UI
+- [ ] `P` keybinding opens picker in Browse mode
+- [ ] Enter selects profile and triggers rescan
+- [ ] Esc returns to previous mode
+- [ ] Profile switch applies theme and skip_dirs
+- [ ] `--vault` flag takes precedence over profile
+- [ ] Missing/invalid profile shows error
+- [ ] Help text updated
+- [ ] KEYBINDINGS.md updated
+- [ ] `make test` passes
+- [ ] `make vet` exits 0
+- [ ] Manual test: profile switching works end-to-end

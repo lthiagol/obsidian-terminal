@@ -47,9 +47,33 @@ Add `case BlockTable: ...` (single-row fallback if block rendering fails).
 
 - Single-column table → minimum padding
 - Missing cells in a row → pad with empty string
-- Escaped pipe `\|` → treat as literal (defer parsing for v2)
+- Escaped pipe `\|` → handle in v1 (treat as literal pipe in cell content)
 - Table wider than viewport → proportional column scaling
 - No separator row → not detected as table (treated as paragraph with pipes)
+- Empty cells → render with minimum width
+
+### Implementation Notes
+
+**Escaped pipes:** Parse `\|` as literal `|` in cell content:
+
+```go
+func parseTableRow(line string) []string {
+    // Replace \| with placeholder, split on |, restore placeholder to |
+    escaped := strings.ReplaceAll(line, `\|`, "\x00")
+    cells := strings.Split(escaped, "|")
+    for i, cell := range cells {
+        cells[i] = strings.ReplaceAll(strings.TrimSpace(cell), "\x00", "|")
+    }
+    // Remove first and last empty cells from leading/trailing |
+    if len(cells) >= 2 && cells[0] == "" {
+        cells = cells[1:]
+    }
+    if len(cells) >= 1 && cells[len(cells)-1] == "" {
+        cells = cells[:len(cells)-1]
+    }
+    return cells
+}
+```
 
 ### Implementation order
 
@@ -59,3 +83,18 @@ Add `case BlockTable: ...` (single-row fallback if block rendering fails).
 4. Add renderTableBlock
 5. Update RenderMarkdown to collect consecutive table rows
 6. Write tests
+
+## Completion Criteria
+
+- [ ] Table detection: header row + separator row + data rows
+- [ ] Alignment parsing: `:---` (left), `:---:` (center), `---:` (right)
+- [ ] Unicode box-drawing borders rendered correctly
+- [ ] Column widths calculated and distributed proportionally
+- [ ] Header row styled with bold + accent color
+- [ ] Data rows styled with secondary color
+- [ ] Escaped pipes (`\|`) handled as literal pipes
+- [ ] Tables wider than viewport scaled proportionally
+- [ ] Missing cells padded with empty strings
+- [ ] `make test` passes
+- [ ] `make vet` exits 0
+- [ ] Manual test: tables render correctly with alignment

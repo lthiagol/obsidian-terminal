@@ -6,6 +6,14 @@
 
 Quick-open today's daily note (`Ctrl+D`) and track recently opened notes (`Ctrl+O` overlay).
 
+## Keybindings
+
+**Keys:**
+- `Ctrl+D` — open today's daily note (global)
+- `Ctrl+O` — toggle recent notes overlay (global)
+
+See [KEYBINDINGS.md](../../KEYBINDINGS.md) for complete keybinding reference.
+
 ## Implementation Plan
 
 ### 1. Config changes (`config.go`)
@@ -63,3 +71,24 @@ Add "Daily & Recent" bindings.
 6. Add addRecentNote at all note-open sites
 7. Add help section
 8. Write tests
+
+## Design Decisions
+
+**Recent notes persistence:** For v1, recent notes are stored in memory only (lost on restart). Future enhancement could add file-based persistence if users request it.
+
+## Completion Criteria
+
+- [ ] `daily_notes_dir` and `daily_notes_format` config fields added
+- [ ] `Ctrl+D` opens today's daily note
+- [ ] Daily note path built from config format (default: "2006-01-02")
+- [ ] Missing daily note shows empty note with date title
+- [ ] `Ctrl+O` toggles recent notes overlay
+- [ ] Recent notes list shows last 50 opened notes (newest first)
+- [ ] Enter on recent note opens it
+- [ ] Recent notes updated at all note-open sites
+- [ ] Deleted notes handled gracefully (removed from recents)
+- [ ] Help text updated
+- [ ] KEYBINDINGS.md updated
+- [ ] `make test` passes
+- [ ] `make vet` exits 0
+- [ ] Manual test: daily note and recent notes work

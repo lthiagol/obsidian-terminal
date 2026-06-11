@@ -1,72 +1,183 @@
-# M17 — Performance: Hot Path Optimizations
+# M17 — Performance: Profile-Driven Optimization
 
 **Status:** ⏳ pending
 
 ## Goal
 
-Reduce per-frame and per-keystroke allocations in tree rendering, fuzzy search, and help text.
+Identify and optimize actual performance bottlenecks through profiling, not assumptions. Add benchmarks to prevent regressions.
+
+## Motivation
+
+Performance optimizations should be data-driven. Without profiling, we risk optimizing code that isn't slow while missing real bottlenecks. This milestone adds profiling infrastructure first, then optimizes only what the data shows is slow.
 
 ## Implementation Plan
 
-### 1. Pre-computed tree styles + prefix cache (`tree.go`)
+### Part 1: Profiling Infrastructure
 
-**Problem:** `View()` allocates 3-5 lipgloss.Style objects per item per frame (300k allocs/sec at 60fps with 1000 files).
+#### 1. Add benchmark tests
 
-**Fix:** Add 3 cached styles + prefix cache to `FileTree` struct:
+Create `bench_test.go` with benchmarks for hot paths:
+
 ```go
-type FileTree struct {
-    items, cursor, vault, width, height  // existing
-    fileStyle, dirStyle, selectedStyle lipgloss.Style  // NEW
-    prefixCache []string  // NEW: index=depth, value=strings.Repeat("  ", depth)
+func BenchmarkFileTreeView(b *testing.B) {
+    // Create tree with 1000 files
+    // Benchmark View() method
+}
+
+func BenchmarkFuzzySearch(b *testing.B) {
+    // Create search with 10000 paths
+    // Benchmark FuzzySearch with typical query
+}
+
+func BenchmarkMarkdownRender(b *testing.B) {
+    // Load large markdown file
+    // Benchmark RenderMarkdown
+}
+
+func BenchmarkHelpRender(b *testing.B) {
+    // Benchmark renderHelp()
 }
 ```
 
-Pre-compute in `NewFileTree`: compute max depth, build prefixCache, create 3 styles once.
+#### 2. Add profiling commands
 
-Rewrite `View()` body: use `ft.prefixCache[item.depth]`, use pre-computed styles instead of `lipgloss.NewStyle()` per item.
+Add Makefile targets:
 
-### 2. Pre-computed lowercase paths in search (`internal/search/search.go`)
+```makefile
+bench:
+	go test -bench=. -benchmem ./...
 
-**Problem:** `FuzzyScore` calls `strings.ToLower(target)` once per file per keystroke (10k calls per typed character with 10k files).
+bench-cpu:
+	go test -bench=. -cpuprofile=cpu.prof ./...
+	go tool pprof -http=:8080 cpu.prof
 
-**Fix:** Add `allPathsLower []string` to `State` struct. Pre-compute in `NewState`. Thread through as extra parameter to `FuzzySearch` and `FuzzyScore`:
-- `FuzzySearch(query, paths, pathsLower []string)` 
-- `FuzzyScore(query, target, targetLower string)`
-- Update all internal callers and test call sites
+bench-mem:
+	go test -bench=. -memprofile=mem.prof ./...
+	go tool pprof -http=:8080 mem.prof
+```
 
-**Signature changes** (only affect search package + tests):
+#### 3. Run initial profiling
+
+Execute benchmarks and identify top 3 bottlenecks by:
+- Allocation count
+- Time per operation
+- Memory usage
+
+Document findings in milestone before proceeding.
+
+### Part 2: Targeted Optimizations
+
+**Only implement optimizations that profiling shows are needed.**
+
+#### Candidate Optimization A: Pre-computed tree styles
+
+**Problem (if confirmed by profiling):**
+`FileTree.View()` creates new lipgloss.Style objects per item per frame.
+
+**Fix:**
+```go
+type FileTree struct {
+    // existing fields ...
+    fileStyle, dirStyle, selectedStyle lipgloss.Style
+    prefixCache []string  // pre-computed indentation
+}
+```
+
+Pre-compute in `NewFileTree`, reuse in `View()`.
+
+#### Candidate Optimization B: Pre-computed lowercase paths
+
+**Problem (if confirmed by profiling):**
+`FuzzyScore` calls `strings.ToLower` per file per keystroke.
+
+**Fix:**
+```go
+type State struct {
+    // existing fields ...
+    allPathsLower []string  // pre-computed
+}
+```
+
+Pre-compute in `NewState`, pass to `FuzzyScore`.
+
+**Signature changes:**
 - `FuzzyScore(query, target, targetLower string) float64`
-- `FuzzySearch(query string, paths, pathsLower []string) []Result`
+- Update all callers and tests
 
-**Test impact:** All `FuzzyScore`/`FuzzySearch` test calls need 3rd argument. Add `lowerPaths()` helper to test file. No external callers affected.
+#### Candidate Optimization C: Help text cache
 
-### 3. Cache help text (`help.go`)
+**Problem (if confirmed by profiling):**
+`renderHelp()` rebuilds static text every frame.
 
-**Problem:** `renderHelp()` rebuilds entire static help text every frame.
+**Fix:**
+```go
+var cachedHelpLines []string
 
-**Fix:** Extract into `buildHelpLines()`, store in package-level `var cachedHelpLines []string`. Compute once on first render. Add `InvalidateHelpCache()` called from `activatePalette` in `theme.go` when palette changes.
+func buildHelpLines() []string {
+    if cachedHelpLines == nil {
+        cachedHelpLines = computeHelpLines()
+    }
+    return cachedHelpLines
+}
 
-### Files changed
+func InvalidateHelpCache() {
+    cachedHelpLines = nil
+}
+```
 
-| File | Changes |
-|------|---------|
-| `tree.go` | 3 cached styles + prefixCache in FileTree; pre-compute in NewFileTree; rewrite View() body |
-| `internal/search/search.go` | allPathsLower in State; pre-compute in NewState; extra params to FuzzySearch/FuzzyScore |
-| `internal/search/search_test.go` | lowerPaths() helper; update all call sites |
-| `help.go` | cachedHelpLines var + buildHelpLines() + InvalidateHelpCache(); simplify renderHelp() |
-| `theme.go` | Call InvalidateHelpCache() in activatePalette() |
+Call `InvalidateHelpCache()` when keybindings change (if configurable).
 
-### Optimization impact summary
+### Part 3: Validation
 
-| Optimization | Saved per frame | At scale (1000 files) |
-|-------------|----------------|----------------------|
-| Tree styles | 3-5 allocs/item | ~4,000 allocs/frame |
-| Tree prefixes | 1 alloc/item | ~1,000 allocs/frame |
-| Lowercase paths | 1 alloc/file/keystroke | ~10,000 allocs/keystroke |
-| Help cache | 1 alloc/frame | 60 allocs/sec |
+#### 1. Re-run benchmarks
 
-### Implementation order
-1. Tree: add fields, pre-compute in NewFileTree, rewrite View()
-2. Search: add allPathsLower, update signatures, update callers/tests
-3. Help: add cachedHelpLines, update renderHelp(), wire InvalidateHelpCache()
-4. Run `make test && make vet`
+Compare before/after:
+- Allocations per operation
+- Time per operation
+- Memory per operation
+
+#### 2. Document results
+
+Add to milestone:
+```
+## Profiling Results
+
+Before optimization:
+- FileTreeView: 1000 allocs/op, 5ms/op
+- FuzzySearch: 500 allocs/op, 2ms/op
+
+After optimization:
+- FileTreeView: 100 allocs/op, 2ms/op (90% reduction)
+- FuzzySearch: 100 allocs/op, 1ms/op (80% reduction)
+```
+
+## Decision Criteria
+
+**Implement optimization if:**
+- Profiling shows >50% of time/allocations in that function
+- Optimization reduces allocations by >50%
+- Optimization doesn't significantly increase code complexity
+
+**Skip optimization if:**
+- Profiling shows <10% of time/allocations
+- Optimization adds significant complexity
+- Code is already fast enough (<16ms per frame for 60fps)
+
+## Testing Strategy
+
+- Benchmark tests for all hot paths
+- Unit tests still pass after optimizations
+- Manual test: smooth navigation with 1000+ files
+- Manual test: smooth search with 10000+ files
+
+## Completion Criteria
+
+- [ ] Benchmark tests added for hot paths
+- [ ] Profiling infrastructure in Makefile
+- [ ] Initial profiling results documented
+- [ ] Only data-driven optimizations implemented
+- [ ] Before/after benchmark comparison documented
+- [ ] `make test` passes
+- [ ] `make vet` exits 0
+- [ ] `make bench` runs without errors
+- [ ] Manual test: smooth performance at scale
