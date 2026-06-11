@@ -1,4 +1,4 @@
-module github.com/atr0t0s/obsidian-terminal
+module github.com/lthiagol/obsidian-terminal
 
 go 1.26.4
 
