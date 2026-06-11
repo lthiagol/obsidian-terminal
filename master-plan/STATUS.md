@@ -88,7 +88,7 @@
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
 | M23: Embedded Block Embeds | ⏳ pending | 0 | — | — |
-| M27: Checkboxes + Frontmatter Display | ⏳ pending | 0 | — | — |
+| M27: Checkboxes + Frontmatter Display | ✅ done | 8 | 2026-06-11 | 2026-06-11 |
 | M28: Markdown Tables | ⏳ pending | 0 | — | — |
 
 ### Phase 6: UX Polish

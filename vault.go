@@ -248,6 +248,9 @@ func findFrontmatterBounds(content string) (yamlStart, yamlEnd int, ok bool) {
 	if idx == -1 {
 		idx = strings.Index(rest, "\n---\r\n")
 	}
+	if idx == -1 && strings.HasSuffix(rest, "\n---") {
+		return 3, len(content) - 4, true
+	}
 	if idx == -1 {
 		return 0, 0, false
 	}
@@ -281,7 +284,12 @@ func parseFrontmatter(content string) (frontmatterData, string) {
 		}
 	})
 
-	return fm, content[yamlEnd+5:]
+	bodyStart := yamlEnd + 5
+	if bodyStart > len(content) {
+		bodyStart = len(content)
+	}
+
+	return fm, content[bodyStart:]
 }
 
 func stripFrontmatter(content string) string {
@@ -289,7 +297,11 @@ func stripFrontmatter(content string) string {
 	if !ok {
 		return content
 	}
-	return content[yamlEnd+5:]
+	bodyStart := yamlEnd + 5
+	if bodyStart > len(content) {
+		return ""
+	}
+	return content[bodyStart:]
 }
 
 func allPaths(vault *VaultEntry) []string {

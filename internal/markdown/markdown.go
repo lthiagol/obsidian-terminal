@@ -43,6 +43,8 @@ type MarkdownLine struct {
 	CalloutType  string
 	Language     string
 	RawContent   string
+	Checkable    bool
+	Checked      bool
 }
 
 // WikiLink represents an Obsidian [[wiki-link]].
@@ -159,11 +161,23 @@ func ParseMarkdown(content string) []MarkdownLine {
 
 		if isListItem(line) {
 			indent, _, text := parseListItem(line)
+			checkable := false
+			checked := false
+			if strings.HasPrefix(text, "[ ] ") {
+				checkable = true
+				text = text[4:]
+			} else if strings.HasPrefix(text, "[x] ") || strings.HasPrefix(text, "[X] ") {
+				checkable = true
+				checked = true
+				text = text[4:]
+			}
 			segments := parseInline(text)
 			result = append(result, MarkdownLine{
 				BlockType:   BlockList,
 				Segments:    segments,
 				IndentLevel: indent,
+				Checkable:   checkable,
+				Checked:     checked,
 			})
 			continue
 		}
@@ -476,6 +490,12 @@ func StripFrontmatter(content string) string {
 	if idx == -1 {
 		idx = strings.Index(rest, "\n---\r\n")
 	}
+	if idx == -1 && strings.HasSuffix(rest, "\n---") {
+		return strings.TrimSuffix(rest, "\n---")
+	}
+	if idx == -1 && strings.HasSuffix(rest, "\n---\r") {
+		return strings.TrimSuffix(rest, "\n---\r")
+	}
 	if idx == -1 {
 		return content
 	}
@@ -607,7 +627,18 @@ func renderCodeBlock(line MarkdownLine, width int, style RendererStyle) string {
 func renderList(line MarkdownLine, width int, style RendererStyle) string {
 	prefix := strings.Repeat("  ", line.IndentLevel)
 	text := renderSegments(line.Segments, style)
-	bullet := lipgloss.NewStyle().Foreground(style.Accent).Render("•")
+
+	var bullet string
+	if line.Checkable {
+		if line.Checked {
+			bullet = lipgloss.NewStyle().Foreground(style.Success).Render("[x]")
+		} else {
+			bullet = lipgloss.NewStyle().Foreground(style.TextDim).Render("[ ]")
+		}
+	} else {
+		bullet = lipgloss.NewStyle().Foreground(style.Accent).Render("•")
+	}
+
 	return prefix + bullet + " " + text
 }
 

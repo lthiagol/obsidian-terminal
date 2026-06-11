@@ -1,6 +1,6 @@
 # M27 — Checkboxes + Frontmatter Display
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -50,15 +50,15 @@ Update `SetContent` to prepend frontmatter block before rendered markdown.
 
 ## Completion Criteria
 
-- [ ] Checkbox parsing: `- [ ]` and `- [x]`/`- [X]` detected
-- [ ] Checkboxes rendered with styled icons (✓ or ☐)
-- [ ] Success color for checked, dimmed for unchecked
-- [ ] Checkbox + inline formatting works (`- [x] **done**`)
-- [ ] Frontmatter block rendered above note content
-- [ ] Frontmatter has border and header
-- [ ] Key:value pairs displayed correctly
-- [ ] Complex values (arrays) shown as raw YAML
-- [ ] No frontmatter → no block shown
-- [ ] `make test` passes
-- [ ] `make vet` exits 0
-- [ ] Manual test: checkboxes and frontmatter render correctly
+- [x] Checkbox parsing: `- [ ]` and `- [x]`/`- [X]` detected
+- [x] Checkboxes rendered with styled icons (✓ or ☐)
+- [x] Success color for checked, dimmed for unchecked
+- [x] Checkbox + inline formatting works (`- [x] **done**`)
+- [x] Frontmatter block rendered above note content
+- [x] Frontmatter has border and header
+- [x] Key:value pairs displayed correctly
+- [x] Complex values (arrays) shown as raw YAML
+- [x] No frontmatter → no block shown
+- [x] `make test` passes
+- [x] `make vet` exits 0
+- [x] Manual test: checkboxes and frontmatter render correctly
