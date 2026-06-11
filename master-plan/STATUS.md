@@ -70,7 +70,7 @@
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M19: Backlinks Panel | ⏳ pending | 0 | — | — |
+| M19: Backlinks Panel | ✅ done | 4 | 2026-06-11 | 2026-06-11 |
 | M20: Tag Browsing & Filtering | ⏳ pending | 0 | — | — |
 | M24: Pinned Notes | ⏳ pending | 0 | — | — |
 | M25: Outline / Table of Contents | ⏳ pending | 0 | — | — |

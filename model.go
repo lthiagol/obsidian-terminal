@@ -77,6 +77,10 @@ type Model struct {
 	lastRescan      time.Time
 	toasts          []Toast
 	click           *clickState
+
+	backlinkIndex map[string][]string
+	backlinkPanel BacklinkPanel
+	backlinkMode  bool
 }
 
 // NewModel creates a Model by scanning the vault at cfg.VaultPath.
@@ -128,18 +132,19 @@ func NewModel(cfg *Config) Model {
 	paths := allPaths(tree)
 
 	m := Model{
-		mode:        ModeBrowse,
-		prevMode:    ModeBrowse,
-		vault:       tree,
-		searchIndex: indexes.Search,
-		allPaths:    paths,
-		keys:        keys,
-		config:      cfg,
-		fileTree:    NewFileTree(tree),
-		viewer:      NewViewer(markdownStyleFrom(palette)),
-		searchStyle: searchStyleFrom(palette),
-		scanErrors:  scanErrors,
-		palette:     palette,
+		mode:          ModeBrowse,
+		prevMode:      ModeBrowse,
+		vault:         tree,
+		searchIndex:   indexes.Search,
+		backlinkIndex: indexes.Backlinks,
+		allPaths:      paths,
+		keys:          keys,
+		config:        cfg,
+		fileTree:      NewFileTree(tree),
+		viewer:        NewViewer(markdownStyleFrom(palette)),
+		searchStyle:   searchStyleFrom(palette),
+		scanErrors:    scanErrors,
+		palette:       palette,
 	}
 	if themeWarning != "" {
 		m.addToast(themeWarning, ToastWarning)
@@ -260,7 +265,22 @@ func (m Model) View() string {
 	case ModeHelp:
 		rightPanel = m.renderHelp()
 	case ModeView:
-		rightPanel = m.viewer.View()
+		if m.backlinkMode {
+			viewerHeight := (m.height - 1) * 7 / 10
+			backlinkHeight := m.height - 1 - viewerHeight - 1
+			viewerStyle := ViewerStyle.Width(m.width - m.treeWidth - 1).Height(viewerHeight)
+			backlinkStyle := lipgloss.NewStyle().
+				Border(lipgloss.NormalBorder(), true, false, false, false).
+				BorderForeground(Accent).
+				Width(m.width - m.treeWidth - 1).
+				Height(backlinkHeight)
+			rightPanel = lipgloss.JoinVertical(lipgloss.Left,
+				viewerStyle.Render(m.viewer.View()),
+				backlinkStyle.Render(m.backlinkPanel.View()),
+			)
+		} else {
+			rightPanel = m.viewer.View()
+		}
 	default:
 		rightPanel = "Select a file to view"
 	}
@@ -344,6 +364,7 @@ func (m *Model) rescanVault() {
 
 	m.vault = tree
 	m.searchIndex = indexes.Search
+	m.backlinkIndex = indexes.Backlinks
 	m.allPaths = allPaths(tree)
 	m.fileTree = NewFileTree(tree)
 
@@ -356,6 +377,7 @@ func (m *Model) rescanVault() {
 		} else {
 			m.activeNote = note
 			m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
+			m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)
 		}
 	}
 }

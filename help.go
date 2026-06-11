@@ -8,6 +8,10 @@ import (
 
 var cachedHelpLines []string
 
+func InvalidateHelpCache() {
+	cachedHelpLines = nil
+}
+
 func buildHelpLines() []string {
 	if cachedHelpLines != nil {
 		return cachedHelpLines
@@ -44,6 +48,7 @@ func buildHelpLines() []string {
 				"g / G  — top / bottom",
 				"Tab    — cycle wiki-links",
 				"Enter  — follow selected link",
+				"b      — toggle backlinks",
 				"h / Esc — back to browse",
 			},
 		},

@@ -1,6 +1,6 @@
 # M19 — Backlinks Panel
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -80,15 +80,15 @@ Help: add Backlinks section
 
 ## Completion Criteria
 
-- [ ] `backlinks.go` created with BacklinkPanel type
-- [ ] BacklinkPanel displays list of notes linking to current note
-- [ ] `b` keybinding toggles backlink focus in View mode
-- [ ] Enter on backlink navigates to source note
-- [ ] Split layout: viewer top 70%, backlinks bottom 30%
-- [ ] "No backlinks" shown when none exist
-- [ ] Backlinks rebuild on rescan
-- [ ] Help text updated
-- [ ] KEYBINDINGS.md updated
-- [ ] `make test` passes
-- [ ] `make vet` exits 0
-- [ ] Manual test: backlinks work for notes with incoming links
+- [x] `backlinks.go` created with BacklinkPanel type
+- [x] BacklinkPanel displays list of notes linking to current note
+- [x] `b` keybinding toggles backlink focus in View mode
+- [x] Enter on backlink navigates to source note
+- [x] Split layout: viewer top 70%, backlinks bottom 30%
+- [x] "No backlinks" shown when none exist
+- [x] Backlinks rebuild on rescan
+- [x] Help text updated
+- [x] KEYBINDINGS.md updated
+- [x] `make test` passes
+- [x] `make vet` exits 0
+- [x] Manual test: backlinks work for notes with incoming links
