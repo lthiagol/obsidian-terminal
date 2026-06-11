@@ -120,7 +120,7 @@ This TUI is read-only by design — no editing, no writing to the vault.
 | [charmbracelet/x/cellbuf](https://github.com/charmbracelet/x) | v0.0.15 | Terminal cell buffer |
 | [charmbracelet/x/term](https://github.com/charmbracelet/x) | v0.2.2 | Terminal capabilities |
 | [charmbracelet/colorprofile](https://github.com/charmbracelet/colorprofile) | v0.4.1 | Terminal color profile detection |
-| [go-yaml/yaml](https://github.com/go-yaml/yaml) | v3.0.1 | YAML config parsing |
+| [go-yaml/yaml](https://gopkg.in/yaml.v3) | v3.0.1 | YAML config parsing |
 | [muesli/termenv](https://github.com/muesli/termenv) | v0.16.0 | Terminal output helpers |
 | [muesli/ansi](https://github.com/muesli/ansi) | — | ANSI sequence utilities |
 | [muesli/cancelreader](https://github.com/muesli/cancelreader) | v0.2.2 | Cancellable io.Reader |
@@ -135,6 +135,8 @@ This TUI is read-only by design — no editing, no writing to the vault.
 | [erikgeiser/coninput](https://github.com/erikgeiser/coninput) | — | Console input handling |
 | [xo/terminfo](https://github.com/xo/terminfo) | — | Terminfo database |
 | [aymanbagabas/go-osc52](https://github.com/aymanbagabas/go-osc52) | v2.0.1 | OSC52 clipboard |
+| [golang/x/sys](https://pkg.go.dev/golang.org/x/sys) | v0.38.0 | Low-level OS primitives |
+| [golang/x/text](https://pkg.go.dev/golang.org/x/text) | v0.3.8 | Unicode text handling |
 
 ## License
 

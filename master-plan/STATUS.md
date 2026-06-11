@@ -52,5 +52,6 @@
 | M13: Theme System & Color Palettes | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M14: Code Organization & Package Structure | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M15: Polish & Complete Remaining Gaps | ✅ done | 3 | 2026-06-11 | 2026-06-11 |
+| M16: Shed Dependencies | ⏳ pending | 0 | — | — |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
 | **Total** | | **98** | | |
