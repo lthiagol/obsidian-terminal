@@ -69,6 +69,7 @@ type Model struct {
 
 	err        error
 	scanErrors []string
+	palette    Palette
 
 	helpScroll int
 
@@ -84,6 +85,11 @@ func NewModel(cfg *Config) Model {
 	skipDirs := cfg.SkipDirs
 	if len(skipDirs) == 0 {
 		skipDirs = DefaultConfig().SkipDirs
+	}
+
+	palette, err := lookupPalette(cfg.Theme)
+	if err != nil {
+		palette = newDarkPalette()
 	}
 
 	info, err := os.Stat(cfg.VaultPath)
@@ -122,9 +128,10 @@ func NewModel(cfg *Config) Model {
 		keys:        keys,
 		config:      cfg,
 		fileTree:    NewFileTree(tree),
-		viewer:      NewViewer(defaultMarkdownStyle()),
-		searchStyle: defaultSearchStyle(),
+		viewer:      NewViewer(markdownStyleFrom(palette)),
+		searchStyle: searchStyleFrom(palette),
 		scanErrors:  scanErrors,
+		palette:     palette,
 	}
 }
 
