@@ -90,6 +90,20 @@ func (s *State) MoveDown() {
 	}
 }
 
+func (s *State) SetSelected(i int) {
+	if i < 0 {
+		i = 0
+	}
+	if i >= len(s.results) {
+		i = len(s.results) - 1
+	}
+	s.selected = i
+}
+
+func (s State) SelectedIndex() int {
+	return s.selected
+}
+
 func (s State) ResultCount() int {
 	return len(s.results)
 }

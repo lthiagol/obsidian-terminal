@@ -217,6 +217,16 @@ func (ft *FileTree) MoveDown() {
 	}
 }
 
+func (ft *FileTree) MoveToY(y int) {
+	if y < 0 {
+		y = 0
+	}
+	if y >= len(ft.items) {
+		y = len(ft.items) - 1
+	}
+	ft.cursor = y
+}
+
 func (ft FileTree) View() string {
 	if len(ft.items) == 0 {
 		return lipgloss.NewStyle().

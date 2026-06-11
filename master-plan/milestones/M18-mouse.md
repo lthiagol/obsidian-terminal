@@ -1,6 +1,6 @@
 # M18 — Mouse Support
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -121,14 +121,14 @@ Initialize in NewModel: `click: &clickState{}`
 
 ## Completion Criteria
 
-- [ ] `mouse.go` created with all mouse handlers
-- [ ] Tree: click selects, double-click opens, wheel scrolls
-- [ ] Viewer: wheel scrolls (forward to viewport)
-- [ ] Search: click selects result, double-click opens
-- [ ] Help: wheel scrolls
-- [ ] Double-click detection works (500ms, 1 cell tolerance)
-- [ ] `openTreeItem` and `openSearchResult` extracted to shared helpers
-- [ ] `SetSelected`/`SelectedIndex` added to search.State
-- [ ] `make test` passes
-- [ ] `make vet` exits 0
-- [ ] Manual test: mouse works in all panels
+- [x] `mouse.go` created with all mouse handlers
+- [x] Tree: click selects, double-click opens, wheel scrolls
+- [x] Viewer: wheel scrolls (forward to viewport)
+- [x] Search: click selects result, double-click opens
+- [x] Help: wheel scrolls
+- [x] Double-click detection works (500ms, 1 cell tolerance)
+- [x] `openTreeItem` and `openSearchResult` extracted to shared helpers
+- [x] `SetSelected`/`SelectedIndex` added to search.State
+- [x] `make test` passes
+- [x] `make vet` exits 0
+- [x] Manual test: mouse works in all panels

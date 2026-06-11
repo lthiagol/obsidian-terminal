@@ -76,6 +76,7 @@ type Model struct {
 	lastRootModTime time.Time
 	lastRescan      time.Time
 	toasts          []Toast
+	click           *clickState
 }
 
 // NewModel creates a Model by scanning the vault at cfg.VaultPath.
@@ -189,6 +190,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.expireToasts()
 		m.checkVaultChanges()
 		return m, tickCmd()
+
+	case tea.MouseMsg:
+		return m.handleMouse(msg)
 
 	case tea.KeyMsg:
 		if m.quitting {

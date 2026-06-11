@@ -58,7 +58,7 @@
 | M16a: Replace Viewport Dependency | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M16b: Replace YAML Dependency | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M17: Performance (Profile-Driven) | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
-| M18: Mouse Support | ⏳ pending | 0 | — | — |
+| M18: Mouse Support | ✅ done | 4 | 2026-06-11 | 2026-06-11 |
 
 ### Phase 2: Core Indexes
 
