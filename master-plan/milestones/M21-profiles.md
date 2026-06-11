@@ -1,6 +1,6 @@
 # M21 — Multiple Vault Profiles
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -91,18 +91,18 @@ Render picker full-screen centered when in `ModeProfilePicker`.
 
 ## Completion Criteria
 
-- [ ] Profile struct added to config.go
-- [ ] `profiles` map in config for multiple vault profiles
-- [ ] `--profile` CLI flag implemented
-- [ ] Profile picker mode with centered list UI
-- [ ] `P` keybinding opens picker in Browse mode
-- [ ] Enter selects profile and triggers rescan
-- [ ] Esc returns to previous mode
-- [ ] Profile switch applies theme and skip_dirs
-- [ ] `--vault` flag takes precedence over profile
-- [ ] Missing/invalid profile shows error
-- [ ] Help text updated
-- [ ] KEYBINDINGS.md updated
-- [ ] `make test` passes
-- [ ] `make vet` exits 0
-- [ ] Manual test: profile switching works end-to-end
+- [x] Profile struct added to config.go
+- [x] `profiles` map in config for multiple vault profiles
+- [x] `--profile` CLI flag implemented
+- [x] Profile picker mode with centered list UI
+- [x] `P` keybinding opens picker in Browse mode
+- [x] Enter selects profile and triggers rescan
+- [x] Esc returns to previous mode
+- [x] Profile switch applies theme and skip_dirs
+- [x] `--vault` flag takes precedence over profile
+- [x] Missing/invalid profile shows error
+- [x] Help text updated
+- [x] KEYBINDINGS.md updated
+- [x] `make test` passes
+- [x] `make vet` exits 0
+- [x] Manual test: profile switching works end-to-end

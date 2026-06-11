@@ -4,7 +4,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
+
+// Profile represents a vault profile with its own settings.
+type Profile struct {
+	Path     string
+	Theme    string
+	SkipDirs []string
+}
 
 // Config holds user configuration loaded from YAML.
 type Config struct {
@@ -14,6 +22,7 @@ type Config struct {
 	SkipDirs         []string
 	DailyNotesDir    string
 	DailyNotesFormat string
+	Profiles         map[string]Profile
 }
 
 // DefaultConfig returns a Config with sensible defaults.
@@ -74,6 +83,30 @@ func parseConfigYAML(data []byte, cfg *Config) {
 			}
 		}
 	})
+
+	// Parse profiles (nested structure)
+	profilesData := parseNestedMap(data, "profiles")
+	if len(profilesData) > 0 {
+		cfg.Profiles = make(map[string]Profile)
+		for name, props := range profilesData {
+			profile := Profile{}
+			if path, ok := props["path"]; ok {
+				profile.Path = path
+			}
+			if theme, ok := props["theme"]; ok {
+				profile.Theme = theme
+			}
+			if skipDirs, ok := props["skip_dirs"]; ok {
+				// Parse skip_dirs as inline array or single value
+				if strings.HasPrefix(skipDirs, "[") {
+					profile.SkipDirs = parseInlineArray(skipDirs)
+				} else if skipDirs != "" {
+					profile.SkipDirs = []string{skipDirs}
+				}
+			}
+			cfg.Profiles[name] = profile
+		}
+	}
 }
 
 func configPathOrDefault(explicit string) string {

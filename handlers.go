@@ -19,6 +19,12 @@ func (m Model) handleBrowseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case MatchRune(msg, 'T'):
 		m.enterTagsMode()
 		return m, nil
+	case MatchRune(msg, m.keys.ProfileSwitch):
+		if len(m.config.Profiles) > 0 {
+			m.prevMode = m.mode
+			m.mode = ModeProfilePicker
+		}
+		return m, nil
 	case msg.Type == tea.KeyEnter:
 		entry := m.fileTree.SelectedEntry()
 		if entry != nil {
@@ -335,4 +341,71 @@ func (m Model) handleRecentsKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 	return m, nil
+}
+
+func (m Model) handleProfilePickerKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch {
+	case msg.Type == tea.KeyEsc:
+		// If we have no vault loaded, Esc quits the app
+		if m.vault == nil {
+			m.quitting = true
+			return m, tea.Quit
+		}
+		// Otherwise return to previous mode
+		m.mode = m.prevMode
+		return m, nil
+	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+		m.profilePicker.MoveDown()
+		return m, nil
+	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+		m.profilePicker.MoveUp()
+		return m, nil
+	case msg.Type == tea.KeyEnter:
+		profileName := m.profilePicker.Selected()
+		if profileName != "" {
+			m.pendingProfileName = profileName
+			return m, m.applyProfile
+		}
+		return m, nil
+	}
+	return m, nil
+}
+
+func (m Model) applyProfile() tea.Msg {
+	profileName := m.pendingProfileName
+	if profileName == "" {
+		return nil
+	}
+
+	profile, ok := m.config.Profiles[profileName]
+	if !ok {
+		m.addToast("Profile not found: "+profileName, ToastError)
+		return nil
+	}
+
+	// Apply profile settings
+	if profile.Path != "" {
+		m.config.VaultPath = profile.Path
+	}
+	if profile.Theme != "" {
+		m.config.Theme = profile.Theme
+		palette, err := lookupPalette(profile.Theme)
+		if err == nil {
+			activatePalette(palette)
+			m.palette = palette
+			m.viewer.renderStyle = markdownStyleFrom(palette)
+			m.searchStyle = searchStyleFrom(palette)
+		}
+	}
+	if len(profile.SkipDirs) > 0 {
+		m.config.SkipDirs = profile.SkipDirs
+	}
+
+	// Rescan vault with new settings
+	m.rescanVault()
+	m.mode = ModeBrowse
+	m.pendingProfileName = ""
+	m.addToast("Switched to profile: "+profileName, ToastInfo)
+
+	return nil
 }

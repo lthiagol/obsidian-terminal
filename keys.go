@@ -29,6 +29,7 @@ type KeyMap struct {
 	BottomRune rune
 	PinRune    rune
 	Outline    rune
+	ProfileSwitch rune
 
 	CyclePinPrev []tea.KeyType
 	CyclePinNext []tea.KeyType
@@ -74,15 +75,16 @@ func DefaultKeys() KeyMap {
 		PageUp:     tea.KeyPgUp,
 		PageDown:   tea.KeyPgDown,
 		CtrlC:      tea.KeyCtrlC,
-		QuitRune:     'q',
-		Search:       '/',
-		Find:         's',
-		Help:         '?',
-		TopRune:      'g',
-		BottomRune:   'G',
-		PinRune:      'p',
-		Outline:      't',
-		CyclePinPrev: []tea.KeyType{tea.KeyCtrlOpenBracket},
-		CyclePinNext: []tea.KeyType{tea.KeyCtrlCloseBracket},
+		QuitRune:      'q',
+		Search:        '/',
+		Find:          's',
+		Help:          '?',
+		TopRune:       'g',
+		BottomRune:    'G',
+		PinRune:       'p',
+		Outline:       't',
+		ProfileSwitch: 'P',
+		CyclePinPrev:  []tea.KeyType{tea.KeyCtrlOpenBracket},
+		CyclePinNext:  []tea.KeyType{tea.KeyCtrlCloseBracket},
 	}
 }

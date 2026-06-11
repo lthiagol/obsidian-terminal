@@ -213,3 +213,82 @@ func splitArrayItems(s string) []string {
 	}
 	return parts
 }
+
+// parseNestedMap parses a nested YAML map structure like:
+// profiles:
+//   work:
+//     path: /path/to/work
+//     theme: dark
+// Returns a map of profile name -> map of key -> value
+func parseNestedMap(data []byte, rootKey string) map[string]map[string]string {
+	text := string(data)
+	text = strings.ReplaceAll(text, "\r\n", "\n")
+	text = strings.ReplaceAll(text, "\r", "\n")
+
+	lines := strings.Split(text, "\n")
+	result := make(map[string]map[string]string)
+
+	// Find the root key
+	rootIdx := -1
+	rootIndent := 0
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		indent := len(line) - len(strings.TrimLeft(line, " \t"))
+		colonIdx := findKeyColon(trimmed)
+		if colonIdx >= 0 {
+			key := strings.TrimSpace(trimmed[:colonIdx])
+			if key == rootKey {
+				rootIdx = i
+				rootIndent = indent
+				break
+			}
+		}
+	}
+
+	if rootIdx < 0 {
+		return result
+	}
+
+	// Parse nested structure
+	currentProfile := ""
+	for i := rootIdx + 1; i < len(lines); i++ {
+		line := lines[i]
+		if strings.TrimSpace(line) == "" || strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
+		}
+
+		indent := len(line) - len(strings.TrimLeft(line, " \t"))
+		if indent <= rootIndent {
+			break
+		}
+
+		trimmed := strings.TrimSpace(line)
+		colonIdx := findKeyColon(trimmed)
+		if colonIdx < 0 {
+			continue
+		}
+
+		key := strings.TrimSpace(trimmed[:colonIdx])
+		value := strings.TrimSpace(trimmed[colonIdx+1:])
+		value = stripInlineComment(value)
+		value = stripQuotes(value)
+
+		// Check if this is a profile name (second level) or a property (third level)
+		profileIndent := rootIndent + 2
+		if indent == profileIndent && value == "" {
+			// This is a profile name
+			currentProfile = key
+			if _, exists := result[currentProfile]; !exists {
+				result[currentProfile] = make(map[string]string)
+			}
+		} else if indent > profileIndent && currentProfile != "" && value != "" {
+			// This is a property of the current profile
+			result[currentProfile][key] = value
+		}
+	}
+
+	return result
+}

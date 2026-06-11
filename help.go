@@ -41,6 +41,7 @@ func buildHelpLines() []string {
 				"← →      — collapse / expand folder",
 				"T        — browse tags",
 				"p        — pin/unpin note",
+				"P        — switch profile",
 				"Ctrl+[/] — cycle pinned notes",
 			},
 		},

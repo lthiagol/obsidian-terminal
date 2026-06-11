@@ -11,6 +11,7 @@ import (
 func main() {
 	vaultFlag := flag.String("vault", "", "path to Obsidian vault")
 	configPathFlag := flag.String("config", "", "path to config file")
+	profileFlag := flag.String("profile", "", "vault profile to use")
 	flag.Parse()
 
 	cfgPath := configPathOrDefault(*configPathFlag)
@@ -24,8 +25,47 @@ func main() {
 		cfg = DefaultConfig()
 	}
 
+	// Apply --vault flag (takes precedence)
 	if *vaultFlag != "" {
 		cfg.VaultPath = *vaultFlag
+	}
+
+	// Apply --profile flag
+	if *profileFlag != "" {
+		if cfg.Profiles == nil {
+			fmt.Fprintf(os.Stderr, "Error: no profiles defined in config\n")
+			os.Exit(1)
+		}
+		profile, ok := cfg.Profiles[*profileFlag]
+		if !ok {
+			fmt.Fprintf(os.Stderr, "Error: profile %q not found\n", *profileFlag)
+			os.Exit(1)
+		}
+		// Apply profile settings (vault flag takes precedence)
+		if *vaultFlag == "" && profile.Path != "" {
+			cfg.VaultPath = profile.Path
+		}
+		if profile.Theme != "" {
+			cfg.Theme = profile.Theme
+		}
+		if len(profile.SkipDirs) > 0 {
+			cfg.SkipDirs = profile.SkipDirs
+		}
+	}
+
+	// If no vault path but profiles exist, enter picker mode
+	if cfg.VaultPath == "" && len(cfg.Profiles) > 0 {
+		m := NewModel(cfg)
+		if m.err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", m.err)
+			os.Exit(1)
+		}
+		p := tea.NewProgram(m, tea.WithAltScreen(), tea.WithMouseCellMotion())
+		if _, err := p.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		return
 	}
 
 	if cfg.VaultPath == "" {

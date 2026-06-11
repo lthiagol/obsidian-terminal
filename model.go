@@ -40,6 +40,7 @@ const (
 	ModeFind
 	ModeHelp
 	ModeTags
+	ModeProfilePicker
 )
 
 func (m Mode) String() string {
@@ -56,6 +57,8 @@ func (m Mode) String() string {
 		return "HELP"
 	case ModeTags:
 		return "TAGS"
+	case ModeProfilePicker:
+		return "PROFILES"
 	default:
 		return "???"
 	}
@@ -115,6 +118,9 @@ type Model struct {
 	recentNotes   []string
 	recentVisible bool
 	recentCursor  int
+
+	profilePicker      ProfilePicker
+	pendingProfileName string
 }
 
 // NewModel creates a Model by scanning the vault at cfg.VaultPath.
@@ -137,6 +143,22 @@ func NewModel(cfg *Config) Model {
 		themeWarning = "Unknown theme " + themeName + " — using dark"
 	}
 	activatePalette(palette)
+
+	// If no vault path but profiles exist, enter picker mode
+	if cfg.VaultPath == "" && len(cfg.Profiles) > 0 {
+		m := Model{
+			mode:          ModeProfilePicker,
+			prevMode:      ModeProfilePicker,
+			config:        cfg,
+			keys:          keys,
+			palette:       palette,
+			profilePicker: NewProfilePicker(cfg.Profiles),
+		}
+		if themeWarning != "" {
+			m.addToast(themeWarning, ToastWarning)
+		}
+		return m
+	}
 
 	info, err := os.Stat(cfg.VaultPath)
 	if err != nil {
@@ -181,6 +203,7 @@ func NewModel(cfg *Config) Model {
 		scanErrors:      scanErrors,
 		palette:         palette,
 		activePinnedIdx: -1,
+		profilePicker:   NewProfilePicker(cfg.Profiles),
 	}
 	if themeWarning != "" {
 		m.addToast(themeWarning, ToastWarning)
@@ -221,6 +244,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			viewerWidth = 10
 		}
 		m.viewer.SetSize(viewerWidth, m.height-1)
+		m.profilePicker.SetSize(m.width, m.height)
 		if m.activeNote != nil {
 			m.viewer.SetContent(m.activeNote.Body, viewerWidth)
 		}
@@ -281,6 +305,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleHelpKey(msg)
 		case ModeTags:
 			return m.handleTagsKey(msg)
+		case ModeProfilePicker:
+			return m.handleProfilePickerKey(msg)
 		}
 	}
 
@@ -321,6 +347,8 @@ func (m Model) View() string {
 			rightPanel = m.renderHelp()
 		case ModeTags:
 			rightPanel = m.tagList.View()
+		case ModeProfilePicker:
+			rightPanel = m.profilePicker.View()
 		case ModeView:
 			if m.outlineVisible {
 				rightPanel = m.renderOutline()
