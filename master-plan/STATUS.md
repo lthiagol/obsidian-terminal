@@ -3,7 +3,7 @@
 **Last updated:** 2026-06-11
 **Language:** Go 1.24+
 **Framework:** Bubble Tea + Bubbles + Lipgloss
-**Dependencies:** bubbletea, lipgloss, gopkg.in/yaml.v3 (3 total)
+**Dependencies:** bubbletea, lipgloss (2 total)
 **Target:** Read-only TUI markdown viewer for Obsidian vaults
 
 ## Goals
@@ -24,7 +24,7 @@
 | Styling | Lipgloss |
 | Markdown | **Custom parser** — no glamour, full Obsidian flavor |
 | Config format | YAML (`~/.config/obsidian-terminal/config.yaml`) |
-| Frontmatter | gopkg.in/yaml.v3 |
+| Frontmatter | Custom mini YAML parser (no external dep) |
 | Vault path | Required (`--vault` flag or config file, no default) |
 | Keybindings | Both vim + arrow keys |
 | Wiki-links | Tab cycles, Enter follows |
@@ -56,7 +56,7 @@
 | M14: Code Organization & Package Structure | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M15: Polish & Complete Remaining Gaps | ✅ done | 3 | 2026-06-11 | 2026-06-11 |
 | M16a: Replace Viewport Dependency | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
-| M16b: Replace YAML Dependency | ⏳ pending | 0 | — | — |
+| M16b: Replace YAML Dependency | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M17: Performance (Profile-Driven) | ⏳ pending | 0 | — | — |
 | M18: Mouse Support | ⏳ pending | 0 | — | — |
 

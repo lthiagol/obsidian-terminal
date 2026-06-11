@@ -4,16 +4,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"gopkg.in/yaml.v3"
 )
 
 // Config holds user configuration loaded from YAML.
 type Config struct {
-	VaultPath   string   `yaml:"vault_path"`
-	Theme       string   `yaml:"theme"`
-	DefaultKeys string   `yaml:"default_keys"`
-	SkipDirs    []string `yaml:"skip_dirs"`
+	VaultPath   string
+	Theme       string
+	DefaultKeys string
+	SkipDirs    []string
 }
 
 // DefaultConfig returns a Config with sensible defaults.
@@ -36,11 +34,34 @@ func LoadConfig(path string) (*Config, error) {
 	}
 
 	cfg := DefaultConfig()
-	if err := yaml.Unmarshal(data, cfg); err != nil {
-		return nil, fmt.Errorf("parsing config: %w", err)
-	}
+	parseConfigYAML(data, cfg)
 
 	return cfg, nil
+}
+
+func parseConfigYAML(data []byte, cfg *Config) {
+	scanYAML(data, func(key, value string, items []string) {
+		switch key {
+		case "vault_path":
+			if value != "" {
+				cfg.VaultPath = value
+			}
+		case "theme":
+			if value != "" {
+				cfg.Theme = value
+			}
+		case "default_keys":
+			if value != "" {
+				cfg.DefaultKeys = value
+			}
+		case "skip_dirs":
+			if len(items) > 0 {
+				cfg.SkipDirs = items
+			} else if value != "" {
+				cfg.SkipDirs = []string{value}
+			}
+		}
+	})
 }
 
 func configPathOrDefault(explicit string) string {

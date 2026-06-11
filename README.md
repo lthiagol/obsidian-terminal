@@ -124,7 +124,6 @@ This TUI is read-only by design — no editing, no writing to the vault.
 |---------|---------|---------|
 | [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea) | v1.3.10 | TUI framework (Elm Architecture) |
 | [charmbracelet/lipgloss](https://github.com/charmbracelet/lipgloss) | v1.1.0 | Terminal styling and layout |
-| [go-yaml/yaml](https://gopkg.in/yaml.v3) | v3.0.1 | YAML config parsing |
 
 ## License
 

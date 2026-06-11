@@ -1,6 +1,6 @@
 # M16b — Replace YAML Dependency
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -164,13 +164,13 @@ If the custom parser fails on real-world YAML:
 
 ## Completion Criteria
 
-- [ ] Custom YAML parser in `yamlmini.go`
-- [ ] `config.go` uses custom parser, no yaml.v3 import
-- [ ] `vault.go` uses custom parser, no yaml.v3 import
-- [ ] All existing tests pass
-- [ ] New tests cover edge cases (quoted strings, arrays, comments)
-- [ ] `make test` passes
-- [ ] `make vet` exits 0
-- [ ] `go mod tidy` removes yaml.v3 dependency
-- [ ] Manual test: load config with all field types
-- [ ] Manual test: parse frontmatter with tags and aliases
+- [x] Custom YAML parser in `yamlmini.go`
+- [x] `config.go` uses custom parser, no yaml.v3 import
+- [x] `vault.go` uses custom parser, no yaml.v3 import
+- [x] All existing tests pass
+- [x] New tests cover edge cases (quoted strings, arrays, comments)
+- [x] `make test` passes
+- [x] `make vet` exits 0
+- [x] `go mod tidy` removes yaml.v3 dependency
+- [x] Manual test: load config with all field types
+- [x] Manual test: parse frontmatter with tags and aliases

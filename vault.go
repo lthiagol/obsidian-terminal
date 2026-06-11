@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"gopkg.in/yaml.v3"
 )
 
 // VaultEntry represents a file or directory in the vault tree.
@@ -31,9 +29,9 @@ type VaultNote struct {
 }
 
 type frontmatterData struct {
-	Title   string   `yaml:"title"`
-	Tags    []string `yaml:"tags"`
-	Aliases []string `yaml:"aliases"`
+	Title   string
+	Tags    []string
+	Aliases []string
 }
 
 // ScanVault walks the vault directory and builds the file tree and search index.
@@ -242,9 +240,26 @@ func parseFrontmatter(content string) (frontmatterData, string) {
 		return fm, content
 	}
 	yamlBlock := content[yamlStart:yamlEnd]
-	if err := yaml.Unmarshal([]byte(yamlBlock), &fm); err != nil {
-		return frontmatterData{Title: fm.Title}, content
-	}
+
+	scanYAML([]byte(yamlBlock), func(key, value string, items []string) {
+		switch key {
+		case "title":
+			fm.Title = value
+		case "tags":
+			if len(items) > 0 {
+				fm.Tags = items
+			} else if value != "" {
+				fm.Tags = []string{value}
+			}
+		case "aliases":
+			if len(items) > 0 {
+				fm.Aliases = items
+			} else if value != "" {
+				fm.Aliases = []string{value}
+			}
+		}
+	})
+
 	return fm, content[yamlEnd+5:]
 }
 
