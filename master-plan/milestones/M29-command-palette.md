@@ -1,6 +1,6 @@
 # M29 — Command Palette
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 

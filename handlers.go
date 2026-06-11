@@ -313,6 +313,37 @@ func (m *Model) enterTagsMode() {
 	m.tagList = NewTagList(m.tagIndex)
 }
 
+func (m Model) handleCommandPaletteKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch {
+	case msg.Type == tea.KeyEsc:
+		m.commandPaletteVisible = false
+		return m, nil
+	case msg.Type == tea.KeyBackspace:
+		if len(m.commandPaletteQuery) > 0 {
+			m.commandPaletteQuery = m.commandPaletteQuery[:len(m.commandPaletteQuery)-1]
+			m.commandPaletteSearch()
+		}
+		return m, nil
+	case msg.Type == tea.KeyRunes && len(msg.Runes) > 0:
+		m.commandPaletteQuery += string(msg.Runes)
+		m.commandPaletteSearch()
+		return m, nil
+	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+		if m.commandPaletteCursor < len(m.commandPaletteResults)-1 {
+			m.commandPaletteCursor++
+		}
+		return m, nil
+	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+		if m.commandPaletteCursor > 0 {
+			m.commandPaletteCursor--
+		}
+		return m, nil
+	case msg.Type == tea.KeyEnter:
+		return m.executeCommand(m.commandPaletteCursor)
+	}
+	return m, nil
+}
+
 func (m Model) handleOutlineKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
 	case msg.Type == tea.KeyEsc || MatchRune(msg, m.keys.Outline):

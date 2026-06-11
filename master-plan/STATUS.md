@@ -95,7 +95,7 @@
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M29: Command Palette | ⏳ pending | 0 | — | — |
+| M29: Command Palette | ✅ done | 6 | 2026-06-11 | 2026-06-11 |
 
 ### Phase 7: Future (Low Priority)
 

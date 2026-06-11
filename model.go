@@ -121,6 +121,11 @@ type Model struct {
 
 	profilePicker      ProfilePicker
 	pendingProfileName string
+
+	commandPaletteVisible bool
+	commandPaletteQuery   string
+	commandPaletteCursor  int
+	commandPaletteResults []Command
 }
 
 // NewModel creates a Model by scanning the vault at cfg.VaultPath.
@@ -290,11 +295,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlO:
 			m.toggleRecents()
 			return m, nil
+		case tea.KeyCtrlK:
+			m.openCommandPalette()
+			return m, nil
 		}
 
 		if MatchRune(msg, m.keys.QuitRune) || MatchRune(msg, 'Q') {
 			m.quitting = true
 			return m, tea.Quit
+		}
+
+		if m.commandPaletteVisible {
+			return m.handleCommandPaletteKey(msg)
 		}
 
 		if m.recentVisible {
@@ -348,7 +360,9 @@ func (m Model) View() string {
 	}
 
 	var rightPanel string
-	if m.recentVisible {
+	if m.commandPaletteVisible {
+		rightPanel = m.renderCommandPalette()
+	} else if m.recentVisible {
 		rightPanel = m.renderRecents()
 	} else {
 		switch m.mode {

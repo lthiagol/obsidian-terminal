@@ -75,6 +75,7 @@ func buildHelpLines() []string {
 				"q      — quit",
 				"Ctrl+D — open daily note",
 				"Ctrl+O — recent notes",
+				"Ctrl+K — command palette",
 				"Ctrl+R — rescan vault",
 			},
 		},
