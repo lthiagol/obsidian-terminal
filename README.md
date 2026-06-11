@@ -15,11 +15,19 @@ A terminal-based TUI for browsing and reading [Obsidian](https://obsidian.md) va
 
 ## Installation
 
+### Homebrew (macOS / Linux)
+
+```bash
+brew install lthiagol/tap/obsidian-terminal
+```
+
+### Go install
+
 ```bash
 go install github.com/lthiagol/obsidian-terminal@latest
 ```
 
-Or build from source:
+### Build from source
 
 ```bash
 git clone https://github.com/lthiagol/obsidian-terminal.git
