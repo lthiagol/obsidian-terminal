@@ -1,0 +1,3 @@
+# Test gitignore — should be skipped by scanner
+.obsidian/workspace.json
+*.tmp
