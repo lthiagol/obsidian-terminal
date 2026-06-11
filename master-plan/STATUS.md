@@ -89,7 +89,7 @@
 |-----------|--------|-------|---------|-----------|
 | M23: Embedded Block Embeds | ⏳ pending | 0 | — | — |
 | M27: Checkboxes + Frontmatter Display | ✅ done | 8 | 2026-06-11 | 2026-06-11 |
-| M28: Markdown Tables | ⏳ pending | 0 | — | — |
+| M28: Markdown Tables | ✅ done | 6 | 2026-06-11 | 2026-06-11 |
 
 ### Phase 6: UX Polish
 

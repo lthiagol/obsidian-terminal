@@ -19,6 +19,16 @@ const (
 	BlockCallout
 	BlockHorizontalRule
 	BlockEmpty
+	BlockTable
+)
+
+// TableAlignment specifies cell text alignment.
+type TableAlignment int
+
+const (
+	AlignLeft TableAlignment = iota
+	AlignCenter
+	AlignRight
 )
 
 // InlineSegment represents a styled span of inline text.
@@ -45,6 +55,8 @@ type MarkdownLine struct {
 	RawContent   string
 	Checkable    bool
 	Checked      bool
+	TableCells   []string
+	TableAlign   []TableAlignment
 }
 
 // WikiLink represents an Obsidian [[wiki-link]].
@@ -88,7 +100,9 @@ func ParseMarkdown(content string) []MarkdownLine {
 	var codeLang string
 	var codeLines []string
 
-	for _, line := range lines {
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+
 		if inCodeBlock {
 			if isCodeFence(line) {
 				result = append(result, MarkdownLine{
@@ -116,6 +130,29 @@ func ParseMarkdown(content string) []MarkdownLine {
 
 		if trimmed == "" {
 			result = append(result, MarkdownLine{BlockType: BlockEmpty})
+			continue
+		}
+
+		if isTableLine(trimmed) && i+1 < len(lines) && isTableSeparator(lines[i+1]) {
+			headerCells := parseTableRow(trimmed)
+			aligns := parseTableAlignment(lines[i+1])
+			i++
+
+			result = append(result, MarkdownLine{
+				BlockType:  BlockTable,
+				TableCells: headerCells,
+				TableAlign: aligns,
+			})
+
+			for i+1 < len(lines) && isTableLine(strings.TrimSpace(lines[i+1])) {
+				i++
+				dataCells := parseTableRow(strings.TrimSpace(lines[i]))
+				result = append(result, MarkdownLine{
+					BlockType:  BlockTable,
+					TableCells: dataCells,
+					TableAlign: aligns,
+				})
+			}
 			continue
 		}
 
@@ -198,6 +235,56 @@ func ParseMarkdown(content string) []MarkdownLine {
 	}
 
 	return result
+}
+
+func isTableLine(line string) bool {
+	return strings.HasPrefix(line, "|")
+}
+
+func isTableSeparator(line string) bool {
+	t := strings.TrimSpace(line)
+	if !strings.HasPrefix(t, "|") {
+		return false
+	}
+	for _, c := range t {
+		if c != '|' && c != '-' && c != ':' && c != ' ' {
+			return false
+		}
+	}
+	return strings.Contains(t, "-")
+}
+
+func parseTableRow(line string) []string {
+	t := strings.TrimSpace(line)
+	t = strings.ReplaceAll(t, `\|`, "\x00")
+	t = strings.TrimLeft(t, "|")
+	t = strings.TrimRight(t, "|")
+	cells := strings.Split(t, "|")
+	for i, cell := range cells {
+		cells[i] = strings.ReplaceAll(strings.TrimSpace(cell), "\x00", "|")
+	}
+	return cells
+}
+
+func parseTableAlignment(line string) []TableAlignment {
+	t := strings.TrimSpace(line)
+	t = strings.TrimLeft(t, "|")
+	t = strings.TrimRight(t, "|")
+	parts := strings.Split(t, "|")
+	var aligns []TableAlignment
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		left := strings.HasPrefix(p, ":")
+		right := strings.HasSuffix(p, ":")
+		if left && right {
+			aligns = append(aligns, AlignCenter)
+		} else if right {
+			aligns = append(aligns, AlignRight)
+		} else {
+			aligns = append(aligns, AlignLeft)
+		}
+	}
+	return aligns
 }
 
 func isCodeFence(line string) bool {
@@ -533,8 +620,24 @@ func RenderMarkdown(lines []MarkdownLine, width int, style RendererStyle) string
 	}
 
 	var sb strings.Builder
-	for _, line := range lines {
-		rendered := renderLine(line, width, style)
+	for i := 0; i < len(lines); i++ {
+		if lines[i].BlockType == BlockTable {
+			tableLines := []MarkdownLine{lines[i]}
+			for i+1 < len(lines) && lines[i+1].BlockType == BlockTable {
+				i++
+				tableLines = append(tableLines, lines[i])
+			}
+			rendered := renderTableBlock(tableLines, width, style)
+			if rendered != "" {
+				if sb.Len() > 0 {
+					sb.WriteString("\n")
+				}
+				sb.WriteString(rendered)
+			}
+			continue
+		}
+
+		rendered := renderLine(lines[i], width, style)
 		if rendered != "" {
 			if sb.Len() > 0 {
 				sb.WriteString("\n")
@@ -559,6 +662,8 @@ func renderLine(line MarkdownLine, width int, style RendererStyle) string {
 		return renderCallout(line, width, style)
 	case BlockHorizontalRule:
 		return renderHorizontalRule(width, style)
+	case BlockTable:
+		return "" // handled by renderTableBlock
 	case BlockEmpty:
 		return ""
 	default:
@@ -682,6 +787,137 @@ func renderCallout(line MarkdownLine, width int, style RendererStyle) string {
 		body = line.Segments[0].Text
 	}
 	return icon + " " + typeStyle.Render(line.CalloutType) + " " + bodyStyle.Render(body)
+}
+
+func renderTableBlock(lines []MarkdownLine, width int, style RendererStyle) string {
+	if len(lines) == 0 || len(lines[0].TableCells) == 0 {
+		return ""
+	}
+
+	colCount := len(lines[0].TableCells)
+	colWidths := make([]int, colCount)
+
+	for _, line := range lines {
+		for j, cell := range line.TableCells {
+			if j < colCount {
+				w := len([]rune(cell))
+				if w > colWidths[j] {
+					colWidths[j] = w
+				}
+			}
+		}
+	}
+
+	minColWidth := 3
+	total := 0
+	for _, w := range colWidths {
+		if w < minColWidth {
+			w = minColWidth
+		}
+		total += w + 3
+	}
+
+	if total > width {
+		scale := float64(width) / float64(total)
+		for j := range colWidths {
+			if colWidths[j] < minColWidth {
+				colWidths[j] = minColWidth
+			}
+			colWidths[j] = max(int(float64(colWidths[j])*scale), minColWidth)
+		}
+	}
+
+	var sb strings.Builder
+	separatorStyle := lipgloss.NewStyle().Foreground(style.TextDim)
+	headerStyle := lipgloss.NewStyle().Foreground(style.Accent).Bold(true)
+	cellStyle := lipgloss.NewStyle().Foreground(style.TextSecondary)
+
+	topBorder := buildTableBorder(separatorStyle, colWidths, "┌", "┬", "┐")
+	sb.WriteString(topBorder)
+
+	header := buildTableRow(headerStyle, colWidths, lines[0].TableCells, lines[0].TableAlign)
+	sb.WriteString("\n")
+	sb.WriteString(header)
+
+	middleBorder := buildTableBorder(separatorStyle, colWidths, "├", "┼", "┤")
+	sb.WriteString("\n")
+	sb.WriteString(middleBorder)
+
+	for _, line := range lines[1:] {
+		row := buildTableRow(cellStyle, colWidths, line.TableCells, line.TableAlign)
+		sb.WriteString("\n")
+		sb.WriteString(row)
+	}
+
+	bottomBorder := buildTableBorder(separatorStyle, colWidths, "└", "┴", "┘")
+	sb.WriteString("\n")
+	sb.WriteString(bottomBorder)
+
+	return sb.String()
+}
+
+func buildTableBorder(style lipgloss.Style, colWidths []int, left, mid, right string) string {
+	var sb strings.Builder
+	sb.WriteString(style.Render(left))
+	for j, w := range colWidths {
+		sb.WriteString(style.Render(strings.Repeat("─", w+2)))
+		if j < len(colWidths)-1 {
+			sb.WriteString(style.Render(mid))
+		}
+	}
+	sb.WriteString(style.Render(right))
+	return sb.String()
+}
+
+func buildTableRow(style lipgloss.Style, colWidths []int, cells []string, aligns []TableAlignment) string {
+	var sb strings.Builder
+	sb.WriteString("│")
+	for j, w := range colWidths {
+		cell := ""
+		if j < len(cells) {
+			cell = cells[j]
+		}
+		padded := padCell(cell, w)
+		if j < len(aligns) && aligns[j] == AlignCenter {
+			padded = padCellCenter(cell, w)
+		} else if j < len(aligns) && aligns[j] == AlignRight {
+			padded = padCellRight(cell, w)
+		}
+		sb.WriteString(" ")
+		sb.WriteString(style.Render(padded))
+		sb.WriteString(" ")
+		if j < len(colWidths)-1 {
+			sb.WriteString("│")
+		}
+	}
+	sb.WriteString("│")
+	return sb.String()
+}
+
+func padCell(s string, width int) string {
+	runes := []rune(s)
+	if len(runes) > width {
+		return string(runes[:width])
+	}
+	return s + strings.Repeat(" ", width-len(runes))
+}
+
+func padCellCenter(s string, width int) string {
+	runes := []rune(s)
+	if len(runes) > width {
+		return string(runes[:width])
+	}
+	left := (width - len(runes)) / 2
+	right := width - len(runes) - left
+	return strings.Repeat(" ", left) + s + strings.Repeat(" ", right)
+}
+
+func padCellRight(s string, width int) string {
+	runes := []rune(s)
+	if len(runes) > width {
+		return string(runes[:width])
+	}
+	return strings.Repeat(" ", width-len(runes)) + s
 }
 
 func renderHorizontalRule(width int, style RendererStyle) string {

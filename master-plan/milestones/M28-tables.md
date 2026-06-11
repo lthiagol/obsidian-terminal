@@ -1,6 +1,6 @@
 # M28 — Markdown Tables
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
