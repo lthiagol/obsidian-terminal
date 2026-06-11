@@ -63,6 +63,17 @@ type RendererStyle struct {
 	Heading1        lipgloss.Color
 }
 
+var (
+	calloutTypeRe     = regexp.MustCompile(`\[!(\w+)\]`)
+	stripCalloutRe    = regexp.MustCompile(`\[!\w+\][+-]?\s*`)
+	listItemMarkerRe  = regexp.MustCompile(`^[\-\*\+]\s`)
+	listItemOrderedRe = regexp.MustCompile(`^\d+\.\s`)
+	listItemParseRe   = regexp.MustCompile(`^([\-\*\+]|\d+\.)\s+`)
+	commentStripRe    = regexp.MustCompile(`%%.*?%%`)
+	visibleLenRe      = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+	inlineSpecialRe   = regexp.MustCompile(`\x60|\*\*|__|\*|_|~~|\[\[|==`)
+)
+
 // ParseMarkdown parses markdown content into structured lines.
 func ParseMarkdown(content string) []MarkdownLine {
 	content = StripFrontmatter(content)
@@ -230,8 +241,7 @@ func isCalloutStart(line string) bool {
 }
 
 func extractCalloutType(line string) string {
-	re := regexp.MustCompile(`\[!(\w+)\]`)
-	matches := re.FindStringSubmatch(line)
+	matches := calloutTypeRe.FindStringSubmatch(line)
 	if len(matches) >= 2 {
 		return strings.ToLower(matches[1])
 	}
@@ -242,8 +252,7 @@ func stripBlockquote(line string) string {
 	t := strings.TrimLeft(line, " ")
 	t = strings.TrimPrefix(t, ">")
 	t = strings.TrimPrefix(t, " ")
-	re := regexp.MustCompile(`\[!\w+\][+-]?\s*`)
-	t = re.ReplaceAllString(t, "")
+	t = stripCalloutRe.ReplaceAllString(t, "")
 	return strings.TrimLeft(t, " ")
 }
 
@@ -268,8 +277,8 @@ func blockquoteIndent(line string) int {
 
 func isListItem(line string) bool {
 	t := strings.TrimLeft(line, " ")
-	return regexp.MustCompile(`^[\-\*\+]\s`).MatchString(strings.TrimLeft(t, " ")) ||
-		regexp.MustCompile(`^\d+\.\s`).MatchString(strings.TrimLeft(t, " "))
+	return listItemMarkerRe.MatchString(strings.TrimLeft(t, " ")) ||
+		listItemOrderedRe.MatchString(strings.TrimLeft(t, " "))
 }
 
 func parseListItem(line string) (int, string, string) {
@@ -282,8 +291,7 @@ func parseListItem(line string) (int, string, string) {
 		}
 	}
 	t := strings.TrimLeft(line, " ")
-	re := regexp.MustCompile(`^([\-\*\+]|\d+\.)\s+`)
-	loc := re.FindStringIndex(t)
+	loc := listItemParseRe.FindStringIndex(t)
 	if loc != nil {
 		marker := t[loc[0]:loc[1]]
 		text := t[loc[1]:]
@@ -422,15 +430,11 @@ func parseSegments(text string, segments *[]InlineSegment) {
 }
 
 func findNextSpecial(text string) int {
-	delims := []string{"[[", "***", "___", "**", "__", "*", "_", "`", "~~", "=="}
-	earliest := -1
-	for _, d := range delims {
-		i := strings.Index(text, d)
-		if i >= 0 && (earliest == -1 || i < earliest) {
-			earliest = i
-		}
+	loc := inlineSpecialRe.FindStringIndex(text)
+	if loc == nil {
+		return -1
 	}
-	return earliest
+	return loc[0]
 }
 
 func mergeSegments(segments []InlineSegment) []InlineSegment {
@@ -479,8 +483,7 @@ func StripFrontmatter(content string) string {
 }
 
 func stripComments(content string) string {
-	re := regexp.MustCompile(`%%.*?%%`)
-	return re.ReplaceAllString(content, "")
+	return commentStripRe.ReplaceAllString(content, "")
 }
 
 // ExtractWikiLinks extracts unique wiki-links from parsed markdown.
@@ -724,7 +727,6 @@ func wrapText(text string, width int) string {
 }
 
 func visibleLen(s string) int {
-	re := regexp.MustCompile(`\x1b\[[0-9;]*m`)
-	clean := re.ReplaceAllString(s, "")
+	clean := visibleLenRe.ReplaceAllString(s, "")
 	return len([]rune(clean))
 }

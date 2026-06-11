@@ -1,6 +1,7 @@
 package main
 
 import (
+	"slices"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -73,7 +74,7 @@ func (ft *FileTree) expand() {
 	childItems := flattenChildren(item.entry.Children, item.depth+depthIncrement)
 
 	pos := ft.cursor + 1
-	ft.items = append(ft.items[:pos], append(childItems, ft.items[pos:]...)...)
+	ft.items = slices.Insert(ft.items, pos, childItems...)
 }
 
 func (ft *FileTree) collapse() {

@@ -242,28 +242,38 @@ func ContentSearch(query string, index map[string]string) []Result {
 	var results []Result
 
 	for path, content := range index {
-		contentLower := strings.ToLower(content)
-		if strings.Contains(contentLower, queryLower) {
-			lines := strings.Split(content, "\n")
-			for lineNum, line := range lines {
-				if strings.Contains(strings.ToLower(line), queryLower) {
-					trimmed := strings.TrimSpace(line)
-					if len(trimmed) > 80 {
-						trimmed = trimmed[:80] + "..."
-					}
-					results = append(results, Result{
-						Path:    path,
-						Context: trimmed,
-						LineNum: lineNum + 1,
-					})
-					if len(results) >= 100 {
-						break
-					}
+		lowerContent := strings.ToLower(content)
+		if !strings.Contains(lowerContent, queryLower) {
+			continue
+		}
+
+		remaining := content
+		lineNum := 0
+		for remaining != "" {
+			var line string
+			if idx := strings.Index(remaining, "\n"); idx >= 0 {
+				line = remaining[:idx]
+				remaining = remaining[idx+1:]
+			} else {
+				line = remaining
+				remaining = ""
+			}
+			lineNum++
+
+			if strings.Contains(strings.ToLower(line), queryLower) {
+				trimmed := strings.TrimSpace(line)
+				if len(trimmed) > 80 {
+					trimmed = trimmed[:80] + "..."
+				}
+				results = append(results, Result{
+					Path:    path,
+					Context: trimmed,
+					LineNum: lineNum,
+				})
+				if len(results) >= 100 {
+					return results
 				}
 			}
-		}
-		if len(results) >= 100 {
-			break
 		}
 	}
 
