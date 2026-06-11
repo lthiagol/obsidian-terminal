@@ -8,6 +8,7 @@ import (
 	"github.com/lthiagol/obsidian-terminal/internal/markdown"
 )
 
+// MarkdownViewer renders and navigates markdown content.
 type MarkdownViewer struct {
 	viewport     viewport.Model
 	rawMarkdown  string
@@ -16,6 +17,7 @@ type MarkdownViewer struct {
 	renderStyle  markdown.RendererStyle
 }
 
+// NewViewer creates a MarkdownViewer with the given renderer style.
 func NewViewer(style markdown.RendererStyle) MarkdownViewer {
 	vp := viewport.New(80, 20)
 	return MarkdownViewer{

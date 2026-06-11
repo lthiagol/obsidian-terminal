@@ -11,6 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// VaultEntry represents a file or directory in the vault tree.
 type VaultEntry struct {
 	Name      string
 	Path      string
@@ -19,6 +20,7 @@ type VaultEntry struct {
 	Children  []*VaultEntry
 }
 
+// VaultNote represents a parsed markdown note with frontmatter.
 type VaultNote struct {
 	Path    string
 	Title   string
@@ -34,6 +36,7 @@ type frontmatterData struct {
 	Aliases []string `yaml:"aliases"`
 }
 
+// ScanVault walks the vault directory and builds the file tree and search index.
 func ScanVault(root string, skipDirs []string) (*VaultEntry, map[string]string, []string, error) {
 	skipSet := make(map[string]bool)
 	for _, d := range skipDirs {
@@ -168,6 +171,7 @@ func sortVaultEntries(entries []*VaultEntry) {
 	}
 }
 
+// LoadNote reads a markdown file and parses its frontmatter and body.
 func LoadNote(vaultRoot, relativePath string) (*VaultNote, error) {
 	fullPath := filepath.Join(vaultRoot, relativePath)
 

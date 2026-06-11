@@ -1,0 +1,79 @@
+package main
+
+import (
+	"strings"
+	"time"
+
+	"github.com/charmbracelet/lipgloss"
+)
+
+// ToastType classifies the severity of a toast notification.
+type ToastType int
+
+const (
+	ToastInfo ToastType = iota
+	ToastSuccess
+	ToastWarning
+	ToastError
+)
+
+// Toast represents a temporary status bar notification.
+type Toast struct {
+	Message string
+	Type    ToastType
+	TTL     time.Duration
+	Created time.Time
+}
+
+func (m *Model) addToast(message string, t ToastType) {
+	m.toasts = append(m.toasts, Toast{
+		Message: message,
+		Type:    t,
+		TTL:     3 * time.Second,
+		Created: time.Now(),
+	})
+}
+
+func (m *Model) expireToasts() {
+	var active []Toast
+	for _, toast := range m.toasts {
+		if time.Since(toast.Created) < toast.TTL {
+			active = append(active, toast)
+		}
+	}
+	m.toasts = active
+}
+
+func (m Model) renderToasts() string {
+	var lines []string
+	for _, toast := range m.toasts {
+		lines = append(lines, renderToast(toast, m.width))
+	}
+	return strings.Join(lines, "\n")
+}
+
+func renderToast(toast Toast, width int) string {
+	var icon string
+	var borderColor lipgloss.Color
+	switch toast.Type {
+	case ToastInfo:
+		icon = "i"
+		borderColor = Info
+	case ToastSuccess:
+		icon = "v"
+		borderColor = Success
+	case ToastWarning:
+		icon = "!"
+		borderColor = Warning
+	case ToastError:
+		icon = "x"
+		borderColor = Error
+	}
+
+	iconStyle := lipgloss.NewStyle().Foreground(borderColor).Bold(true)
+	msgStyle := lipgloss.NewStyle().Foreground(TextSecondary)
+	borderStyle := lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, false, true).BorderForeground(borderColor)
+
+	content := iconStyle.Render(" " + icon + " ") + msgStyle.Render(toast.Message)
+	return borderStyle.Width(width).Padding(0, 1).Render(content)
+}

@@ -13,6 +13,7 @@ type treeItem struct {
 	depth    int
 }
 
+// FileTree is a navigable file tree widget for the vault.
 type FileTree struct {
 	items  []treeItem
 	cursor int
@@ -21,6 +22,7 @@ type FileTree struct {
 	height int
 }
 
+// NewFileTree creates a FileTree from a vault entry tree.
 func NewFileTree(vault *VaultEntry) FileTree {
 	ft := FileTree{
 		vault:  vault,
@@ -102,28 +104,28 @@ func flattenChildren(children []*VaultEntry, depth int) []treeItem {
 	return items
 }
 
-func (ft FileTree) Update(msg tea.Msg) (FileTree, tea.Cmd) {
+func (ft *FileTree) Update(msg tea.Msg) (FileTree, tea.Cmd) {
 	keyMsg, ok := msg.(tea.KeyMsg)
 	if !ok {
-		return ft, nil
+		return *ft, nil
 	}
 
 	switch {
-	case MatchKey(keyMsg, ft.keys().Up) || MatchRune(keyMsg, ft.keysRunes().UpRune):
+	case MatchKey(keyMsg, ft.keys().Up) || MatchRune(keyMsg, ft.keys().UpRune):
 		if ft.cursor > 0 {
 			ft.cursor--
 		}
-	case MatchKey(keyMsg, ft.keys().Down) || MatchRune(keyMsg, ft.keysRunes().DownRune):
+	case MatchKey(keyMsg, ft.keys().Down) || MatchRune(keyMsg, ft.keys().DownRune):
 		if ft.cursor < len(ft.items)-1 {
 			ft.cursor++
 		}
-	case MatchKey(keyMsg, ft.keys().Right) || MatchRune(keyMsg, ft.keysRunes().RightRune):
+	case MatchKey(keyMsg, ft.keys().Right) || MatchRune(keyMsg, ft.keys().RightRune):
 		ft.expand()
-	case MatchKey(keyMsg, ft.keys().Left) || MatchRune(keyMsg, ft.keysRunes().LeftRune):
+	case MatchKey(keyMsg, ft.keys().Left) || MatchRune(keyMsg, ft.keys().LeftRune):
 		ft.collapse()
-	case MatchRune(keyMsg, ft.keysRunes().TopRune):
+	case MatchRune(keyMsg, ft.keys().TopRune):
 		ft.cursor = 0
-	case MatchRune(keyMsg, ft.keysRunes().BottomRune):
+	case MatchRune(keyMsg, ft.keys().BottomRune):
 		if len(ft.items) > 0 {
 			ft.cursor = len(ft.items) - 1
 		}
@@ -131,14 +133,10 @@ func (ft FileTree) Update(msg tea.Msg) (FileTree, tea.Cmd) {
 		ft.toggleExpand()
 	}
 
-	return ft, nil
+	return *ft, nil
 }
 
 func (ft FileTree) keys() KeyMap {
-	return DefaultKeys()
-}
-
-func (ft FileTree) keysRunes() KeyMap {
 	return DefaultKeys()
 }
 

@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// ResolveWikiLink resolves a [[wiki-link]] target to a vault file path.
 func ResolveWikiLink(target string, vault *VaultEntry, vaultRoot string) string {
 	if target == "" {
 		return ""

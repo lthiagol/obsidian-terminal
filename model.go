@@ -11,8 +11,10 @@ import (
 	"github.com/lthiagol/obsidian-terminal/internal/search"
 )
 
+// TickMsg is sent every second by the timer to check for vault changes.
 type TickMsg struct{}
 
+// Mode represents the current TUI mode.
 type Mode int
 
 const (
@@ -40,22 +42,7 @@ func (m Mode) String() string {
 	}
 }
 
-type ToastType int
-
-const (
-	ToastInfo ToastType = iota
-	ToastSuccess
-	ToastWarning
-	ToastError
-)
-
-type Toast struct {
-	Message string
-	Type    ToastType
-	TTL     time.Duration
-	Created time.Time
-}
-
+// Model is the top-level Bubble Tea model for the TUI.
 type Model struct {
 	mode     Mode
 	prevMode Mode
@@ -89,6 +76,7 @@ type Model struct {
 	toasts          []Toast
 }
 
+// NewModel creates a Model by scanning the vault at cfg.VaultPath.
 func NewModel(cfg *Config) Model {
 	keys := DefaultKeys()
 
@@ -139,10 +127,6 @@ func NewModel(cfg *Config) Model {
 }
 
 func (m Model) Init() tea.Cmd {
-	info, err := os.Stat(m.config.VaultPath)
-	if err == nil {
-		m.lastRootModTime = info.ModTime()
-	}
 	return tea.Batch(
 		tea.SetWindowTitle("obsidian-terminal"),
 		tea.EnterAltScreen,
@@ -212,211 +196,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) handleBrowseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch {
-	case MatchRune(msg, m.keys.Search):
-		m.prevMode = m.mode
-		m.mode = ModeSearch
-		m.searchState = search.NewState(search.Name, m.allPaths, m.searchIndex)
-		return m, nil
-	case MatchRune(msg, m.keys.Find):
-		m.prevMode = m.mode
-		m.mode = ModeFind
-		m.searchState = search.NewState(search.Content, m.allPaths, m.searchIndex)
-		return m, nil
-	case MatchRune(msg, m.keys.Help):
-		m.prevMode = m.mode
-		m.mode = ModeHelp
-		m.helpScroll = 0
-		return m, nil
-	case msg.Type == tea.KeyEnter:
-		entry := m.fileTree.SelectedEntry()
-		if entry != nil {
-			if entry.IsDir {
-				m.fileTree.toggleExpand()
-			} else {
-				note, err := LoadNote(m.config.VaultPath, entry.Path)
-				if err == nil {
-					m.activeNote = note
-					m.prevMode = m.mode
-					m.mode = ModeView
-					m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
-				}
-			}
-		}
-		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
-		m.fileTree.MoveDown()
-		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
-		m.fileTree.MoveUp()
-		return m, nil
-	case MatchKey(msg, m.keys.Left) || MatchRune(msg, m.keys.LeftRune):
-		m.fileTree.collapse()
-		return m, nil
-	case MatchKey(msg, m.keys.Right) || MatchRune(msg, m.keys.RightRune):
-		m.fileTree.expand()
-		return m, nil
-	case MatchRune(msg, m.keys.TopRune):
-		m.fileTree.cursor = 0
-		return m, nil
-	case MatchRune(msg, m.keys.BottomRune):
-		if len(m.fileTree.items) > 0 {
-			m.fileTree.cursor = len(m.fileTree.items) - 1
-		}
-		return m, nil
-	}
-	return m, nil
-}
-
-func (m Model) handleViewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch {
-	case msg.Type == tea.KeyEsc:
-		m.mode = m.prevMode
-		m.activeNote = nil
-		return m, nil
-	case MatchRune(msg, m.keys.Search):
-		m.prevMode = m.mode
-		m.mode = ModeSearch
-		m.searchState = search.NewState(search.Name, m.allPaths, m.searchIndex)
-		return m, nil
-	case MatchRune(msg, m.keys.Find):
-		m.prevMode = m.mode
-		m.mode = ModeFind
-		m.searchState = search.NewState(search.Content, m.allPaths, m.searchIndex)
-		return m, nil
-	case MatchRune(msg, m.keys.Help):
-		m.prevMode = m.mode
-		m.mode = ModeHelp
-		m.helpScroll = 0
-		return m, nil
-	case msg.Type == tea.KeyTab:
-		m.viewer.CycleLink()
-		return m, nil
-	case msg.Type == tea.KeyEnter:
-		if m.viewer.SelectedLinkIndex() >= 0 {
-			target := m.viewer.SelectedLinkPath()
-			if target != "" {
-				resolved := ResolveWikiLink(target, m.vault, m.config.VaultPath)
-				if resolved != "" {
-					note, err := LoadNote(m.config.VaultPath, resolved)
-					if err == nil {
-						m.activeNote = note
-						m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
-					}
-				}
-			}
-		}
-		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
-		m.viewer.ScrollDown(1)
-		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
-		m.viewer.ScrollUp(1)
-		return m, nil
-	case MatchRune(msg, m.keys.TopRune):
-		m.viewer.ScrollTop()
-		return m, nil
-	case MatchRune(msg, m.keys.BottomRune):
-		m.viewer.ScrollBottom()
-		return m, nil
-	case msg.Type == tea.KeyPgUp:
-		m.viewer.ScrollHalfPageUp()
-		return m, nil
-	case msg.Type == tea.KeyPgDown:
-		m.viewer.ScrollHalfPageDown()
-		return m, nil
-	}
-	return m, nil
-}
-
-func (m Model) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch {
-	case msg.Type == tea.KeyEsc:
-		m.mode = m.prevMode
-		return m, nil
-	case msg.Type == tea.KeyBackspace:
-		if len(m.searchState.Query()) > 0 {
-			m.searchState.SetQuery(m.searchState.Query()[:len(m.searchState.Query())-1])
-		}
-		return m, nil
-	case msg.Type == tea.KeyRunes && len(msg.Runes) > 0:
-		m.searchState.SetQuery(m.searchState.Query() + string(msg.Runes))
-		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
-		m.searchState.MoveDown()
-		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
-		m.searchState.MoveUp()
-		return m, nil
-	case msg.Type == tea.KeyEnter:
-		result := m.searchState.SelectedResult()
-		if result != nil {
-			note, err := LoadNote(m.config.VaultPath, result.Path)
-			if err == nil {
-				m.activeNote = note
-				m.prevMode = ModeBrowse
-				m.mode = ModeView
-				m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
-			}
-		}
-		return m, nil
-	}
-	return m, nil
-}
-
-func (m Model) handleFindKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch {
-	case msg.Type == tea.KeyEsc:
-		m.mode = m.prevMode
-		return m, nil
-	case msg.Type == tea.KeyBackspace:
-		if len(m.searchState.Query()) > 0 {
-			m.searchState.SetQuery(m.searchState.Query()[:len(m.searchState.Query())-1])
-		}
-		return m, nil
-	case msg.Type == tea.KeyRunes && len(msg.Runes) > 0:
-		m.searchState.SetQuery(m.searchState.Query() + string(msg.Runes))
-		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
-		m.searchState.MoveDown()
-		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
-		m.searchState.MoveUp()
-		return m, nil
-	case msg.Type == tea.KeyEnter:
-		result := m.searchState.SelectedResult()
-		if result != nil {
-			note, err := LoadNote(m.config.VaultPath, result.Path)
-			if err == nil {
-				m.activeNote = note
-				m.prevMode = ModeBrowse
-				m.mode = ModeView
-				m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
-			}
-		}
-		return m, nil
-	}
-	return m, nil
-}
-
-func (m Model) handleHelpKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch {
-	case msg.Type == tea.KeyEsc:
-		m.mode = m.prevMode
-		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
-		m.helpScroll++
-		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
-		if m.helpScroll > 0 {
-			m.helpScroll--
-		}
-		return m, nil
-	}
-	return m, nil
-}
-
 func (m Model) View() string {
 	if m.err != nil {
 		return fmt.Sprintf("Error: %v\n", m.err)
@@ -474,21 +253,6 @@ func (m Model) View() string {
 	return result
 }
 
-func (m Model) renderViewer() string {
-	if m.activeNote == nil {
-		if m.mode == ModeBrowse {
-			return "Select a file to view"
-		}
-		return ""
-	}
-
-	var sb strings.Builder
-	sb.WriteString(lipgloss.NewStyle().Bold(true).Foreground(Accent).Render(m.activeNote.Title))
-	sb.WriteString("\n\n")
-	sb.WriteString(truncateContent(m.activeNote.Body, m.height-5))
-	return sb.String()
-}
-
 func (m Model) renderSearch() string {
 	var sb strings.Builder
 	modeLabel := lipgloss.NewStyle().Bold(true).Foreground(AccentSecondary).Render("fuzzy")
@@ -505,164 +269,6 @@ func (m Model) renderFind() string {
 	sb.WriteString("\n\n")
 	sb.WriteString(search.RenderResults(m.searchState, m.width-m.treeWidth-6, m.searchStyle))
 	return sb.String()
-}
-
-func (m Model) renderHelp() string {
-	groups := []struct {
-		title  string
-		bindings []string
-	}{
-		{
-			title: "Navigation",
-			bindings: []string{
-				"j / ↓  — move down",
-				"k / ↑  — move up",
-				"h / ←  — collapse / back",
-				"l / →  — expand / forward",
-				"g       — jump to top",
-				"G       — jump to bottom",
-				"PgUp    — page up",
-				"PgDn    — page down",
-			},
-		},
-		{
-			title: "File Tree",
-			bindings: []string{
-				"Enter — open note / toggle folder",
-				"← →   — collapse / expand folder",
-			},
-		},
-		{
-			title: "Viewer",
-			bindings: []string{
-				"j / k  — scroll down / up",
-				"g / G  — top / bottom",
-				"Tab    — cycle wiki-links",
-				"Enter  — follow selected link",
-				"h / Esc — back to browse",
-			},
-		},
-		{
-			title: "Search",
-			bindings: []string{
-				"/  — fuzzy file name search",
-				"s  — full-text content search",
-				"Enter — open selected result",
-				"Esc   — cancel search",
-			},
-		},
-		{
-			title: "Global",
-			bindings: []string{
-				"?  — toggle this help",
-				"q  — quit",
-			},
-		},
-	}
-
-	lines := []string{
-		lipgloss.NewStyle().Bold(true).Foreground(Accent).Render("obsidian-terminal — Keybindings"),
-		"",
-	}
-
-	for _, g := range groups {
-		header := lipgloss.NewStyle().Bold(true).Foreground(Accent).Render(g.title)
-		lines = append(lines, header)
-		for _, b := range g.bindings {
-			parts := strings.SplitN(b, "—", 2)
-			key := lipgloss.NewStyle().Foreground(AccentSecondary).Render(strings.TrimSpace(parts[0]))
-			var desc string
-			if len(parts) > 1 {
-				desc = lipgloss.NewStyle().Foreground(TextSecondary).Render("—" + parts[1])
-			}
-			lines = append(lines, "  "+key+"  "+desc)
-		}
-		lines = append(lines, "")
-	}
-
-	if m.helpScroll > len(lines)-1 {
-		m.helpScroll = len(lines) - 1
-	}
-
-	start := m.helpScroll
-	end := start + (m.height - 5)
-	if end > len(lines) {
-		end = len(lines)
-	}
-	if start >= len(lines) {
-		start = 0
-	}
-
-	return strings.Join(lines[start:end], "\n")
-}
-
-func (m Model) renderStatusBar() string {
-	modeColor := ModeColors[m.mode]
-	modeBadge := lipgloss.NewStyle().
-		Background(modeColor).
-		Foreground(lipgloss.Color("#000000")).
-		Padding(0, 1).
-		Render(fmt.Sprintf(" %s ", m.mode.String()))
-
-	var info string
-	switch m.mode {
-	case ModeBrowse:
-		info = fmt.Sprintf("%d files", countFiles(m.vault))
-	case ModeView:
-		if m.activeNote != nil {
-			info = truncatePath(m.activeNote.Path, m.width-60)
-			if m.viewer.SelectedLinkIndex() >= 0 {
-				info += " → " + m.viewer.SelectedLinkPath()
-			}
-		}
-	case ModeSearch, ModeFind:
-		info = m.searchState.Query()
-	case ModeHelp:
-		info = "j/k scroll | Esc back"
-	}
-
-	midSection := lipgloss.NewStyle().Foreground(TextSecondary).Padding(0, 1).Render(info)
-
-	hints := modeHints(m.mode)
-	hintSection := lipgloss.NewStyle().Foreground(TextDim).Padding(0, 1).Render(hints)
-
-	modeWidth := lipgloss.Width(modeBadge)
-	midWidth := max(0, m.width-modeWidth-lipgloss.Width(hintSection)-4)
-
-	fullBar := lipgloss.JoinHorizontal(lipgloss.Center,
-		modeBadge,
-		lipgloss.NewStyle().Width(midWidth).Render(midSection),
-		hintSection,
-	)
-
-	return StatusStyle.Width(m.width).Render(fullBar)
-}
-
-func modeHints(mode Mode) string {
-	switch mode {
-	case ModeBrowse:
-		return "/ search | Enter open | ? help | q quit"
-	case ModeView:
-		return "h back | j/k scroll | Tab link | / search | ? help"
-	case ModeSearch:
-		return "type filter | Enter open | Esc cancel"
-	case ModeFind:
-		return "type search | Enter open | Esc cancel"
-	case ModeHelp:
-		return "j/k scroll | Esc back"
-	default:
-		return ""
-	}
-}
-
-func truncatePath(path string, maxLen int) string {
-	if maxLen < 5 {
-		return "..."
-	}
-	if len(path) <= maxLen {
-		return path
-	}
-	return ".../" + path[len(path)-maxLen+4:]
 }
 
 func (m *Model) checkVaultChanges() {
@@ -718,59 +324,6 @@ func (m *Model) rescanVault() {
 			m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
 		}
 	}
-}
-
-func (m *Model) addToast(message string, t ToastType) {
-	m.toasts = append(m.toasts, Toast{
-		Message: message,
-		Type:    t,
-		TTL:     3 * time.Second,
-		Created: time.Now(),
-	})
-}
-
-func (m *Model) expireToasts() {
-	var active []Toast
-	for _, toast := range m.toasts {
-		if time.Since(toast.Created) < toast.TTL {
-			active = append(active, toast)
-		}
-	}
-	m.toasts = active
-}
-
-func (m Model) renderToasts() string {
-	var lines []string
-	for _, toast := range m.toasts {
-		lines = append(lines, renderToast(toast, m.width))
-	}
-	return strings.Join(lines, "\n")
-}
-
-func renderToast(toast Toast, width int) string {
-	var icon string
-	var borderColor lipgloss.Color
-	switch toast.Type {
-	case ToastInfo:
-		icon = "i"
-		borderColor = Info
-	case ToastSuccess:
-		icon = "v"
-		borderColor = Success
-	case ToastWarning:
-		icon = "!"
-		borderColor = Warning
-	case ToastError:
-		icon = "x"
-		borderColor = Error
-	}
-
-	iconStyle := lipgloss.NewStyle().Foreground(borderColor).Bold(true)
-	msgStyle := lipgloss.NewStyle().Foreground(TextSecondary)
-	borderStyle := lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, false, true).BorderForeground(borderColor)
-
-	content := iconStyle.Render(" " + icon + " ") + msgStyle.Render(toast.Message)
-	return borderStyle.Width(width).Padding(0, 1).Render(content)
 }
 
 func countFiles(entry *VaultEntry) int {

@@ -8,6 +8,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Config holds user configuration loaded from YAML.
 type Config struct {
 	VaultPath   string   `yaml:"vault_path"`
 	Theme       string   `yaml:"theme"`
@@ -15,6 +16,7 @@ type Config struct {
 	SkipDirs    []string `yaml:"skip_dirs"`
 }
 
+// DefaultConfig returns a Config with sensible defaults.
 func DefaultConfig() *Config {
 	return &Config{
 		Theme:       "dark",
@@ -23,6 +25,7 @@ func DefaultConfig() *Config {
 	}
 }
 
+// LoadConfig reads and parses a YAML config file at path.
 func LoadConfig(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {

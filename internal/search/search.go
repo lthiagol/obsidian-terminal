@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Mode specifies the type of search (name or content).
 type Mode int
 
 const (
@@ -16,6 +17,7 @@ const (
 	Content
 )
 
+// Result represents a single search match.
 type Result struct {
 	Path    string
 	Score   float64
@@ -23,6 +25,7 @@ type Result struct {
 	LineNum int
 }
 
+// State holds the current state of a search session.
 type State struct {
 	mode        Mode
 	query       string
@@ -32,12 +35,14 @@ type State struct {
 	searchIndex map[string]string
 }
 
+// Style holds colors for search result rendering.
 type Style struct {
 	Accent        lipgloss.Color
 	TextSecondary lipgloss.Color
 	TextMuted     lipgloss.Color
 }
 
+// NewState creates a new search state with the given mode and data.
 func NewState(mode Mode, paths []string, index map[string]string) State {
 	s := State{
 		mode:        mode,
@@ -94,6 +99,7 @@ func (s State) SelectedResult() *Result {
 	return nil
 }
 
+// FuzzyScore computes a match score between query and target.
 func FuzzyScore(query, target string) float64 {
 	queryLower := strings.ToLower(query)
 	targetLower := strings.ToLower(target)
@@ -174,6 +180,7 @@ func isBoundary(r rune) bool {
 	return r == '/' || r == '-' || r == '_' || r == ' ' || r == '.'
 }
 
+// FuzzySearch performs fuzzy matching on file paths.
 func FuzzySearch(query string, paths []string) []Result {
 	if query == "" {
 		results := make([]Result, len(paths))
@@ -207,6 +214,7 @@ func FuzzySearch(query string, paths []string) []Result {
 	return results
 }
 
+// HighlightMatches highlights query characters in a path string.
 func HighlightMatches(query, path string) string {
 	if query == "" {
 		return path
@@ -228,6 +236,7 @@ func HighlightMatches(query, path string) string {
 	return result.String()
 }
 
+// ContentSearch performs full-text search across file contents.
 func ContentSearch(query string, index map[string]string) []Result {
 	queryLower := strings.ToLower(query)
 	var results []Result
@@ -265,6 +274,7 @@ func ContentSearch(query string, index map[string]string) []Result {
 	return results
 }
 
+// RenderResults renders search results for display in the TUI.
 func RenderResults(state State, width int, style Style) string {
 	if state.query == "" && state.mode == Name {
 		return renderFileList(state, width, style)

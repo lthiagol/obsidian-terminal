@@ -2,6 +2,7 @@ package main
 
 import tea "github.com/charmbracelet/bubbletea"
 
+// KeyMap holds vim-style and arrow key bindings.
 type KeyMap struct {
 	Up    []tea.KeyType
 	Down  []tea.KeyType
@@ -28,6 +29,7 @@ type KeyMap struct {
 	BottomRune rune
 }
 
+// MatchKey reports whether msg matches any of the given key types.
 func MatchKey(msg tea.KeyMsg, keys []tea.KeyType) bool {
 	for _, k := range keys {
 		if msg.Type == k {
@@ -37,6 +39,7 @@ func MatchKey(msg tea.KeyMsg, keys []tea.KeyType) bool {
 	return false
 }
 
+// MatchRune reports whether msg contains the given rune.
 func MatchRune(msg tea.KeyMsg, r rune) bool {
 	if msg.Type != tea.KeyRunes {
 		return false
@@ -49,6 +52,7 @@ func MatchRune(msg tea.KeyMsg, r rune) bool {
 	return false
 }
 
+// DefaultKeys returns the default vim+arrow key bindings.
 func DefaultKeys() KeyMap {
 	return KeyMap{
 		Up:         []tea.KeyType{tea.KeyUp},

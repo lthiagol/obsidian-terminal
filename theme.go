@@ -6,6 +6,7 @@ import (
 	"github.com/lthiagol/obsidian-terminal/internal/search"
 )
 
+// Color palette variables for the dark theme.
 var (
 	Accent          = lipgloss.Color("#a78bfa")
 	AccentSecondary = lipgloss.Color("#fbbf24")
@@ -19,6 +20,7 @@ var (
 	Info            = lipgloss.Color("#60a5fa")
 )
 
+// Unicode icons for the file tree.
 var (
 	IconFolderOpen   = "▾ "
 	IconFolderClosed = "▸ "
@@ -27,6 +29,7 @@ var (
 	IconDiamond      = "◆"
 )
 
+// Pre-defined lipgloss styles for the TUI layout.
 var (
 	TreeStyle = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder(), false, false, false, true).
@@ -47,6 +50,7 @@ var (
 			Padding(1, 2)
 )
 
+// ModeColors maps each TUI mode to its accent color.
 var ModeColors = map[Mode]lipgloss.Color{
 	ModeBrowse: Accent,
 	ModeView:   AccentTertiary,

@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// BlockType classifies a markdown block element.
 type BlockType int
 
 const (
@@ -20,6 +21,7 @@ const (
 	BlockEmpty
 )
 
+// InlineSegment represents a styled span of inline text.
 type InlineSegment struct {
 	Text          string
 	Bold          bool
@@ -32,6 +34,7 @@ type InlineSegment struct {
 	WikiDisplay   string
 }
 
+// MarkdownLine represents a single parsed line of markdown.
 type MarkdownLine struct {
 	BlockType    BlockType
 	HeadingLevel int
@@ -42,11 +45,13 @@ type MarkdownLine struct {
 	RawContent   string
 }
 
+// WikiLink represents an Obsidian [[wiki-link]].
 type WikiLink struct {
 	Target  string
 	Display string
 }
 
+// RendererStyle holds colors for the markdown renderer.
 type RendererStyle struct {
 	Accent          lipgloss.Color
 	AccentSecondary lipgloss.Color
@@ -58,6 +63,7 @@ type RendererStyle struct {
 	Heading1        lipgloss.Color
 }
 
+// ParseMarkdown parses markdown content into structured lines.
 func ParseMarkdown(content string) []MarkdownLine {
 	content = StripFrontmatter(content)
 	content = stripComments(content)
@@ -456,6 +462,7 @@ func mergeSegments(segments []InlineSegment) []InlineSegment {
 	return merged
 }
 
+// StripFrontmatter removes YAML frontmatter (--- ... ---) from content.
 func StripFrontmatter(content string) string {
 	if !strings.HasPrefix(content, "---\n") && !strings.HasPrefix(content, "---\r\n") {
 		return content
@@ -476,6 +483,7 @@ func stripComments(content string) string {
 	return re.ReplaceAllString(content, "")
 }
 
+// ExtractWikiLinks extracts unique wiki-links from parsed markdown.
 func ExtractWikiLinks(lines []MarkdownLine) []WikiLink {
 	seen := make(map[string]bool)
 	var links []WikiLink
@@ -495,6 +503,7 @@ func ExtractWikiLinks(lines []MarkdownLine) []WikiLink {
 	return links
 }
 
+// RenderMarkdown renders parsed markdown lines to styled terminal output.
 func RenderMarkdown(lines []MarkdownLine, width int, style RendererStyle) string {
 	if width < 20 {
 		width = 20
