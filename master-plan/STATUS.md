@@ -74,7 +74,7 @@
 | M20: Tag Browsing & Filtering | ✅ done | 4 | 2026-06-11 | 2026-06-11 |
 | M24: Pinned Notes | ✅ done | 6 | 2026-06-11 | 2026-06-11 |
 | M25: Outline / Table of Contents | ✅ done | 6 | 2026-06-11 | 2026-06-11 |
-| M26: Daily Notes + Recent Notes | ⏳ pending | 0 | — | — |
+| M26: Daily Notes + Recent Notes | ✅ done | 8 | 2026-06-11 | 2026-06-11 |
 
 ### Phase 4: Vault Management
 

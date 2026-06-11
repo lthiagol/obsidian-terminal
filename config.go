@@ -8,18 +8,22 @@ import (
 
 // Config holds user configuration loaded from YAML.
 type Config struct {
-	VaultPath   string
-	Theme       string
-	DefaultKeys string
-	SkipDirs    []string
+	VaultPath        string
+	Theme            string
+	DefaultKeys      string
+	SkipDirs         []string
+	DailyNotesDir    string
+	DailyNotesFormat string
 }
 
 // DefaultConfig returns a Config with sensible defaults.
 func DefaultConfig() *Config {
 	return &Config{
-		Theme:       "dark",
-		DefaultKeys: "vim",
-		SkipDirs:    []string{".obsidian", ".git", ".trash", "node_modules", "archive"},
+		Theme:            "dark",
+		DefaultKeys:      "vim",
+		SkipDirs:         []string{".obsidian", ".git", ".trash", "node_modules", "archive"},
+		DailyNotesDir:    "Journal",
+		DailyNotesFormat: "2006-01-02",
 	}
 }
 
@@ -59,6 +63,14 @@ func parseConfigYAML(data []byte, cfg *Config) {
 				cfg.SkipDirs = items
 			} else if value != "" {
 				cfg.SkipDirs = []string{value}
+			}
+		case "daily_notes_dir":
+			if value != "" {
+				cfg.DailyNotesDir = value
+			}
+		case "daily_notes_format":
+			if value != "" {
+				cfg.DailyNotesFormat = value
 			}
 		}
 	})

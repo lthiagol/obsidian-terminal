@@ -70,8 +70,11 @@ func buildHelpLines() []string {
 		{
 			title: "Global",
 			bindings: []string{
-				"?  — toggle this help",
-				"q  — quit",
+				"?      — toggle this help",
+				"q      — quit",
+				"Ctrl+D — open daily note",
+				"Ctrl+O — recent notes",
+				"Ctrl+R — rescan vault",
 			},
 		},
 	}

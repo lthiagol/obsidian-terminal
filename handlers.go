@@ -229,6 +229,7 @@ func (m *Model) openNote(path string) {
 	m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)
 	m.backlinkMode = false
 	m.buildOutline()
+	m.addRecentNote(path)
 }
 
 func (m Model) handleBacklinkKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
@@ -309,6 +310,28 @@ func (m Model) handleOutlineKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.viewer.ScrollDown(item.YOffset)
 			m.outlineVisible = false
 		}
+		return m, nil
+	}
+	return m, nil
+}
+
+func (m Model) handleRecentsKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch {
+	case msg.Type == tea.KeyEsc:
+		m.recentVisible = false
+		return m, nil
+	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+		if m.recentCursor < len(m.recentNotes)-1 {
+			m.recentCursor++
+		}
+		return m, nil
+	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+		if m.recentCursor > 0 {
+			m.recentCursor--
+		}
+		return m, nil
+	case msg.Type == tea.KeyEnter:
+		m.openRecentNote(m.recentCursor)
 		return m, nil
 	}
 	return m, nil

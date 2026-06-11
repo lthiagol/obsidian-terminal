@@ -111,6 +111,10 @@ type Model struct {
 	outlineVisible bool
 	outlineItems   []OutlineItem
 	outlineCursor  int
+
+	recentNotes   []string
+	recentVisible bool
+	recentCursor  int
 }
 
 // NewModel creates a Model by scanning the vault at cfg.VaultPath.
@@ -243,11 +247,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlR:
 			m.rescanVault()
 			return m, nil
+		case tea.KeyCtrlD:
+			m.openDailyNote()
+			return m, nil
+		case tea.KeyCtrlO:
+			m.toggleRecents()
+			return m, nil
 		}
 
 		if MatchRune(msg, m.keys.QuitRune) || MatchRune(msg, 'Q') {
 			m.quitting = true
 			return m, tea.Quit
+		}
+
+		if m.recentVisible {
+			return m.handleRecentsKey(msg)
 		}
 
 		if m.outlineVisible {
@@ -295,36 +309,40 @@ func (m Model) View() string {
 	}
 
 	var rightPanel string
-	switch m.mode {
-	case ModeSearch:
-		rightPanel = m.renderSearch()
-	case ModeFind:
-		rightPanel = m.renderFind()
-	case ModeHelp:
-		rightPanel = m.renderHelp()
-	case ModeTags:
-		rightPanel = m.tagList.View()
-	case ModeView:
-		if m.outlineVisible {
-			rightPanel = m.renderOutline()
-		} else if m.backlinkMode {
-			viewerHeight := (m.height - 1) * 7 / 10
-			backlinkHeight := m.height - 1 - viewerHeight - 1
-			viewerStyle := ViewerStyle.Width(m.width - m.treeWidth - 1).Height(viewerHeight)
-			backlinkStyle := lipgloss.NewStyle().
-				Border(lipgloss.NormalBorder(), true, false, false, false).
-				BorderForeground(Accent).
-				Width(m.width - m.treeWidth - 1).
-				Height(backlinkHeight)
-			rightPanel = lipgloss.JoinVertical(lipgloss.Left,
-				viewerStyle.Render(m.viewer.View()),
-				backlinkStyle.Render(m.backlinkPanel.View()),
-			)
-		} else {
-			rightPanel = m.viewer.View()
+	if m.recentVisible {
+		rightPanel = m.renderRecents()
+	} else {
+		switch m.mode {
+		case ModeSearch:
+			rightPanel = m.renderSearch()
+		case ModeFind:
+			rightPanel = m.renderFind()
+		case ModeHelp:
+			rightPanel = m.renderHelp()
+		case ModeTags:
+			rightPanel = m.tagList.View()
+		case ModeView:
+			if m.outlineVisible {
+				rightPanel = m.renderOutline()
+			} else if m.backlinkMode {
+				viewerHeight := (m.height - 1) * 7 / 10
+				backlinkHeight := m.height - 1 - viewerHeight - 1
+				viewerStyle := ViewerStyle.Width(m.width - m.treeWidth - 1).Height(viewerHeight)
+				backlinkStyle := lipgloss.NewStyle().
+					Border(lipgloss.NormalBorder(), true, false, false, false).
+					BorderForeground(Accent).
+					Width(m.width - m.treeWidth - 1).
+					Height(backlinkHeight)
+				rightPanel = lipgloss.JoinVertical(lipgloss.Left,
+					viewerStyle.Render(m.viewer.View()),
+					backlinkStyle.Render(m.backlinkPanel.View()),
+				)
+			} else {
+				rightPanel = m.viewer.View()
+			}
+		default:
+			rightPanel = "Select a file to view"
 		}
-	default:
-		rightPanel = "Select a file to view"
 	}
 
 	treePanel := m.fileTree.View()
@@ -643,4 +661,124 @@ func estimateYOffset(lines []markdown.MarkdownLine, targetIdx, width int) int {
 		}
 	}
 	return yOffset
+}
+
+func (m *Model) buildDailyNotePath() string {
+	now := time.Now()
+	dateStr := now.Format(m.config.DailyNotesFormat)
+	return filepath.Join(m.config.DailyNotesDir, dateStr+".md")
+}
+
+func (m *Model) openDailyNote() {
+	path := m.buildDailyNotePath()
+	note, err := LoadNote(m.config.VaultPath, path)
+	if err != nil {
+		dateStr := time.Now().Format(m.config.DailyNotesFormat)
+		note = &VaultNote{
+			Path:  path,
+			Title: "Daily: " + dateStr,
+			Body:  "",
+		}
+	}
+	m.activeNote = note
+	m.prevMode = m.mode
+	m.mode = ModeView
+	m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
+	m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)
+	m.backlinkMode = false
+	m.buildOutline()
+	m.addRecentNote(path)
+}
+
+func (m *Model) addRecentNote(path string) {
+	if path == "" {
+		return
+	}
+
+	for i, recent := range m.recentNotes {
+		if recent == path {
+			m.recentNotes = append(m.recentNotes[:i], m.recentNotes[i+1:]...)
+			break
+		}
+	}
+
+	m.recentNotes = append([]string{path}, m.recentNotes...)
+
+	if len(m.recentNotes) > 50 {
+		m.recentNotes = m.recentNotes[:50]
+	}
+}
+
+func (m *Model) toggleRecents() {
+	if m.recentVisible {
+		m.recentVisible = false
+	} else {
+		m.recentVisible = true
+		m.recentCursor = 0
+	}
+}
+
+func (m *Model) openRecentNote(index int) {
+	if index < 0 || index >= len(m.recentNotes) {
+		return
+	}
+
+	path := m.recentNotes[index]
+	note, err := LoadNote(m.config.VaultPath, path)
+	if err != nil {
+		m.addToast("Failed to load recent note: "+err.Error(), ToastError)
+		m.recentNotes = append(m.recentNotes[:index], m.recentNotes[index+1:]...)
+		if m.recentCursor >= len(m.recentNotes) {
+			m.recentCursor = len(m.recentNotes) - 1
+		}
+		return
+	}
+
+	m.activeNote = note
+	m.prevMode = m.mode
+	m.mode = ModeView
+	m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
+	m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)
+	m.backlinkMode = false
+	m.buildOutline()
+	m.recentVisible = false
+	m.addRecentNote(path)
+}
+
+func (m Model) renderRecents() string {
+	if len(m.recentNotes) == 0 {
+		return lipgloss.NewStyle().
+			Foreground(TextMuted).
+			Render("  No recent notes")
+	}
+
+	var sb strings.Builder
+	header := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(Accent).
+		Render(fmt.Sprintf("  Recent Notes (%d)", len(m.recentNotes)))
+	sb.WriteString(header)
+	sb.WriteString("\n")
+
+	for i, path := range m.recentNotes {
+		line := fmt.Sprintf("  %s", path)
+
+		if i == m.recentCursor {
+			line = lipgloss.NewStyle().
+				Background(Accent).
+				Foreground(lipgloss.Color("#000000")).
+				Bold(true).
+				Render(line)
+		} else {
+			line = lipgloss.NewStyle().
+				Foreground(TextSecondary).
+				Render(line)
+		}
+
+		sb.WriteString(line)
+		if i < len(m.recentNotes)-1 {
+			sb.WriteString("\n")
+		}
+	}
+	return sb.String()
 }

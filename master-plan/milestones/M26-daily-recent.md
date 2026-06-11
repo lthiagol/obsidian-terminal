@@ -1,6 +1,6 @@
 # M26 — Daily Notes + Recent Notes
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -78,17 +78,17 @@ Add "Daily & Recent" bindings.
 
 ## Completion Criteria
 
-- [ ] `daily_notes_dir` and `daily_notes_format` config fields added
-- [ ] `Ctrl+D` opens today's daily note
-- [ ] Daily note path built from config format (default: "2006-01-02")
-- [ ] Missing daily note shows empty note with date title
-- [ ] `Ctrl+O` toggles recent notes overlay
-- [ ] Recent notes list shows last 50 opened notes (newest first)
-- [ ] Enter on recent note opens it
-- [ ] Recent notes updated at all note-open sites
-- [ ] Deleted notes handled gracefully (removed from recents)
-- [ ] Help text updated
-- [ ] KEYBINDINGS.md updated
-- [ ] `make test` passes
-- [ ] `make vet` exits 0
-- [ ] Manual test: daily note and recent notes work
+- [x] `daily_notes_dir` and `daily_notes_format` config fields added
+- [x] `Ctrl+D` opens today's daily note
+- [x] Daily note path built from config format (default: "2006-01-02")
+- [x] Missing daily note shows empty note with date title
+- [x] `Ctrl+O` toggles recent notes overlay
+- [x] Recent notes list shows last 50 opened notes (newest first)
+- [x] Enter on recent note opens it
+- [x] Recent notes updated at all note-open sites
+- [x] Deleted notes handled gracefully (removed from recents)
+- [x] Help text updated
+- [x] KEYBINDINGS.md updated
+- [x] `make test` passes
+- [x] `make vet` exits 0
+- [x] Manual test: daily note and recent notes work
