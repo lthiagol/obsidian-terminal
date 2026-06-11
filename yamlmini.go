@@ -105,6 +105,7 @@ func findKeyColon(line string) int {
 func stripInlineComment(s string) string {
 	inSingle := false
 	inDouble := false
+	depth := 0
 	for i := 0; i < len(s); i++ {
 		switch s[i] {
 		case '\'':
@@ -115,8 +116,16 @@ func stripInlineComment(s string) string {
 			if !inSingle {
 				inDouble = !inDouble
 			}
+		case '[':
+			if !inSingle && !inDouble {
+				depth++
+			}
+		case ']':
+			if !inSingle && !inDouble {
+				depth--
+			}
 		case '#':
-			if !inSingle && !inDouble && i > 0 && s[i-1] == ' ' {
+			if !inSingle && !inDouble && depth == 0 && i > 0 && s[i-1] == ' ' {
 				return strings.TrimRight(s[:i-1], " ")
 			}
 		}

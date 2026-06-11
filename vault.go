@@ -5,9 +5,17 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 )
+
+// VaultIndexes holds all indexes built during vault scanning.
+type VaultIndexes struct {
+	Search    map[string]string
+	Backlinks map[string][]string
+	Tags      map[string][]string
+}
 
 // VaultEntry represents a file or directory in the vault tree.
 type VaultEntry struct {
@@ -34,15 +42,19 @@ type frontmatterData struct {
 	Aliases []string
 }
 
-// ScanVault walks the vault directory and builds the file tree and search index.
-func ScanVault(root string, skipDirs []string) (*VaultEntry, map[string]string, []string, error) {
+// ScanVault walks the vault directory and builds the file tree and all indexes.
+func ScanVault(root string, skipDirs []string) (*VaultEntry, *VaultIndexes, []string, error) {
 	skipSet := make(map[string]bool)
 	for _, d := range skipDirs {
 		skipSet[d] = true
 	}
 
 	var entries []*VaultEntry
-	searchIndex := make(map[string]string)
+	indexes := &VaultIndexes{
+		Search:    make(map[string]string),
+		Backlinks: make(map[string][]string),
+		Tags:      make(map[string][]string),
+	}
 	var scanErrors []string
 
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
@@ -61,7 +73,6 @@ func ScanVault(root string, skipDirs []string) (*VaultEntry, map[string]string, 
 
 		parts := strings.Split(relPath, string(filepath.Separator))
 
-		// Check if any path component should be skipped
 		for _, part := range parts {
 			if strings.HasPrefix(part, ".") || skipSet[part] {
 				if d.IsDir() {
@@ -91,12 +102,22 @@ func ScanVault(root string, skipDirs []string) (*VaultEntry, map[string]string, 
 				IsSymlink: isSymlink,
 			})
 
-			// Build search index
 			data, readErr := os.ReadFile(path)
 			if readErr != nil {
 				scanErrors = append(scanErrors, fmt.Sprintf("read: %s: %v", relPath, readErr))
 			} else {
-				searchIndex[relPath] = stripFrontmatter(string(data))
+				content := string(data)
+
+				indexes.Search[relPath] = stripFrontmatter(content)
+
+				for _, tag := range extractTagsFromFrontmatter(content) {
+					indexes.Tags[tag] = append(indexes.Tags[tag], relPath)
+				}
+
+				for _, target := range extractWikiLinkTargets(content) {
+					normalized := normalizeWikiLinkTarget(target)
+					indexes.Backlinks[normalized] = append(indexes.Backlinks[normalized], relPath)
+				}
 			}
 		}
 
@@ -108,7 +129,7 @@ func ScanVault(root string, skipDirs []string) (*VaultEntry, map[string]string, 
 	}
 
 	tree := buildTree(entries)
-	return tree, searchIndex, scanErrors, nil
+	return tree, indexes, scanErrors, nil
 }
 
 func buildTree(entries []*VaultEntry) *VaultEntry {
@@ -285,4 +306,43 @@ func collectPaths(entry *VaultEntry, prefix string, paths *[]string) {
 	for _, child := range entry.Children {
 		collectPaths(child, "", paths)
 	}
+}
+
+var wikiLinkTargetRe = regexp.MustCompile(`\[\[([^\]|#]+)`)
+
+func extractTagsFromFrontmatter(content string) []string {
+	fm, _ := parseFrontmatter(content)
+	seen := make(map[string]bool)
+	var tags []string
+	for _, tag := range fm.Tags {
+		tag = strings.TrimPrefix(tag, "#")
+		tag = strings.ToLower(tag)
+		if tag != "" && !seen[tag] {
+			seen[tag] = true
+			tags = append(tags, tag)
+		}
+	}
+	return tags
+}
+
+func extractWikiLinkTargets(content string) []string {
+	matches := wikiLinkTargetRe.FindAllStringSubmatch(content, -1)
+	seen := make(map[string]bool)
+	var targets []string
+	for _, match := range matches {
+		target := match[1]
+		if !seen[target] {
+			seen[target] = true
+			targets = append(targets, target)
+		}
+	}
+	return targets
+}
+
+func normalizeWikiLinkTarget(target string) string {
+	target = strings.ToLower(target)
+	if !strings.HasSuffix(target, ".md") {
+		target += ".md"
+	}
+	return target
 }

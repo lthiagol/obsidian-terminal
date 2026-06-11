@@ -116,7 +116,7 @@ func NewModel(cfg *Config) Model {
 		}
 	}
 
-	tree, searchIndex, scanErrors, err := ScanVault(cfg.VaultPath, skipDirs)
+	tree, indexes, scanErrors, err := ScanVault(cfg.VaultPath, skipDirs)
 	if err != nil {
 		return Model{
 			config: cfg,
@@ -131,7 +131,7 @@ func NewModel(cfg *Config) Model {
 		mode:        ModeBrowse,
 		prevMode:    ModeBrowse,
 		vault:       tree,
-		searchIndex: searchIndex,
+		searchIndex: indexes.Search,
 		allPaths:    paths,
 		keys:        keys,
 		config:      cfg,
@@ -331,7 +331,7 @@ func (m *Model) rescanVault() {
 	}
 	m.lastRootModTime = info.ModTime()
 
-	tree, searchIndex, scanErrors, err := ScanVault(m.config.VaultPath, m.config.SkipDirs)
+	tree, indexes, scanErrors, err := ScanVault(m.config.VaultPath, m.config.SkipDirs)
 	if err != nil {
 		return
 	}
@@ -343,7 +343,7 @@ func (m *Model) rescanVault() {
 	}
 
 	m.vault = tree
-	m.searchIndex = searchIndex
+	m.searchIndex = indexes.Search
 	m.allPaths = allPaths(tree)
 	m.fileTree = NewFileTree(tree)
 

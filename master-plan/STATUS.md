@@ -64,7 +64,7 @@
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M18.5: Vault Index System | ⏳ pending | 0 | — | — |
+| M18.5: Vault Index System | ✅ done | 5 | 2026-06-11 | 2026-06-11 |
 
 ### Phase 3: Navigation Features
 

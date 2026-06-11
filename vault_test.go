@@ -218,18 +218,17 @@ func TestLoadNote_FrontmatterComplex(t *testing.T) {
 
 func TestSearchIndex(t *testing.T) {
 	skipDirs := []string{".obsidian", ".git", ".trash", "node_modules", "archive"}
-	_, index, _, err := ScanVault(testVaultPath(t), skipDirs)
+	_, indexes, _, err := ScanVault(testVaultPath(t), skipDirs)
 	if err != nil {
 		t.Fatalf("ScanVault failed: %v", err)
 	}
 
-	if len(index) == 0 {
+	if len(indexes.Search) == 0 {
 		t.Error("search index should not be empty")
 	}
 
-	// Index should contain entries for .md files
 	foundIndex := false
-	for path, content := range index {
+	for path, content := range indexes.Search {
 		if strings.Contains(path, "index.md") {
 			foundIndex = true
 			if !strings.Contains(content, "Welcome") {
@@ -240,5 +239,78 @@ func TestSearchIndex(t *testing.T) {
 	}
 	if !foundIndex {
 		t.Error("search index should contain index.md")
+	}
+}
+
+func TestExtractTagsFromFrontmatter(t *testing.T) {
+	content := "---\ntitle: Test\ntags: [Go, PARSER, #yaml]\n---\n\nBody"
+	tags := extractTagsFromFrontmatter(content)
+	if len(tags) != 3 {
+		t.Fatalf("expected 3 tags, got %d: %v", len(tags), tags)
+	}
+	expected := map[string]bool{"go": true, "parser": true, "yaml": true}
+	for _, tag := range tags {
+		if !expected[tag] {
+			t.Errorf("unexpected tag: %q", tag)
+		}
+	}
+}
+
+func TestExtractWikiLinkTargets(t *testing.T) {
+	content := "See [[note-a]] and [[note-b|display]] and [[note-a]] again"
+	targets := extractWikiLinkTargets(content)
+	if len(targets) != 2 {
+		t.Fatalf("expected 2 unique targets, got %d: %v", len(targets), targets)
+	}
+	if targets[0] != "note-a" {
+		t.Errorf("targets[0] = %q, want 'note-a'", targets[0])
+	}
+	if targets[1] != "note-b" {
+		t.Errorf("targets[1] = %q, want 'note-b'", targets[1])
+	}
+}
+
+func TestNormalizeWikiLinkTarget(t *testing.T) {
+	tests := []struct {
+		input, want string
+	}{
+		{"Note", "note.md"},
+		{"note.md", "note.md"},
+		{"PATH/Note", "path/note.md"},
+		{"Note.MD", "note.md"},
+	}
+	for _, tt := range tests {
+		got := normalizeWikiLinkTarget(tt.input)
+		if got != tt.want {
+			t.Errorf("normalizeWikiLinkTarget(%q) = %q, want %q", tt.input, got, tt.want)
+		}
+	}
+}
+
+func TestVaultIndexes_Backlinks(t *testing.T) {
+	skipDirs := []string{".obsidian", ".git", ".trash", "node_modules", "archive"}
+	_, indexes, _, err := ScanVault(testVaultPath(t), skipDirs)
+	if err != nil {
+		t.Fatalf("ScanVault failed: %v", err)
+	}
+
+	if len(indexes.Backlinks) == 0 {
+		t.Error("backlink index should not be empty for test vault")
+	}
+}
+
+func TestVaultIndexes_Tags(t *testing.T) {
+	skipDirs := []string{".obsidian", ".git", ".trash", "node_modules", "archive"}
+	_, indexes, _, err := ScanVault(testVaultPath(t), skipDirs)
+	if err != nil {
+		t.Fatalf("ScanVault failed: %v", err)
+	}
+
+	if len(indexes.Tags) == 0 {
+		t.Error("tag index should not be empty for test vault")
+	}
+
+	if _, ok := indexes.Tags["test"]; !ok {
+		t.Error("tag index should contain 'test' tag")
 	}
 }
