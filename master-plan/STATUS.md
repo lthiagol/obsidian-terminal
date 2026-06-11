@@ -81,7 +81,7 @@
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
 | M21: Multiple Vault Profiles | ✅ done | 7 | 2026-06-11 | 2026-06-11 |
-| M22: Custom Themes | ⏳ pending | 0 | — | — |
+| M22: Custom Themes | ✅ done | 10 | 2026-06-11 | 2026-06-11 |
 
 ### Phase 5: Markdown Features
 

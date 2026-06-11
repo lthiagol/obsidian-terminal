@@ -1,6 +1,6 @@
 # M22 — Custom Themes
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -50,15 +50,15 @@ After `lookupPalette(themeName)`, if `cfg.CustomTheme != nil`, call `paletteFrom
 
 ## Completion Criteria
 
-- [ ] CustomTheme struct added to config.go
-- [ ] `parseHexColor` validates and parses hex colors (#RGB and #RRGGBB)
-- [ ] `paletteFromCustom` applies overrides to base palette
-- [ ] `rebuildDerivedStyles` rebuilds TreeStyle, ViewerStyle, etc.
-- [ ] Custom theme applied after base theme lookup
-- [ ] Invalid hex color shows warning toast, falls back to base
-- [ ] Empty custom_theme (`{}`) keeps base palette unchanged
-- [ ] Missing fields keep base palette values
-- [ ] Theme + custom override works (e.g., dracula + custom accent)
-- [ ] `make test` passes
-- [ ] `make vet` exits 0
-- [ ] Manual test: custom theme overrides work correctly
+- [x] CustomTheme struct added to config.go
+- [x] `parseHexColor` validates and parses hex colors (#RGB and #RRGGBB)
+- [x] `paletteFromCustom` applies overrides to base palette
+- [x] `rebuildDerivedStyles` rebuilds TreeStyle, ViewerStyle, etc.
+- [x] Custom theme applied after base theme lookup
+- [x] Invalid hex color shows warning toast, falls back to base
+- [x] Empty custom_theme (`{}`) keeps base palette unchanged
+- [x] Missing fields keep base palette values
+- [x] Theme + custom override works (e.g., dracula + custom accent)
+- [x] `make test` passes
+- [x] `make vet` exits 0
+- [x] Manual test: custom theme overrides work correctly

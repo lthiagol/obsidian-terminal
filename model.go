@@ -142,6 +142,19 @@ func NewModel(cfg *Config) Model {
 		palette = newDarkPalette()
 		themeWarning = "Unknown theme " + themeName + " — using dark"
 	}
+
+	// Apply custom theme overrides if present
+	if cfg.CustomTheme != nil {
+		customPalette, customErr := paletteFromCustom(cfg.CustomTheme, palette)
+		if customErr != nil {
+			if themeWarning != "" {
+				themeWarning += "; "
+			}
+			themeWarning += customErr.Error()
+		}
+		palette = customPalette
+	}
+
 	activatePalette(palette)
 
 	// If no vault path but profiles exist, enter picker mode

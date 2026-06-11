@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/lthiagol/obsidian-terminal/internal/markdown"
@@ -453,4 +454,186 @@ func searchStyleFrom(p Palette) search.Style {
 		TextSecondary: p.TextSecondary,
 		TextMuted:     p.TextMuted,
 	}
+}
+
+// parseHexColor validates and parses a hex color string.
+// Accepts #RGB or #RRGGBB format, returns normalized lowercase.
+func parseHexColor(s string) (lipgloss.Color, error) {
+	if len(s) == 0 {
+		return "", fmt.Errorf("empty color string")
+	}
+	if s[0] != '#' {
+		return "", fmt.Errorf("color must start with #")
+	}
+
+	hex := s[1:]
+	switch len(hex) {
+	case 3:
+		// #RGB -> #RRGGBB
+		r, g, b := hex[0], hex[1], hex[2]
+		hex = string([]byte{r, r, g, g, b, b})
+	case 6:
+		// #RRGGBB - already correct
+	default:
+		return "", fmt.Errorf("invalid hex color length: %d (expected 3 or 6)", len(hex))
+	}
+
+	// Validate hex characters
+	for _, c := range hex {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return "", fmt.Errorf("invalid hex character: %c", c)
+		}
+	}
+
+	// Normalize to lowercase
+	return lipgloss.Color("#" + strings.ToLower(hex)), nil
+}
+
+// paletteFromCustom applies custom theme overrides to a base palette.
+// Returns the modified palette and any error encountered.
+func paletteFromCustom(ct *CustomTheme, base Palette) (Palette, error) {
+	if ct == nil {
+		return base, nil
+	}
+
+	p := base
+	var errors []string
+
+	if ct.Accent != "" {
+		if c, err := parseHexColor(ct.Accent); err == nil {
+			p.Accent = c
+		} else {
+			errors = append(errors, "accent: "+err.Error())
+		}
+	}
+	if ct.AccentSecondary != "" {
+		if c, err := parseHexColor(ct.AccentSecondary); err == nil {
+			p.AccentSecondary = c
+		} else {
+			errors = append(errors, "accent_secondary: "+err.Error())
+		}
+	}
+	if ct.AccentTertiary != "" {
+		if c, err := parseHexColor(ct.AccentTertiary); err == nil {
+			p.AccentTertiary = c
+		} else {
+			errors = append(errors, "accent_tertiary: "+err.Error())
+		}
+	}
+	if ct.TextPrimary != "" {
+		if c, err := parseHexColor(ct.TextPrimary); err == nil {
+			p.TextPrimary = c
+		} else {
+			errors = append(errors, "text_primary: "+err.Error())
+		}
+	}
+	if ct.TextSecondary != "" {
+		if c, err := parseHexColor(ct.TextSecondary); err == nil {
+			p.TextSecondary = c
+		} else {
+			errors = append(errors, "text_secondary: "+err.Error())
+		}
+	}
+	if ct.TextMuted != "" {
+		if c, err := parseHexColor(ct.TextMuted); err == nil {
+			p.TextMuted = c
+		} else {
+			errors = append(errors, "text_muted: "+err.Error())
+		}
+	}
+	if ct.TextDim != "" {
+		if c, err := parseHexColor(ct.TextDim); err == nil {
+			p.TextDim = c
+		} else {
+			errors = append(errors, "text_dim: "+err.Error())
+		}
+	}
+	if ct.Success != "" {
+		if c, err := parseHexColor(ct.Success); err == nil {
+			p.Success = c
+		} else {
+			errors = append(errors, "success: "+err.Error())
+		}
+	}
+	if ct.Warning != "" {
+		if c, err := parseHexColor(ct.Warning); err == nil {
+			p.Warning = c
+		} else {
+			errors = append(errors, "warning: "+err.Error())
+		}
+	}
+	if ct.Error != "" {
+		if c, err := parseHexColor(ct.Error); err == nil {
+			p.Error = c
+		} else {
+			errors = append(errors, "error: "+err.Error())
+		}
+	}
+	if ct.Info != "" {
+		if c, err := parseHexColor(ct.Info); err == nil {
+			p.Info = c
+		} else {
+			errors = append(errors, "info: "+err.Error())
+		}
+	}
+	if ct.Background != "" {
+		if c, err := parseHexColor(ct.Background); err == nil {
+			p.Background = c
+		} else {
+			errors = append(errors, "background: "+err.Error())
+		}
+	}
+	if ct.Surface != "" {
+		if c, err := parseHexColor(ct.Surface); err == nil {
+			p.Surface = c
+		} else {
+			errors = append(errors, "surface: "+err.Error())
+		}
+	}
+	if ct.Border != "" {
+		if c, err := parseHexColor(ct.Border); err == nil {
+			p.Border = c
+		} else {
+			errors = append(errors, "border: "+err.Error())
+		}
+	}
+
+	// Rebuild derived styles after applying custom colors
+	p = rebuildDerivedStyles(p)
+
+	if len(errors) > 0 {
+		return p, fmt.Errorf("custom theme errors: %s", strings.Join(errors, "; "))
+	}
+
+	return p, nil
+}
+
+// rebuildDerivedStyles rebuilds TreeStyle, ViewerStyle, StatusStyle, HelpStyle,
+// SearchStyle, and ModeColors from the palette colors.
+func rebuildDerivedStyles(p Palette) Palette {
+	p.TreeStyle = lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder(), false, false, false, true).
+		BorderForeground(p.Accent).
+		Padding(0, 1)
+
+	p.ViewerStyle = lipgloss.NewStyle().
+		Padding(0, 1)
+
+	p.StatusStyle = lipgloss.NewStyle().
+		Background(p.Surface).
+		Padding(0, 1)
+
+	p.HelpStyle = lipgloss.NewStyle().
+		Padding(1, 2)
+
+	p.SearchStyle = lipgloss.NewStyle().
+		Padding(1, 2)
+
+	p.ModeBrowse = p.Accent
+	p.ModeView = p.AccentTertiary
+	p.ModeSearch = p.AccentSecondary
+	p.ModeFind = p.AccentSecondary
+	p.ModeHelp = p.Info
+
+	return p
 }

@@ -292,3 +292,71 @@ func parseNestedMap(data []byte, rootKey string) map[string]map[string]string {
 
 	return result
 }
+
+// parseFlatMap parses a flat YAML map structure like:
+// custom_theme:
+//   accent: "#ff0000"
+//   text_primary: "#ffffff"
+// Returns a map of key -> value
+func parseFlatMap(data []byte, rootKey string) map[string]string {
+	text := string(data)
+	text = strings.ReplaceAll(text, "\r\n", "\n")
+	text = strings.ReplaceAll(text, "\r", "\n")
+
+	lines := strings.Split(text, "\n")
+	result := make(map[string]string)
+
+	// Find the root key
+	rootIdx := -1
+	rootIndent := 0
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		indent := len(line) - len(strings.TrimLeft(line, " \t"))
+		colonIdx := findKeyColon(trimmed)
+		if colonIdx >= 0 {
+			key := strings.TrimSpace(trimmed[:colonIdx])
+			if key == rootKey {
+				rootIdx = i
+				rootIndent = indent
+				break
+			}
+		}
+	}
+
+	if rootIdx < 0 {
+		return result
+	}
+
+	// Parse flat structure
+	for i := rootIdx + 1; i < len(lines); i++ {
+		line := lines[i]
+		if strings.TrimSpace(line) == "" || strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
+		}
+
+		indent := len(line) - len(strings.TrimLeft(line, " \t"))
+		if indent <= rootIndent {
+			break
+		}
+
+		trimmed := strings.TrimSpace(line)
+		colonIdx := findKeyColon(trimmed)
+		if colonIdx < 0 {
+			continue
+		}
+
+		key := strings.TrimSpace(trimmed[:colonIdx])
+		value := strings.TrimSpace(trimmed[colonIdx+1:])
+		value = stripInlineComment(value)
+		value = stripQuotes(value)
+
+		if value != "" {
+			result[key] = value
+		}
+	}
+
+	return result
+}

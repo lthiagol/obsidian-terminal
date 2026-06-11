@@ -14,6 +14,24 @@ type Profile struct {
 	SkipDirs []string
 }
 
+// CustomTheme represents user-defined color overrides.
+type CustomTheme struct {
+	Accent          string
+	AccentSecondary string
+	AccentTertiary  string
+	TextPrimary     string
+	TextSecondary   string
+	TextMuted       string
+	TextDim         string
+	Success         string
+	Warning         string
+	Error           string
+	Info            string
+	Background      string
+	Surface         string
+	Border          string
+}
+
 // Config holds user configuration loaded from YAML.
 type Config struct {
 	VaultPath        string
@@ -23,6 +41,7 @@ type Config struct {
 	DailyNotesDir    string
 	DailyNotesFormat string
 	Profiles         map[string]Profile
+	CustomTheme      *CustomTheme
 }
 
 // DefaultConfig returns a Config with sensible defaults.
@@ -105,6 +124,54 @@ func parseConfigYAML(data []byte, cfg *Config) {
 				}
 			}
 			cfg.Profiles[name] = profile
+		}
+	}
+
+	// Parse custom_theme (flat structure)
+	themeData := parseFlatMap(data, "custom_theme")
+	if len(themeData) > 0 {
+		cfg.CustomTheme = &CustomTheme{}
+		if v, ok := themeData["accent"]; ok {
+			cfg.CustomTheme.Accent = v
+		}
+		if v, ok := themeData["accent_secondary"]; ok {
+			cfg.CustomTheme.AccentSecondary = v
+		}
+		if v, ok := themeData["accent_tertiary"]; ok {
+			cfg.CustomTheme.AccentTertiary = v
+		}
+		if v, ok := themeData["text_primary"]; ok {
+			cfg.CustomTheme.TextPrimary = v
+		}
+		if v, ok := themeData["text_secondary"]; ok {
+			cfg.CustomTheme.TextSecondary = v
+		}
+		if v, ok := themeData["text_muted"]; ok {
+			cfg.CustomTheme.TextMuted = v
+		}
+		if v, ok := themeData["text_dim"]; ok {
+			cfg.CustomTheme.TextDim = v
+		}
+		if v, ok := themeData["success"]; ok {
+			cfg.CustomTheme.Success = v
+		}
+		if v, ok := themeData["warning"]; ok {
+			cfg.CustomTheme.Warning = v
+		}
+		if v, ok := themeData["error"]; ok {
+			cfg.CustomTheme.Error = v
+		}
+		if v, ok := themeData["info"]; ok {
+			cfg.CustomTheme.Info = v
+		}
+		if v, ok := themeData["background"]; ok {
+			cfg.CustomTheme.Background = v
+		}
+		if v, ok := themeData["surface"]; ok {
+			cfg.CustomTheme.Surface = v
+		}
+		if v, ok := themeData["border"]; ok {
+			cfg.CustomTheme.Border = v
 		}
 	}
 }
