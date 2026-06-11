@@ -107,15 +107,63 @@
 
 **Total Tests:** 98
 
+## Execution Order
+
+Milestones are organized into execution batches. Within each batch, milestones can be done sequentially or in parallel where noted.
+
+### Batch 1: Foundation (sequential, do first)
+1. **M16a** — Replace Viewport Dependency
+2. **M16b** — Replace YAML Dependency
+3. **M17** — Performance (Profile-Driven)
+4. **M18** — Mouse Support
+
+**Rationale:** Each builds on the previous. M16a/b reduce dependencies, M17 profiles the new code, M18 adds input handling.
+
+### Batch 2: Index + Core Navigation (sequential → parallel)
+5. **M18.5** — Vault Index System (do first)
+6. **M19 + M20** — Backlinks + Tags (can parallelize after M18.5)
+
+**Rationale:** M18.5 creates the index infrastructure that M19/M20 consume. M19 and M20 are independent and can be done in parallel.
+
+### Batch 3: Navigation Features (all independent, can parallelize)
+7. **M24** — Pinned Notes
+8. **M25** — Outline / Table of Contents
+9. **M26** — Daily Notes + Recent Notes
+
+**Rationale:** All three are independent navigation features with similar complexity. Can be done in any order or in parallel.
+
+### Batch 4: Vault Management (can parallelize)
+10. **M21 + M22** — Multiple Vault Profiles + Custom Themes
+
+**Rationale:** Both modify config structure with similar patterns. Can be done in parallel or sequentially.
+
+### Batch 5: Markdown Features (sequential)
+11. **M27** — Checkboxes + Frontmatter Display (needs M16b)
+12. **M28** — Markdown Tables
+13. **M23** — Embedded Block Embeds (complex, do last)
+
+**Rationale:** M27 depends on M16b YAML parser. M28 is independent. M23 is complex and standalone.
+
+### Batch 6: UX Polish (individual)
+14. **M29** — Command Palette
+
+**Rationale:** References many features, better to implement after they exist.
+
+### Batch 7: Future (individual, low priority)
+- **M97** — Export to PDF/HTML
+- **M98** — Image Preview
+- **M99** — Homebrew Distribution
+
+**Rationale:** Low priority, tackle individually when needed.
+
 ## Milestone Dependencies
 
 ```
+M16a (Viewport) → M17 (Performance)
+M16b (YAML) → M27 (Frontmatter Display)
 M18.5 (Vault Index System)
   ├── M19 (Backlinks) — uses backlink index
   └── M20 (Tags) — uses tag index
-
-M16a (Viewport) should be done before M17 (Performance)
-M16b (YAML) should be done before M27 (Frontmatter Display)
 ```
 
 ## Keybinding Conflicts Resolved
