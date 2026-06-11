@@ -104,7 +104,13 @@ This TUI is read-only by design — no editing, no writing to the vault.
 - [ ] Tag browsing and filtering
 - [ ] Multiple vault profiles
 - [ ] Custom CSS-like themes
-- [ ] Embedded search results (block embeds)
+- [ ] Pinned notes (working set)
+- [ ] Outline / table of contents
+- [ ] Daily notes + recent notes
+- [ ] Checkbox rendering (`- [ ]` / `- [x]`)
+- [ ] Frontmatter metadata display
+- [ ] Markdown table rendering
+- [ ] Command palette
 - [ ] Mouse support for tree and viewer
 - [ ] Export to PDF/HTML
 
