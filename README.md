@@ -32,8 +32,22 @@ go install github.com/lthiagol/obsidian-terminal@latest
 ```bash
 git clone https://github.com/lthiagol/obsidian-terminal.git
 cd obsidian-terminal
-go build -o obsidian-terminal
+make build
 ```
+
+Available `make` targets:
+
+| Command | Description |
+|---------|-------------|
+| `make build` | Compile the binary |
+| `make run` | Run directly with `go run` |
+| `make test` | Run all tests |
+| `make test-race` | Run tests with race detector |
+| `make vet` | Run `go vet` |
+| `make lint` | Run golangci-lint |
+| `make fmt` | Format code |
+| `make clean` | Remove built binary |
+| `make install` | Install to `$GOPATH/bin` |
 
 ## Usage
 
