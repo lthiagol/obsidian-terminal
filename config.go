@@ -47,9 +47,13 @@ func configPathOrDefault(explicit string) string {
 	if explicit != "" {
 		return explicit
 	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return ""
+	configDir := os.Getenv("XDG_CONFIG_HOME")
+	if configDir == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return ""
+		}
+		configDir = filepath.Join(home, ".config")
 	}
-	return filepath.Join(home, ".config", "obsidian-terminal", "config.yaml")
+	return filepath.Join(configDir, "obsidian-terminal", "config.yaml")
 }

@@ -75,6 +75,55 @@ func TestLoadConfig_MissingFile(t *testing.T) {
 	}
 }
 
+func TestThemeLookup_Valid(t *testing.T) {
+	themes := []string{
+		"dark",
+		"catppuccin-latte",
+		"catppuccin-frappe",
+		"catppuccin-macchiato",
+		"catppuccin-mocha",
+		"dracula",
+		"alucard",
+	}
+	for _, name := range themes {
+		p, err := lookupPalette(name)
+		if err != nil {
+			t.Errorf("lookupPalette(%q): unexpected error: %v", name, err)
+		}
+		if p.Accent == "" {
+			t.Errorf("lookupPalette(%q): Accent not set", name)
+		}
+	}
+}
+
+func TestThemeLookup_Unknown(t *testing.T) {
+	_, err := lookupPalette("nonexistent-theme")
+	if err == nil {
+		t.Error("expected error for unknown theme")
+	}
+}
+
+func TestThemeWiredToModel(t *testing.T) {
+	cfg := &Config{
+		VaultPath: testVaultPath(t),
+		Theme:     "dracula",
+		SkipDirs:  DefaultConfig().SkipDirs,
+	}
+	m := NewModel(cfg)
+	if m.err != nil {
+		t.Fatalf("NewModel: %v", m.err)
+	}
+	if m.palette.Accent == "" {
+		t.Error("palette not set on model")
+	}
+	if m.palette.Accent != "#bd93f9" {
+		t.Errorf("expected dracula accent #bd93f9, got %s", m.palette.Accent)
+	}
+	if Accent != "#bd93f9" {
+		t.Errorf("package-level Accent should be dracula #bd93f9, got %s", Accent)
+	}
+}
+
 func TestLoadConfig_CLIOverride(t *testing.T) {
 	// CLI override is tested via flag in main.go.
 	// Here we verify that when vaultPath is provided via flag, it takes priority

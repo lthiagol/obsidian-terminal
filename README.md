@@ -59,7 +59,12 @@ obsidian-terminal --vault /path/to/your/vault
 obsidian-terminal --config ~/.config/obsidian-terminal/config.yaml
 ```
 
-A YAML config is optional. If omitted, defaults apply. Create `~/.config/obsidian-terminal/config.yaml`:
+A YAML config is optional. If omitted, defaults apply. The config file is loaded from:
+
+- `$XDG_CONFIG_HOME/obsidian-terminal/config.yaml` if set
+- `~/.config/obsidian-terminal/config.yaml` otherwise
+
+Create the config file:
 
 ```yaml
 vault_path: "/Users/you/notes"

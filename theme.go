@@ -409,24 +409,28 @@ var ModeColors = map[Mode]lipgloss.Color{
 	ModeHelp:   Info,
 }
 
-func defaultMarkdownStyle() markdown.RendererStyle {
-	return markdown.RendererStyle{
-		Accent:          Accent,
-		AccentSecondary: AccentSecondary,
-		AccentTertiary:  AccentTertiary,
-		TextSecondary:   TextSecondary,
-		TextDim:         TextDim,
-		Success:         Success,
-		CodeBackground:  lipgloss.Color("#1f2937"),
-		Heading1:        lipgloss.Color("#f472b6"),
-	}
-}
-
-func defaultSearchStyle() search.Style {
-	return search.Style{
-		Accent:        Accent,
-		TextSecondary: TextSecondary,
-		TextMuted:     TextMuted,
+func activatePalette(p Palette) {
+	Accent = p.Accent
+	AccentSecondary = p.AccentSecondary
+	AccentTertiary = p.AccentTertiary
+	TextSecondary = p.TextSecondary
+	TextMuted = p.TextMuted
+	TextDim = p.TextDim
+	Success = p.Success
+	Warning = p.Warning
+	Error = p.Error
+	Info = p.Info
+	TreeStyle = p.TreeStyle
+	ViewerStyle = p.ViewerStyle
+	StatusStyle = p.StatusStyle
+	HelpStyle = p.HelpStyle
+	SearchStyle = p.SearchStyle
+	ModeColors = map[Mode]lipgloss.Color{
+		ModeBrowse: p.ModeBrowse,
+		ModeView:   p.ModeView,
+		ModeSearch: p.ModeSearch,
+		ModeFind:   p.ModeFind,
+		ModeHelp:   p.ModeHelp,
 	}
 }
 

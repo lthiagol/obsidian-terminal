@@ -87,10 +87,17 @@ func NewModel(cfg *Config) Model {
 		skipDirs = DefaultConfig().SkipDirs
 	}
 
-	palette, err := lookupPalette(cfg.Theme)
+	themeWarning := ""
+	themeName := cfg.Theme
+	if themeName == "" {
+		themeName = "dark"
+	}
+	palette, err := lookupPalette(themeName)
 	if err != nil {
 		palette = newDarkPalette()
+		themeWarning = "Unknown theme " + themeName + " — using dark"
 	}
+	activatePalette(palette)
 
 	info, err := os.Stat(cfg.VaultPath)
 	if err != nil {
@@ -119,7 +126,7 @@ func NewModel(cfg *Config) Model {
 
 	paths := allPaths(tree)
 
-	return Model{
+	m := Model{
 		mode:        ModeBrowse,
 		prevMode:    ModeBrowse,
 		vault:       tree,
@@ -133,6 +140,10 @@ func NewModel(cfg *Config) Model {
 		scanErrors:  scanErrors,
 		palette:     palette,
 	}
+	if themeWarning != "" {
+		m.addToast(themeWarning, ToastWarning)
+	}
+	return m
 }
 
 func (m Model) Init() tea.Cmd {

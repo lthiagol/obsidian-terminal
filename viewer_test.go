@@ -6,7 +6,7 @@ import (
 )
 
 func TestViewer_RendersMarkdown(t *testing.T) {
-	v := NewViewer(defaultMarkdownStyle())
+	v := NewViewer(markdownStyleFrom(newDarkPalette()))
 	v.SetContent("# Test\n\nHello **world**.", 80)
 
 	view := v.View()
@@ -19,7 +19,7 @@ func TestViewer_RendersMarkdown(t *testing.T) {
 }
 
 func TestViewer_ScrollDown(t *testing.T) {
-	v := NewViewer(defaultMarkdownStyle())
+	v := NewViewer(markdownStyleFrom(newDarkPalette()))
 	var content strings.Builder
 	for i := 0; i < 50; i++ {
 		content.WriteString("Line\n")
@@ -33,7 +33,7 @@ func TestViewer_ScrollDown(t *testing.T) {
 }
 
 func TestViewer_ScrollUp(t *testing.T) {
-	v := NewViewer(defaultMarkdownStyle())
+	v := NewViewer(markdownStyleFrom(newDarkPalette()))
 	var content strings.Builder
 	for i := 0; i < 50; i++ {
 		content.WriteString("Line\n")
@@ -49,7 +49,7 @@ func TestViewer_ScrollUp(t *testing.T) {
 }
 
 func TestViewer_ScrollToTop(t *testing.T) {
-	v := NewViewer(defaultMarkdownStyle())
+	v := NewViewer(markdownStyleFrom(newDarkPalette()))
 	var content strings.Builder
 	for i := 0; i < 50; i++ {
 		content.WriteString("Line\n")
@@ -64,7 +64,7 @@ func TestViewer_ScrollToTop(t *testing.T) {
 }
 
 func TestViewer_ScrollToBottom(t *testing.T) {
-	v := NewViewer(defaultMarkdownStyle())
+	v := NewViewer(markdownStyleFrom(newDarkPalette()))
 	var content strings.Builder
 	for i := 0; i < 50; i++ {
 		content.WriteString("Line\n")
@@ -85,7 +85,7 @@ func TestViewer_ScrollToBottom(t *testing.T) {
 }
 
 func TestViewer_WikiLinkExtraction(t *testing.T) {
-	v := NewViewer(defaultMarkdownStyle())
+	v := NewViewer(markdownStyleFrom(newDarkPalette()))
 	v.SetContent("See [[projects/database]] and [[notes/meeting|Meeting Notes]].", 80)
 
 	if v.LinkCount() != 2 {
@@ -103,7 +103,7 @@ func TestViewer_WikiLinkExtraction(t *testing.T) {
 }
 
 func TestViewer_CycleLinks(t *testing.T) {
-	v := NewViewer(defaultMarkdownStyle())
+	v := NewViewer(markdownStyleFrom(newDarkPalette()))
 	v.SetContent("[[a]] [[b]] [[c]]", 80)
 
 	if v.SelectedLinkIndex() != -1 {
@@ -135,7 +135,7 @@ func TestViewer_CycleLinks(t *testing.T) {
 }
 
 func TestViewer_NoLinks(t *testing.T) {
-	v := NewViewer(defaultMarkdownStyle())
+	v := NewViewer(markdownStyleFrom(newDarkPalette()))
 	v.SetContent("Plain text with no links.", 80)
 
 	if v.LinkCount() != 0 {
@@ -148,7 +148,7 @@ func TestViewer_NoLinks(t *testing.T) {
 }
 
 func TestSetSize_NegativeDimensions(t *testing.T) {
-	v := NewViewer(defaultMarkdownStyle())
+	v := NewViewer(markdownStyleFrom(newDarkPalette()))
 	v.SetContent("# Test", 80)
 	v.SetSize(-10, -5)
 	if v.viewport.Width < 5 || v.viewport.Height < 3 {
@@ -157,7 +157,7 @@ func TestSetSize_NegativeDimensions(t *testing.T) {
 }
 
 func TestViewer_SetSize(t *testing.T) {
-	v := NewViewer(defaultMarkdownStyle())
+	v := NewViewer(markdownStyleFrom(newDarkPalette()))
 	v.SetContent("# Test\n\nHello.", 80)
 	v.SetSize(40, 15)
 

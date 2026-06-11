@@ -57,7 +57,10 @@ func findAlias(vault *VaultEntry, alias string, vaultRoot string) string {
 			}
 			continue
 		}
-		aliasEntries, _ := extractAliasesFromFile(vaultRoot, child.Path)
+		aliasEntries, err := extractAliasesFromFile(vaultRoot, child.Path)
+		if err != nil {
+			continue
+		}
 		for _, a := range aliasEntries {
 			if strings.ToLower(a) == aliasLower {
 				return child.Path
