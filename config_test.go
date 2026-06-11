@@ -70,6 +70,9 @@ func TestLoadConfig_MissingFile(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for missing file")
 	}
+	if !os.IsNotExist(err) {
+		t.Errorf("expected os.IsNotExist to be true, got false; error: %v", err)
+	}
 }
 
 func TestLoadConfig_CLIOverride(t *testing.T) {
