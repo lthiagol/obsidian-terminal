@@ -45,5 +45,9 @@
 | M6: Status Bar + Help | ✅ done | 5 | 2026-06-10 | 2026-06-10 |
 | M7: File Watcher + Polish | ✅ done | 9 | 2026-06-10 | 2026-06-10 |
 | M8: Error Handling + Edge Cases | ✅ done | 8 | 2026-06-10 | 2026-06-10 |
+| M9: Code Quality & Structure | ⏳ pending | 0 | — | — |
+| M10: Deduplication & DRY | ⏳ pending | 0 | — | — |
+| M11: Error Handling & Tests | ⏳ pending | 16 | — | — |
+| M12: Performance | ⏳ pending | 0 | — | — |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
 | **Total** | | **79** | | |

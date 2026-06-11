@@ -88,3 +88,71 @@ Always run `make test && make vet` after making changes.
 - **go vet and tests must pass** before considering work done.
 - **Follow Go conventions** — `gofmt` formatting, exported symbols have godoc comments, errors are handled (never `_`).
 - **Keep `model.go` under control.** If it grows past ~250 lines of new code, split into a new file (`handlers.go`, `toast.go`, etc.). See M9 in master-plan.
+
+## Master Plan
+
+The project uses a `master-plan/` folder to track progress and plan larger work.
+
+### Structure
+
+```
+master-plan/
+├── STATUS.md          # Progress overview, goals, key decisions, milestone table
+└── milestones/        # Individual milestone documents
+    ├── M0-environment.md
+    ├── M1-config-vault.md
+    └── ...
+```
+
+`STATUS.md` is the source of truth for overall progress — it contains the milestone table with status, test counts, and dates.
+
+### When to use milestones
+
+- **Simple tasks** (bug fixes, typos, single-line changes) — do them directly, no milestone needed.
+- **Medium tasks** (a small feature, adding a few tests, refactoring one file) — use judgment; a milestone is optional.
+- **Complex tasks** (multi-file refactors, new subsystems, significant behavior changes) — **create a new milestone first** in `master-plan/milestones/` before writing code. This ensures the plan is discussed and approved before execution.
+
+### Milestone workflow
+
+1. **Create** — Write a new `master-plan/milestones/M<N>-<slug>.md` with status `⏳ pending`. Include Goal, Steps, and Completion Criteria sections. Register it in `STATUS.md`.
+2. **Start** — Change status to `🚧 in progress`, update the date in `STATUS.md`.
+3. **Work** — Implement the milestone steps.
+4. **Complete** — Change status to `✅ done`, update the date and test count in `STATUS.md`, verify `make test && make vet`.
+
+### Milestone document template
+
+```markdown
+# M<N> — <Title>
+
+**Status:** ⏳ pending
+
+## Goal
+
+One-sentence description of what this milestone achieves.
+
+## Files to modify
+
+- `file.go` — what changes
+
+## Steps
+
+### 1. Step title
+Description of what to do.
+
+### 2. Step title
+...
+
+## Completion Criteria
+
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] `make test` passes all tests
+- [ ] `make vet` exits 0
+```
+
+## About this file
+
+`AGENTS.md` can be updated as the project evolves. When editing it:
+- **Notify the user** before making changes — describe what you intend to change and why.
+- Keep instructions actionable and specific.
+- Don't duplicate information that belongs in `README.md` or `master-plan/STATUS.md`.
