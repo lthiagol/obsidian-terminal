@@ -1,6 +1,6 @@
 # M12 — Performance
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 

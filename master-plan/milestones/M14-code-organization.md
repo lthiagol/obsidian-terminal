@@ -1,6 +1,6 @@
 # M14 — Code Organization & Package Structure
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 

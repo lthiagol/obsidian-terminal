@@ -1,6 +1,6 @@
 # M10 — Deduplication & DRY
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 

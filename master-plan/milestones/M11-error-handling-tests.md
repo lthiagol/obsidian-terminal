@@ -1,6 +1,6 @@
 # M11 — Error Handling & Tests
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 

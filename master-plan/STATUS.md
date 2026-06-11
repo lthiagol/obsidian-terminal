@@ -1,6 +1,6 @@
 # obsidian-terminal — Build Status
 
-**Last updated:** 2026-06-10
+**Last updated:** 2026-06-11
 **Language:** Go 1.24+
 **Framework:** Bubble Tea + Bubbles + Lipgloss
 **Dependencies:** bubbletea, bubbles, lipgloss, gopkg.in/yaml.v3 (4 total)
@@ -45,11 +45,11 @@
 | M6: Status Bar + Help | ✅ done | 5 | 2026-06-10 | 2026-06-10 |
 | M7: File Watcher + Polish | ✅ done | 9 | 2026-06-10 | 2026-06-10 |
 | M8: Error Handling + Edge Cases | ✅ done | 8 | 2026-06-10 | 2026-06-10 |
-| M9: Code Quality & Structure | ⏳ pending | 0 | — | — |
-| M10: Deduplication & DRY | ⏳ pending | 0 | — | — |
-| M11: Error Handling & Tests | ⏳ pending | 16 | — | — |
-| M12: Performance | ⏳ pending | 0 | — | — |
-| M13: Theme System & Color Palettes | ⏳ pending | 0 | — | — |
-| M14: Code Organization & Package Structure | ⏳ pending | 0 | — | — |
+| M9: Code Quality & Structure | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
+| M10: Deduplication & DRY | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
+| M11: Error Handling & Tests | ✅ done | 16 | 2026-06-11 | 2026-06-11 |
+| M12: Performance | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
+| M13: Theme System & Color Palettes | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
+| M14: Code Organization & Package Structure | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
-| **Total** | | **79** | | |
+| **Total** | | **95** | | |
