@@ -51,6 +51,6 @@
 | M12: Performance | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M13: Theme System & Color Palettes | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M14: Code Organization & Package Structure | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
-| M15: Polish & Complete Remaining Gaps | 🚧 in progress | 0 | 2026-06-11 | — |
+| M15: Polish & Complete Remaining Gaps | ✅ done | 3 | 2026-06-11 | 2026-06-11 |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
-| **Total** | | **95** | | |
+| **Total** | | **98** | | |
