@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/lthiagol/obsidian-terminal/internal/search"
 )
@@ -231,6 +233,23 @@ func (m *Model) openNote(path string) {
 	m.activeNote = note
 	m.prevMode = m.mode
 	m.mode = ModeView
+
+	// Set up embed resolver for this note load
+	m.viewer.SetEmbedResolver(func(target, heading string) (string, error) {
+		resolved := ResolveWikiLink(target, m.vault, m.config.VaultPath)
+		if resolved == "" {
+			return "", fmt.Errorf("not found: %s", target)
+		}
+		note, err := LoadNote(m.config.VaultPath, resolved)
+		if err != nil {
+			return "", err
+		}
+		if heading != "" {
+			return extractSection(note.RawBody, heading), nil
+		}
+		return note.Body, nil
+	})
+
 	m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
 	m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)
 	m.backlinkMode = false

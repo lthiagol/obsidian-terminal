@@ -10,11 +10,17 @@ import (
 
 // MarkdownViewer renders and navigates markdown content.
 type MarkdownViewer struct {
-	viewport     viewport
-	rawMarkdown  string
-	links        []markdown.WikiLink
-	selectedLink int
-	renderStyle  markdown.RendererStyle
+	viewport      viewport
+	rawMarkdown   string
+	links         []markdown.WikiLink
+	selectedLink  int
+	renderStyle   markdown.RendererStyle
+	embedResolver markdown.EmbedResolver
+}
+
+// SetEmbedResolver sets the resolver for ![[embed]] directives.
+func (v *MarkdownViewer) SetEmbedResolver(r markdown.EmbedResolver) {
+	v.embedResolver = r
 }
 
 // NewViewer creates a MarkdownViewer with the given renderer style.
@@ -55,6 +61,9 @@ func (v *MarkdownViewer) SetContent(md string, width int) {
 	}
 
 	lines := markdown.ParseMarkdown(md)
+	if v.embedResolver != nil {
+		lines = markdown.ResolveEmbeds(lines, v.embedResolver)
+	}
 	rendered := markdown.RenderMarkdown(lines, v.viewport.Width-2, v.renderStyle)
 
 	if fmBlock != "" {

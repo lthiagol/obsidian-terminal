@@ -358,3 +358,70 @@ func normalizeWikiLinkTarget(target string) string {
 	}
 	return target
 }
+
+func extractSection(content, heading string) string {
+	lines := strings.Split(content, "\n")
+
+	headingLevel := 0
+	startIdx := -1
+
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if isMarkdownHeading(trimmed) {
+			level := countHeadingLevel(trimmed)
+			text := strings.TrimSpace(trimmed[level:])
+			if strings.ToLower(text) == strings.ToLower(heading) {
+				headingLevel = level
+				startIdx = i
+				break
+			}
+		}
+	}
+
+	if startIdx < 0 {
+		return content
+	}
+
+	var result []string
+	for i := startIdx; i < len(lines); i++ {
+		trimmed := strings.TrimSpace(lines[i])
+		if i > startIdx && isMarkdownHeading(trimmed) {
+			level := countHeadingLevel(trimmed)
+			if level <= headingLevel {
+				break
+			}
+		}
+		result = append(result, lines[i])
+	}
+
+	return strings.Join(result, "\n")
+}
+
+func isMarkdownHeading(line string) bool {
+	if len(line) == 0 || line[0] != '#' {
+		return false
+	}
+	level := 0
+	for _, c := range line {
+		if c == '#' {
+			level++
+		} else if c == ' ' && level > 0 {
+			return level <= 6
+		} else {
+			return false
+		}
+	}
+	return false
+}
+
+func countHeadingLevel(line string) int {
+	level := 0
+	for _, c := range line {
+		if c == '#' {
+			level++
+		} else {
+			break
+		}
+	}
+	return level
+}

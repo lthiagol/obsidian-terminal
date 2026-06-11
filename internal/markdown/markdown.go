@@ -20,6 +20,9 @@ const (
 	BlockHorizontalRule
 	BlockEmpty
 	BlockTable
+	BlockEmbed
+	BlockEmbedStart
+	BlockEmbedEnd
 )
 
 // TableAlignment specifies cell text alignment.
@@ -57,6 +60,8 @@ type MarkdownLine struct {
 	Checked      bool
 	TableCells   []string
 	TableAlign   []TableAlignment
+	EmbedTarget  string
+	EmbedHeading string
 }
 
 // WikiLink represents an Obsidian [[wiki-link]].
@@ -219,6 +224,16 @@ func ParseMarkdown(content string) []MarkdownLine {
 			continue
 		}
 
+		if isEmbed(line) {
+			target, heading := parseEmbed(line)
+			result = append(result, MarkdownLine{
+				BlockType:    BlockEmbed,
+				EmbedTarget:  target,
+				EmbedHeading: heading,
+			})
+			continue
+		}
+
 		segments := parseInline(line)
 		result = append(result, MarkdownLine{
 			BlockType: BlockParagraph,
@@ -374,6 +389,25 @@ func blockquoteIndent(line string) int {
 		count = 1
 	}
 	return count
+}
+
+func isEmbed(line string) bool {
+	t := strings.TrimSpace(line)
+	return strings.HasPrefix(t, "![[") && strings.HasSuffix(t, "]]")
+}
+
+func parseEmbed(line string) (target, heading string) {
+	t := strings.TrimSpace(line)
+	t = strings.TrimPrefix(t, "![[")
+	t = strings.TrimSuffix(t, "]]")
+	if idx := strings.Index(t, "#"); idx >= 0 {
+		heading = t[idx+1:]
+		target = t[:idx]
+	} else {
+		target = t
+	}
+	target = strings.SplitN(target, "|", 2)[0]
+	return
 }
 
 func isListItem(line string) bool {
@@ -613,6 +647,71 @@ func ExtractWikiLinks(lines []MarkdownLine) []WikiLink {
 	return links
 }
 
+// EmbedResolver resolves an embed target to its content.
+type EmbedResolver func(target, heading string) (string, error)
+
+// ResolveEmbeds walks lines and resolves BlockEmbed lines by calling the resolver.
+func ResolveEmbeds(lines []MarkdownLine, resolve EmbedResolver) []MarkdownLine {
+	return resolveEmbedsRecursive(lines, resolve, make(map[string]bool), 0)
+}
+
+func resolveEmbedsRecursive(lines []MarkdownLine, resolve EmbedResolver, visited map[string]bool, depth int) []MarkdownLine {
+	if depth > 2 {
+		return lines
+	}
+
+	var result []MarkdownLine
+	for _, line := range lines {
+		if line.BlockType != BlockEmbed {
+			result = append(result, line)
+			continue
+		}
+
+		key := line.EmbedTarget
+		if line.EmbedHeading != "" {
+			key += "#" + line.EmbedHeading
+		}
+
+		if visited[key] {
+			result = append(result, MarkdownLine{
+				BlockType: BlockEmbedStart,
+				EmbedTarget:  "(circular embed detected)",
+			})
+			result = append(result, MarkdownLine{BlockType: BlockEmbedEnd})
+			continue
+		}
+
+		content, err := resolve(line.EmbedTarget, line.EmbedHeading)
+		if err != nil || content == "" {
+			result = append(result, MarkdownLine{
+				BlockType: BlockEmbedStart,
+				EmbedTarget:  line.EmbedTarget,
+			})
+			result = append(result, MarkdownLine{
+				BlockType:    BlockParagraph,
+				Segments:     []InlineSegment{{Text: "(embed not found: " + line.EmbedTarget + ")"}},
+			})
+			result = append(result, MarkdownLine{BlockType: BlockEmbedEnd})
+			continue
+		}
+
+		visited[key] = true
+
+		parsed := ParseMarkdown(content)
+		resolved := resolveEmbedsRecursive(parsed, resolve, visited, depth+1)
+
+		result = append(result, MarkdownLine{
+			BlockType:    BlockEmbedStart,
+			EmbedTarget:  line.EmbedTarget,
+			EmbedHeading: line.EmbedHeading,
+		})
+		result = append(result, resolved...)
+		result = append(result, MarkdownLine{BlockType: BlockEmbedEnd})
+	}
+
+	return result
+}
+
 // RenderMarkdown renders parsed markdown lines to styled terminal output.
 func RenderMarkdown(lines []MarkdownLine, width int, style RendererStyle) string {
 	if width < 20 {
@@ -634,6 +733,30 @@ func RenderMarkdown(lines []MarkdownLine, width int, style RendererStyle) string
 				}
 				sb.WriteString(rendered)
 			}
+			continue
+		}
+
+		if lines[i].BlockType == BlockEmbedStart {
+			embedLines := []MarkdownLine{lines[i]}
+			for i+1 < len(lines) && lines[i+1].BlockType != BlockEmbedEnd {
+				i++
+				embedLines = append(embedLines, lines[i])
+			}
+			if i+1 < len(lines) {
+				i++
+				embedLines = append(embedLines, lines[i])
+			}
+			rendered := renderEmbedBlock(embedLines, width, style)
+			if rendered != "" {
+				if sb.Len() > 0 {
+					sb.WriteString("\n")
+				}
+				sb.WriteString(rendered)
+			}
+			continue
+		}
+
+		if lines[i].BlockType == BlockEmbedEnd {
 			continue
 		}
 
@@ -664,6 +787,8 @@ func renderLine(line MarkdownLine, width int, style RendererStyle) string {
 		return renderHorizontalRule(width, style)
 	case BlockTable:
 		return "" // handled by renderTableBlock
+	case BlockEmbed:
+		return "" // handled by ResolveEmbeds
 	case BlockEmpty:
 		return ""
 	default:
@@ -787,6 +912,42 @@ func renderCallout(line MarkdownLine, width int, style RendererStyle) string {
 		body = line.Segments[0].Text
 	}
 	return icon + " " + typeStyle.Render(line.CalloutType) + " " + bodyStyle.Render(body)
+}
+
+func renderEmbedBlock(lines []MarkdownLine, width int, style RendererStyle) string {
+	if len(lines) < 2 {
+		return ""
+	}
+
+	start := lines[0]
+	target := start.EmbedTarget
+	if start.EmbedHeading != "" {
+		target += " > " + start.EmbedHeading
+	}
+
+	var sb strings.Builder
+
+	borderStyle := lipgloss.NewStyle().Foreground(style.Accent)
+	headerStyle := lipgloss.NewStyle().Bold(true).Foreground(style.AccentTertiary)
+	dimStyle := lipgloss.NewStyle().Foreground(style.TextDim)
+
+	sb.WriteString(borderStyle.Render("┌─ "))
+	sb.WriteString(headerStyle.Render(target))
+	sb.WriteString("\n")
+
+	for i := 1; i < len(lines)-1; i++ {
+		rendered := renderLine(lines[i], width-2, style)
+		if rendered != "" {
+			sb.WriteString(borderStyle.Render("│ "))
+			sb.WriteString(rendered)
+			sb.WriteString("\n")
+		}
+	}
+
+	sb.WriteString(borderStyle.Render("└"))
+	sb.WriteString(dimStyle.Render(strings.Repeat("─", width-1)))
+
+	return sb.String()
 }
 
 func renderTableBlock(lines []MarkdownLine, width int, style RendererStyle) string {

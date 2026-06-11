@@ -1,6 +1,6 @@
 # M23 — Embedded Block Embeds
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
