@@ -70,17 +70,16 @@ skip_dirs:
 
 ## Planned Features
 
+This TUI is read-only by design — no editing, no writing to the vault.
+
 - [ ] Image preview (sixel/kitty protocol)
 - [ ] Backlinks panel
 - [ ] Tag browsing and filtering
-- [ ] Note editing
-- [ ] Daily notes / quick capture
 - [ ] Multiple vault profiles
 - [ ] Custom CSS-like themes
 - [ ] Graph view (ASCII-based)
 - [ ] Embedded search results (block embeds)
 - [ ] Mouse support for tree and viewer
-- [ ] Drag-and-drop reordering
 - [ ] Export to PDF/HTML
 
 ## License
