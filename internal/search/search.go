@@ -314,7 +314,7 @@ func renderFileList(state State, width int, style Style) string {
 		}
 
 		if i == state.selected {
-			line = lipgloss.NewStyle().Background(style.Accent).Foreground(lipgloss.Color("#000000")).Bold(true).Render(line)
+			line = styleSelected(line, style)
 		} else {
 			line = lipgloss.NewStyle().Foreground(style.TextSecondary).Render(line)
 		}
@@ -333,7 +333,11 @@ func formatResult(r Result, mode Mode, selected bool, width int, style Style) st
 	}
 
 	if selected {
-		return lipgloss.NewStyle().Background(style.Accent).Foreground(lipgloss.Color("#000000")).Bold(true).Render(line)
+		return styleSelected(line, style)
 	}
 	return lipgloss.NewStyle().Foreground(style.TextSecondary).Render(line)
+}
+
+func styleSelected(line string, style Style) string {
+	return lipgloss.NewStyle().Background(style.Accent).Foreground(lipgloss.Color("#000000")).Bold(true).Render(line)
 }

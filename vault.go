@@ -216,48 +216,40 @@ func LoadNote(vaultRoot, relativePath string) (*VaultNote, error) {
 	}, nil
 }
 
-func parseFrontmatter(content string) (frontmatterData, string) {
-	var fm frontmatterData
-
+func findFrontmatterBounds(content string) (yamlStart, yamlEnd int, ok bool) {
 	if !strings.HasPrefix(content, "---\n") && !strings.HasPrefix(content, "---\r\n") {
-		return fm, content
+		return 0, 0, false
 	}
-
-	// Find closing ---
 	rest := content[3:]
 	idx := strings.Index(rest, "\n---\n")
 	if idx == -1 {
 		idx = strings.Index(rest, "\n---\r\n")
 	}
 	if idx == -1 {
+		return 0, 0, false
+	}
+	return 3, 3 + idx, true
+}
+
+func parseFrontmatter(content string) (frontmatterData, string) {
+	var fm frontmatterData
+	yamlStart, yamlEnd, ok := findFrontmatterBounds(content)
+	if !ok {
 		return fm, content
 	}
-
-	yamlBlock := rest[:idx]
-	body := rest[idx+5:] // skip "\n---\n"
-
+	yamlBlock := content[yamlStart:yamlEnd]
 	if err := yaml.Unmarshal([]byte(yamlBlock), &fm); err != nil {
 		return frontmatterData{}, content
 	}
-
-	return fm, body
+	return fm, content[yamlEnd+5:]
 }
 
 func stripFrontmatter(content string) string {
-	if !strings.HasPrefix(content, "---\n") && !strings.HasPrefix(content, "---\r\n") {
+	_, yamlEnd, ok := findFrontmatterBounds(content)
+	if !ok {
 		return content
 	}
-
-	rest := content[3:]
-	idx := strings.Index(rest, "\n---\n")
-	if idx == -1 {
-		idx = strings.Index(rest, "\n---\r\n")
-	}
-	if idx == -1 {
-		return content
-	}
-
-	return rest[idx+5:]
+	return content[yamlEnd+5:]
 }
 
 func allPaths(vault *VaultEntry) []string {

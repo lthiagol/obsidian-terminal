@@ -8,19 +8,13 @@ import (
 func (m Model) handleBrowseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
 	case MatchRune(msg, m.keys.Search):
-		m.prevMode = m.mode
-		m.mode = ModeSearch
-		m.searchState = search.NewState(search.Name, m.allPaths, m.searchIndex)
+		m.enterSearchMode()
 		return m, nil
 	case MatchRune(msg, m.keys.Find):
-		m.prevMode = m.mode
-		m.mode = ModeFind
-		m.searchState = search.NewState(search.Content, m.allPaths, m.searchIndex)
+		m.enterFindMode()
 		return m, nil
 	case MatchRune(msg, m.keys.Help):
-		m.prevMode = m.mode
-		m.mode = ModeHelp
-		m.helpScroll = 0
+		m.enterHelpMode()
 		return m, nil
 	case msg.Type == tea.KeyEnter:
 		entry := m.fileTree.SelectedEntry()
@@ -69,19 +63,13 @@ func (m Model) handleViewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.activeNote = nil
 		return m, nil
 	case MatchRune(msg, m.keys.Search):
-		m.prevMode = m.mode
-		m.mode = ModeSearch
-		m.searchState = search.NewState(search.Name, m.allPaths, m.searchIndex)
+		m.enterSearchMode()
 		return m, nil
 	case MatchRune(msg, m.keys.Find):
-		m.prevMode = m.mode
-		m.mode = ModeFind
-		m.searchState = search.NewState(search.Content, m.allPaths, m.searchIndex)
+		m.enterFindMode()
 		return m, nil
 	case MatchRune(msg, m.keys.Help):
-		m.prevMode = m.mode
-		m.mode = ModeHelp
-		m.helpScroll = 0
+		m.enterHelpMode()
 		return m, nil
 	case msg.Type == tea.KeyTab:
 		m.viewer.CycleLink()
@@ -124,41 +112,14 @@ func (m Model) handleViewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch {
-	case msg.Type == tea.KeyEsc:
-		m.mode = m.prevMode
-		return m, nil
-	case msg.Type == tea.KeyBackspace:
-		if len(m.searchState.Query()) > 0 {
-			m.searchState.SetQuery(m.searchState.Query()[:len(m.searchState.Query())-1])
-		}
-		return m, nil
-	case msg.Type == tea.KeyRunes && len(msg.Runes) > 0:
-		m.searchState.SetQuery(m.searchState.Query() + string(msg.Runes))
-		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
-		m.searchState.MoveDown()
-		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
-		m.searchState.MoveUp()
-		return m, nil
-	case msg.Type == tea.KeyEnter:
-		result := m.searchState.SelectedResult()
-		if result != nil {
-			note, err := LoadNote(m.config.VaultPath, result.Path)
-			if err == nil {
-				m.activeNote = note
-				m.prevMode = ModeBrowse
-				m.mode = ModeView
-				m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
-			}
-		}
-		return m, nil
-	}
-	return m, nil
+	return m.handleSearchOrFind(msg)
 }
 
 func (m Model) handleFindKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	return m.handleSearchOrFind(msg)
+}
+
+func (m Model) handleSearchOrFind(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
 	case msg.Type == tea.KeyEsc:
 		m.mode = m.prevMode
@@ -208,4 +169,22 @@ func (m Model) handleHelpKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 	return m, nil
+}
+
+func (m *Model) enterSearchMode() {
+	m.prevMode = m.mode
+	m.mode = ModeSearch
+	m.searchState = search.NewState(search.Name, m.allPaths, m.searchIndex)
+}
+
+func (m *Model) enterFindMode() {
+	m.prevMode = m.mode
+	m.mode = ModeFind
+	m.searchState = search.NewState(search.Content, m.allPaths, m.searchIndex)
+}
+
+func (m *Model) enterHelpMode() {
+	m.prevMode = m.mode
+	m.mode = ModeHelp
+	m.helpScroll = 0
 }

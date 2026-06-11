@@ -254,18 +254,17 @@ func (m Model) View() string {
 }
 
 func (m Model) renderSearch() string {
-	var sb strings.Builder
-	modeLabel := lipgloss.NewStyle().Bold(true).Foreground(AccentSecondary).Render("fuzzy")
-	sb.WriteString(fmt.Sprintf("%s  %s_  (%d results)", modeLabel, m.searchState.Query(), m.searchState.ResultCount()))
-	sb.WriteString("\n\n")
-	sb.WriteString(search.RenderResults(m.searchState, m.width-m.treeWidth-6, m.searchStyle))
-	return sb.String()
+	return m.renderSearchPanel("fuzzy", "results")
 }
 
 func (m Model) renderFind() string {
+	return m.renderSearchPanel("content", "matches")
+}
+
+func (m Model) renderSearchPanel(label, resultLabel string) string {
 	var sb strings.Builder
-	modeLabel := lipgloss.NewStyle().Bold(true).Foreground(AccentSecondary).Render("content")
-	sb.WriteString(fmt.Sprintf("%s  %s_  (%d matches)", modeLabel, m.searchState.Query(), m.searchState.ResultCount()))
+	modeLabel := lipgloss.NewStyle().Bold(true).Foreground(AccentSecondary).Render(label)
+	sb.WriteString(fmt.Sprintf("%s  %s_  (%d %s)", modeLabel, m.searchState.Query(), m.searchState.ResultCount(), resultLabel))
 	sb.WriteString("\n\n")
 	sb.WriteString(search.RenderResults(m.searchState, m.width-m.treeWidth-6, m.searchStyle))
 	return sb.String()
