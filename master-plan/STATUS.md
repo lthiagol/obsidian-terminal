@@ -50,5 +50,6 @@
 | M11: Error Handling & Tests | ⏳ pending | 16 | — | — |
 | M12: Performance | ⏳ pending | 0 | — | — |
 | M13: Theme System & Color Palettes | ⏳ pending | 0 | — | — |
+| M14: Code Organization & Package Structure | ⏳ pending | 0 | — | — |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
 | **Total** | | **79** | | |

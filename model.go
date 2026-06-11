@@ -8,6 +8,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lthiagol/obsidian-terminal/internal/search"
 )
 
 type TickMsg struct{}
@@ -67,7 +68,8 @@ type Model struct {
 	fileTree FileTree
 	viewer   MarkdownViewer
 
-	searchState SearchState
+	searchState search.State
+	searchStyle search.Style
 	allPaths    []string
 
 	width     int
@@ -131,7 +133,8 @@ func NewModel(cfg *Config) Model {
 		keys:        keys,
 		config:      cfg,
 		fileTree:    NewFileTree(tree),
-		viewer:      NewViewer(),
+		viewer:      NewViewer(defaultMarkdownStyle()),
+		searchStyle: defaultSearchStyle(),
 	}
 }
 
@@ -214,12 +217,12 @@ func (m Model) handleBrowseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case MatchRune(msg, m.keys.Search):
 		m.prevMode = m.mode
 		m.mode = ModeSearch
-		m.searchState = NewSearchState(SearchName, m.allPaths, m.searchIndex)
+		m.searchState = search.NewState(search.Name, m.allPaths, m.searchIndex)
 		return m, nil
 	case MatchRune(msg, m.keys.Find):
 		m.prevMode = m.mode
 		m.mode = ModeFind
-		m.searchState = NewSearchState(SearchContent, m.allPaths, m.searchIndex)
+		m.searchState = search.NewState(search.Content, m.allPaths, m.searchIndex)
 		return m, nil
 	case MatchRune(msg, m.keys.Help):
 		m.prevMode = m.mode
@@ -275,12 +278,12 @@ func (m Model) handleViewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case MatchRune(msg, m.keys.Search):
 		m.prevMode = m.mode
 		m.mode = ModeSearch
-		m.searchState = NewSearchState(SearchName, m.allPaths, m.searchIndex)
+		m.searchState = search.NewState(search.Name, m.allPaths, m.searchIndex)
 		return m, nil
 	case MatchRune(msg, m.keys.Find):
 		m.prevMode = m.mode
 		m.mode = ModeFind
-		m.searchState = NewSearchState(SearchContent, m.allPaths, m.searchIndex)
+		m.searchState = search.NewState(search.Content, m.allPaths, m.searchIndex)
 		return m, nil
 	case MatchRune(msg, m.keys.Help):
 		m.prevMode = m.mode
@@ -333,12 +336,12 @@ func (m Model) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.mode = m.prevMode
 		return m, nil
 	case msg.Type == tea.KeyBackspace:
-		if len(m.searchState.query) > 0 {
-			m.searchState.SetQuery(m.searchState.query[:len(m.searchState.query)-1])
+		if len(m.searchState.Query()) > 0 {
+			m.searchState.SetQuery(m.searchState.Query()[:len(m.searchState.Query())-1])
 		}
 		return m, nil
 	case msg.Type == tea.KeyRunes && len(msg.Runes) > 0:
-		m.searchState.SetQuery(m.searchState.query + string(msg.Runes))
+		m.searchState.SetQuery(m.searchState.Query() + string(msg.Runes))
 		return m, nil
 	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
 		m.searchState.MoveDown()
@@ -368,12 +371,12 @@ func (m Model) handleFindKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.mode = m.prevMode
 		return m, nil
 	case msg.Type == tea.KeyBackspace:
-		if len(m.searchState.query) > 0 {
-			m.searchState.SetQuery(m.searchState.query[:len(m.searchState.query)-1])
+		if len(m.searchState.Query()) > 0 {
+			m.searchState.SetQuery(m.searchState.Query()[:len(m.searchState.Query())-1])
 		}
 		return m, nil
 	case msg.Type == tea.KeyRunes && len(msg.Runes) > 0:
-		m.searchState.SetQuery(m.searchState.query + string(msg.Runes))
+		m.searchState.SetQuery(m.searchState.Query() + string(msg.Runes))
 		return m, nil
 	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
 		m.searchState.MoveDown()
@@ -489,18 +492,18 @@ func (m Model) renderViewer() string {
 func (m Model) renderSearch() string {
 	var sb strings.Builder
 	modeLabel := lipgloss.NewStyle().Bold(true).Foreground(AccentSecondary).Render("fuzzy")
-	sb.WriteString(fmt.Sprintf("%s  %s_  (%d results)", modeLabel, m.searchState.query, m.searchState.ResultCount()))
+	sb.WriteString(fmt.Sprintf("%s  %s_  (%d results)", modeLabel, m.searchState.Query(), m.searchState.ResultCount()))
 	sb.WriteString("\n\n")
-	sb.WriteString(RenderSearchResults(m.searchState, m.width-m.treeWidth-6))
+	sb.WriteString(search.RenderResults(m.searchState, m.width-m.treeWidth-6, m.searchStyle))
 	return sb.String()
 }
 
 func (m Model) renderFind() string {
 	var sb strings.Builder
 	modeLabel := lipgloss.NewStyle().Bold(true).Foreground(AccentSecondary).Render("content")
-	sb.WriteString(fmt.Sprintf("%s  %s_  (%d matches)", modeLabel, m.searchState.query, m.searchState.ResultCount()))
+	sb.WriteString(fmt.Sprintf("%s  %s_  (%d matches)", modeLabel, m.searchState.Query(), m.searchState.ResultCount()))
 	sb.WriteString("\n\n")
-	sb.WriteString(RenderSearchResults(m.searchState, m.width-m.treeWidth-6))
+	sb.WriteString(search.RenderResults(m.searchState, m.width-m.treeWidth-6, m.searchStyle))
 	return sb.String()
 }
 
@@ -613,7 +616,7 @@ func (m Model) renderStatusBar() string {
 			}
 		}
 	case ModeSearch, ModeFind:
-		info = m.searchState.query
+		info = m.searchState.Query()
 	case ModeHelp:
 		info = "j/k scroll | Esc back"
 	}

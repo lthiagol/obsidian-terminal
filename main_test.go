@@ -30,24 +30,6 @@ func TestVaultPath_IsFile(t *testing.T) {
 	}
 }
 
-func TestParseMarkdown_UnclosedCodeBlock(t *testing.T) {
-	input := "```go\nfunc test() {\n    fmt.Println(\"hello\")\n}\n"
-	lines := ParseMarkdown(input)
-
-	found := false
-	for _, l := range lines {
-		if l.BlockType == BlockCodeBlock {
-			found = true
-			if !strings.Contains(l.RawContent, "fmt.Println") {
-				t.Error("code block should contain content")
-			}
-		}
-	}
-	if !found {
-		t.Error("unclosed code block should still produce a BlockCodeBlock at EOF")
-	}
-}
-
 func TestLoadNote_MalformedFrontmatter(t *testing.T) {
 	dir := t.TempDir()
 	content := "---\ntitle: [bad yaml\n---\n\n# Content\nhello world\n"
@@ -67,7 +49,7 @@ func TestLoadNote_MalformedFrontmatter(t *testing.T) {
 }
 
 func TestViewer_EmptyNote(t *testing.T) {
-	v := NewViewer()
+	v := NewViewer(defaultMarkdownStyle())
 	v.SetContent("", 80)
 	view := v.View()
 
@@ -79,7 +61,7 @@ func TestViewer_EmptyNote(t *testing.T) {
 
 func TestViewer_SingleLongLine(t *testing.T) {
 	longLine := strings.Repeat("x", 5000)
-	v := NewViewer()
+	v := NewViewer(defaultMarkdownStyle())
 	v.SetContent(longLine, 60)
 	view := v.View()
 

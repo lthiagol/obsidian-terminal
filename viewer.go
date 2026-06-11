@@ -5,36 +5,39 @@ import (
 
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/lthiagol/obsidian-terminal/internal/markdown"
 )
 
 type MarkdownViewer struct {
 	viewport     viewport.Model
 	rawMarkdown  string
-	links        []WikiLink
+	links        []markdown.WikiLink
 	selectedLink int
+	renderStyle  markdown.RendererStyle
 }
 
-func NewViewer() MarkdownViewer {
+func NewViewer(style markdown.RendererStyle) MarkdownViewer {
 	vp := viewport.New(80, 20)
 	return MarkdownViewer{
 		viewport:     vp,
 		selectedLink: -1,
+		renderStyle:  style,
 	}
 }
 
-func (v *MarkdownViewer) SetContent(markdown string, width int) {
-	v.rawMarkdown = markdown
+func (v *MarkdownViewer) SetContent(md string, width int) {
+	v.rawMarkdown = md
 	v.viewport.Width = width - 2
 
-	if strings.TrimSpace(markdown) == "" {
+	if strings.TrimSpace(md) == "" {
 		v.viewport.SetContent("(empty note)")
 		v.links = nil
 		v.selectedLink = -1
 		return
 	}
 
-	if strings.HasPrefix(markdown, "---\n") {
-		afterFM := stripMarkdownFrontmatter(markdown)
+	if strings.HasPrefix(md, "---\n") {
+		afterFM := markdown.StripFrontmatter(md)
 		if strings.TrimSpace(afterFM) == "" {
 			v.viewport.SetContent("(empty note)")
 			v.links = nil
@@ -43,10 +46,10 @@ func (v *MarkdownViewer) SetContent(markdown string, width int) {
 		}
 	}
 
-	lines := ParseMarkdown(markdown)
-	rendered := RenderMarkdown(lines, v.viewport.Width-2)
+	lines := markdown.ParseMarkdown(md)
+	rendered := markdown.RenderMarkdown(lines, v.viewport.Width-2, v.renderStyle)
 	v.viewport.SetContent(rendered)
-	v.links = ExtractWikiLinks(lines)
+	v.links = markdown.ExtractWikiLinks(lines)
 	v.selectedLink = -1
 }
 

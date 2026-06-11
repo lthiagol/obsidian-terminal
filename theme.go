@@ -1,6 +1,10 @@
 package main
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
+	"github.com/lthiagol/obsidian-terminal/internal/markdown"
+	"github.com/lthiagol/obsidian-terminal/internal/search"
+)
 
 var (
 	Accent          = lipgloss.Color("#a78bfa")
@@ -49,4 +53,25 @@ var ModeColors = map[Mode]lipgloss.Color{
 	ModeSearch: AccentSecondary,
 	ModeFind:   AccentSecondary,
 	ModeHelp:   Info,
+}
+
+func defaultMarkdownStyle() markdown.RendererStyle {
+	return markdown.RendererStyle{
+		Accent:          Accent,
+		AccentSecondary: AccentSecondary,
+		AccentTertiary:  AccentTertiary,
+		TextSecondary:   TextSecondary,
+		TextDim:         TextDim,
+		Success:         Success,
+		CodeBackground:  lipgloss.Color("#1f2937"),
+		Heading1:        lipgloss.Color("#f472b6"),
+	}
+}
+
+func defaultSearchStyle() search.Style {
+	return search.Style{
+		Accent:        Accent,
+		TextSecondary: TextSecondary,
+		TextMuted:     TextMuted,
+	}
 }

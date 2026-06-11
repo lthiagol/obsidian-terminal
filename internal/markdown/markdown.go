@@ -1,8 +1,6 @@
-package main
+package markdown
 
 import (
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -49,12 +47,19 @@ type WikiLink struct {
 	Display string
 }
 
-type Styles struct {
-	Width int
+type RendererStyle struct {
+	Accent          lipgloss.Color
+	AccentSecondary lipgloss.Color
+	AccentTertiary  lipgloss.Color
+	TextSecondary   lipgloss.Color
+	TextDim         lipgloss.Color
+	Success         lipgloss.Color
+	CodeBackground  lipgloss.Color
+	Heading1        lipgloss.Color
 }
 
 func ParseMarkdown(content string) []MarkdownLine {
-	content = stripMarkdownFrontmatter(content)
+	content = StripFrontmatter(content)
 	content = stripComments(content)
 
 	lines := strings.Split(content, "\n")
@@ -68,8 +73,8 @@ func ParseMarkdown(content string) []MarkdownLine {
 		if inCodeBlock {
 			if isCodeFence(line) {
 				result = append(result, MarkdownLine{
-					BlockType: BlockCodeBlock,
-					Language:  codeLang,
+					BlockType:  BlockCodeBlock,
+					Language:   codeLang,
 					RawContent: strings.Join(codeLines, "\n"),
 				})
 				inCodeBlock = false
@@ -292,7 +297,6 @@ func parseSegments(text string, segments *[]InlineSegment) {
 		return
 	}
 
-	// Wiki-links [[target]] or [[target|display]]
 	if strings.HasPrefix(text, "[[") {
 		end := strings.Index(text, "]]")
 		if end > 0 {
@@ -317,7 +321,6 @@ func parseSegments(text string, segments *[]InlineSegment) {
 		}
 	}
 
-	// Bold+Italic *** or bold **
 	if strings.HasPrefix(text, "***") || strings.HasPrefix(text, "___") {
 		marker := text[:3]
 		end := strings.Index(text[3:], marker)
@@ -347,7 +350,6 @@ func parseSegments(text string, segments *[]InlineSegment) {
 		}
 	}
 
-	// Italic * or _
 	if strings.HasPrefix(text, "*") || strings.HasPrefix(text, "_") {
 		marker := text[:1]
 		rest := text[1:]
@@ -363,7 +365,6 @@ func parseSegments(text string, segments *[]InlineSegment) {
 		}
 	}
 
-	// Inline code `
 	if strings.HasPrefix(text, "`") {
 		end := strings.Index(text[1:], "`")
 		if end >= 0 {
@@ -377,7 +378,6 @@ func parseSegments(text string, segments *[]InlineSegment) {
 		}
 	}
 
-	// Strikethrough ~~
 	if strings.HasPrefix(text, "~~") {
 		end := strings.Index(text[2:], "~~")
 		if end >= 0 {
@@ -391,7 +391,6 @@ func parseSegments(text string, segments *[]InlineSegment) {
 		}
 	}
 
-	// Highlight ==
 	if strings.HasPrefix(text, "==") {
 		end := strings.Index(text[2:], "==")
 		if end >= 0 {
@@ -405,7 +404,6 @@ func parseSegments(text string, segments *[]InlineSegment) {
 		}
 	}
 
-	// Plain text up to next special character
 	next := findNextSpecial(text)
 	if next == -1 {
 		*segments = append(*segments, InlineSegment{Text: text})
@@ -458,7 +456,7 @@ func mergeSegments(segments []InlineSegment) []InlineSegment {
 	return merged
 }
 
-func stripMarkdownFrontmatter(content string) string {
+func StripFrontmatter(content string) string {
 	if !strings.HasPrefix(content, "---\n") && !strings.HasPrefix(content, "---\r\n") {
 		return content
 	}
@@ -497,129 +495,14 @@ func ExtractWikiLinks(lines []MarkdownLine) []WikiLink {
 	return links
 }
 
-func ResolveWikiLink(target string, vault *VaultEntry, vaultRoot string) string {
-	if target == "" {
-		return ""
-	}
-
-	target = strings.SplitN(target, "#", 2)[0]
-
-	if !strings.HasSuffix(target, ".md") {
-		exact := findExactPath(vault, "", target+".md")
-		if exact != "" {
-			return exact
-		}
-		exact = findExactPath(vault, "", target+".markdown")
-		if exact != "" {
-			return exact
-		}
-	} else {
-		exact := findExactPath(vault, "", target)
-		if exact != "" {
-			return exact
-		}
-	}
-
-	basename := strings.ToLower(target)
-	if !strings.HasSuffix(basename, ".md") {
-		basename += ".md"
-	}
-	result := findBasename(vault, "", basename)
-	if result != "" {
-		return result
-	}
-
-	result = findAlias(vault, target, vaultRoot)
-	if result != "" {
-		return result
-	}
-
-	return ""
-}
-
-func findAlias(vault *VaultEntry, alias string, vaultRoot string) string {
-	aliasLower := strings.ToLower(alias)
-	for _, child := range vault.Children {
-		if child.IsDir {
-			found := findAlias(child, alias, vaultRoot)
-			if found != "" {
-				return found
-			}
-			continue
-		}
-		aliasEntries, _ := extractAliasesFromFile(vaultRoot, child.Path)
-		for _, a := range aliasEntries {
-			if strings.ToLower(a) == aliasLower {
-				return child.Path
-			}
-		}
-	}
-	return ""
-}
-
-func extractAliasesFromFile(vaultRoot, relativePath string) ([]string, error) {
-	fullPath := relativePath
-	if vaultRoot != "" {
-		fullPath = filepath.Join(vaultRoot, relativePath)
-	}
-	data, err := os.ReadFile(fullPath)
-	if err != nil {
-		return nil, err
-	}
-
-	content := string(data)
-	fm, _ := parseFrontmatter(content)
-	return fm.Aliases, nil
-}
-
-func findExactPath(vault *VaultEntry, prefix, target string) string {
-	for _, child := range vault.Children {
-		childPath := child.Path
-		if prefix != "" {
-			childPath = prefix + "/" + child.Name
-		}
-		if childPath == target && !child.IsDir {
-			return childPath
-		}
-		if child.IsDir {
-			found := findExactPath(child, childPath, target)
-			if found != "" {
-				return found
-			}
-		}
-	}
-	return ""
-}
-
-func findBasename(vault *VaultEntry, prefix, target string) string {
-	targetLower := strings.ToLower(target)
-	for _, child := range vault.Children {
-		childPath := child.Path
-		if prefix != "" {
-			childPath = prefix + "/" + child.Name
-		}
-		nameLower := strings.ToLower(child.Name)
-		if nameLower == targetLower && !child.IsDir {
-			return childPath
-		}
-		if child.IsDir {
-			found := findBasename(child, childPath, target)
-			if found != "" {
-				return found
-			}
-		}
-	}
-	return ""
-}
-
-func RenderMarkdown(lines []MarkdownLine, width int) string {
+func RenderMarkdown(lines []MarkdownLine, width int, style RendererStyle) string {
 	if width < 20 {
 		width = 20
 	}
 
 	var sb strings.Builder
 	for _, line := range lines {
-		rendered := renderLine(line, width)
+		rendered := renderLine(line, width, style)
 		if rendered != "" {
 			if sb.Len() > 0 {
 				sb.WriteString("\n")
@@ -630,44 +513,44 @@ func RenderMarkdown(lines []MarkdownLine, width int) string {
 	return sb.String()
 }
 
-func renderLine(line MarkdownLine, width int) string {
+func renderLine(line MarkdownLine, width int, style RendererStyle) string {
 	switch line.BlockType {
 	case BlockHeading:
-		return renderHeading(line, width)
+		return renderHeading(line, width, style)
 	case BlockCodeBlock:
-		return renderCodeBlock(line, width)
+		return renderCodeBlock(line, width, style)
 	case BlockList:
-		return renderList(line, width)
+		return renderList(line, width, style)
 	case BlockBlockquote:
-		return renderBlockquote(line, width)
+		return renderBlockquote(line, width, style)
 	case BlockCallout:
-		return renderCallout(line, width)
+		return renderCallout(line, width, style)
 	case BlockHorizontalRule:
-		return renderHorizontalRule(width)
+		return renderHorizontalRule(width, style)
 	case BlockEmpty:
 		return ""
 	default:
-		return renderParagraph(line, width)
+		return renderParagraph(line, width, style)
 	}
 }
 
-func renderHeading(line MarkdownLine, width int) string {
-	text := renderSegments(line.Segments)
-	var style lipgloss.Style
+func renderHeading(line MarkdownLine, width int, style RendererStyle) string {
+	text := renderSegments(line.Segments, style)
+	var s lipgloss.Style
 	switch line.HeadingLevel {
 	case 1:
-		style = lipgloss.NewStyle().Foreground(lipgloss.Color("#f472b6")).Bold(true).Underline(true)
+		s = lipgloss.NewStyle().Foreground(style.Heading1).Bold(true).Underline(true)
 	case 2:
-		style = lipgloss.NewStyle().Foreground(Accent).Bold(true)
+		s = lipgloss.NewStyle().Foreground(style.Accent).Bold(true)
 	case 3:
-		style = lipgloss.NewStyle().Foreground(AccentTertiary).Bold(true)
+		s = lipgloss.NewStyle().Foreground(style.AccentTertiary).Bold(true)
 	default:
-		style = lipgloss.NewStyle().Foreground(TextSecondary).Bold(true)
+		s = lipgloss.NewStyle().Foreground(style.TextSecondary).Bold(true)
 	}
-	return style.Render(text)
+	return s.Render(text)
 }
 
-func renderCodeBlock(line MarkdownLine, width int) string {
+func renderCodeBlock(line MarkdownLine, width int, style RendererStyle) string {
 	lines := strings.Split(line.RawContent, "\n")
 
 	header := ""
@@ -677,17 +560,17 @@ func renderCodeBlock(line MarkdownLine, width int) string {
 
 	var sb strings.Builder
 
-	topBorder := lipgloss.NewStyle().Foreground(TextDim).Render("╭" + strings.Repeat("─", width-2) + "╮")
+	topBorder := lipgloss.NewStyle().Foreground(style.TextDim).Render("╭" + strings.Repeat("─", width-2) + "╮")
 	if header != "" {
-		labelStyle := lipgloss.NewStyle().Foreground(TextDim)
+		labelStyle := lipgloss.NewStyle().Foreground(style.TextDim)
 		padded := header + strings.Repeat("─", width-len(header)-2)
-		topBorder = lipgloss.NewStyle().Foreground(TextDim).Render("╭") +
+		topBorder = lipgloss.NewStyle().Foreground(style.TextDim).Render("╭") +
 			labelStyle.Render(padded) +
-			lipgloss.NewStyle().Foreground(TextDim).Render("╮")
+			lipgloss.NewStyle().Foreground(style.TextDim).Render("╮")
 	}
 	sb.WriteString(topBorder)
 
-	codeStyle := lipgloss.NewStyle().Foreground(Success)
+	codeStyle := lipgloss.NewStyle().Foreground(style.Success)
 
 	for _, l := range lines {
 		sb.WriteString("\n")
@@ -696,34 +579,34 @@ func renderCodeBlock(line MarkdownLine, width int) string {
 			l = l[:width-2]
 		}
 		padded := l + strings.Repeat(" ", width-2-len(l))
-		lineContent := lipgloss.NewStyle().Foreground(TextDim).Render("│") +
+		lineContent := lipgloss.NewStyle().Foreground(style.TextDim).Render("│") +
 			codeStyle.Render(padded) +
-			lipgloss.NewStyle().Foreground(TextDim).Render("│")
+			lipgloss.NewStyle().Foreground(style.TextDim).Render("│")
 		sb.WriteString(lineContent)
 	}
 
 	sb.WriteString("\n")
-	botBorder := lipgloss.NewStyle().Foreground(TextDim).Render("╰" + strings.Repeat("─", width-2) + "╯")
+	botBorder := lipgloss.NewStyle().Foreground(style.TextDim).Render("╰" + strings.Repeat("─", width-2) + "╯")
 	sb.WriteString(botBorder)
 
 	return sb.String()
 }
 
-func renderList(line MarkdownLine, width int) string {
+func renderList(line MarkdownLine, width int, style RendererStyle) string {
 	prefix := strings.Repeat("  ", line.IndentLevel)
-	text := renderSegments(line.Segments)
-	bullet := lipgloss.NewStyle().Foreground(Accent).Render("•")
+	text := renderSegments(line.Segments, style)
+	bullet := lipgloss.NewStyle().Foreground(style.Accent).Render("•")
 	return prefix + bullet + " " + text
 }
 
-func renderBlockquote(line MarkdownLine, width int) string {
-	prefix := lipgloss.NewStyle().Foreground(Accent).Render("│")
-	text := renderSegments(line.Segments)
-	bodyStyle := lipgloss.NewStyle().Foreground(TextSecondary).Italic(true)
+func renderBlockquote(line MarkdownLine, width int, style RendererStyle) string {
+	prefix := lipgloss.NewStyle().Foreground(style.Accent).Render("│")
+	text := renderSegments(line.Segments, style)
+	bodyStyle := lipgloss.NewStyle().Foreground(style.TextSecondary).Italic(true)
 	return prefix + " " + bodyStyle.Render(text)
 }
 
-func renderCallout(line MarkdownLine, width int) string {
+func renderCallout(line MarkdownLine, width int, style RendererStyle) string {
 	icon := "ℹ"
 	switch line.CalloutType {
 	case "note":
@@ -748,51 +631,51 @@ func renderCallout(line MarkdownLine, width int) string {
 		icon = "📋"
 	}
 
-	typeStyle := lipgloss.NewStyle().Bold(true).Foreground(AccentSecondary)
-	bodyStyle := lipgloss.NewStyle().Foreground(TextSecondary)
+	typeStyle := lipgloss.NewStyle().Bold(true).Foreground(style.AccentSecondary)
+	bodyStyle := lipgloss.NewStyle().Foreground(style.TextSecondary)
 
 	return icon + " " + typeStyle.Render(line.CalloutType) + " " + bodyStyle.Render(line.Segments[0].Text)
 }
 
-func renderHorizontalRule(width int) string {
+func renderHorizontalRule(width int, style RendererStyle) string {
 	rule := strings.Repeat("─", width)
-	return lipgloss.NewStyle().Foreground(TextDim).Render(rule)
+	return lipgloss.NewStyle().Foreground(style.TextDim).Render(rule)
 }
 
-func renderParagraph(line MarkdownLine, width int) string {
-	text := renderSegments(line.Segments)
+func renderParagraph(line MarkdownLine, width int, style RendererStyle) string {
+	text := renderSegments(line.Segments, style)
 	return wrapText(text, width)
 }
 
-func renderSegments(segments []InlineSegment) string {
+func renderSegments(segments []InlineSegment, style RendererStyle) string {
 	var sb strings.Builder
 	for _, seg := range segments {
-		sb.WriteString(renderSegment(seg))
+		sb.WriteString(renderSegment(seg, style))
 	}
 	return sb.String()
 }
 
-func renderSegment(seg InlineSegment) string {
-	style := lipgloss.NewStyle()
+func renderSegment(seg InlineSegment, style RendererStyle) string {
+	s := lipgloss.NewStyle()
 
 	switch {
 	case seg.IsWikiLink:
-		style = style.Foreground(AccentTertiary).Underline(true)
+		s = s.Foreground(style.AccentTertiary).Underline(true)
 	case seg.Code:
-		style = style.Foreground(Success).Background(lipgloss.Color("#1f2937"))
+		s = s.Foreground(style.Success).Background(style.CodeBackground)
 	case seg.Highlight:
-		style = style.Foreground(AccentSecondary)
+		s = s.Foreground(style.AccentSecondary)
 	case seg.Strikethrough:
-		style = style.Strikethrough(true)
+		s = s.Strikethrough(true)
 	case seg.Bold && seg.Italic:
-		style = style.Bold(true).Italic(true)
+		s = s.Bold(true).Italic(true)
 	case seg.Bold:
-		style = style.Bold(true)
+		s = s.Bold(true)
 	case seg.Italic:
-		style = style.Italic(true)
+		s = s.Italic(true)
 	}
 
-	return style.Render(seg.Text)
+	return s.Render(seg.Text)
 }
 
 func wrapText(text string, width int) string {

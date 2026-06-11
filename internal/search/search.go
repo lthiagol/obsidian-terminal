@@ -1,4 +1,4 @@
-package main
+package search
 
 import (
 	"fmt"
@@ -9,75 +9,85 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type SearchMode int
+type Mode int
 
 const (
-	SearchName SearchMode = iota
-	SearchContent
+	Name Mode = iota
+	Content
 )
 
-type SearchResult struct {
+type Result struct {
 	Path    string
 	Score   float64
 	Context string
 	LineNum int
 }
 
-type SearchState struct {
-	mode        SearchMode
+type State struct {
+	mode        Mode
 	query       string
-	results     []SearchResult
+	results     []Result
 	selected    int
 	allPaths    []string
 	searchIndex map[string]string
 }
 
-func NewSearchState(mode SearchMode, paths []string, index map[string]string) SearchState {
-	s := SearchState{
+type Style struct {
+	Accent        lipgloss.Color
+	TextSecondary lipgloss.Color
+	TextMuted     lipgloss.Color
+}
+
+func NewState(mode Mode, paths []string, index map[string]string) State {
+	s := State{
 		mode:        mode,
 		allPaths:    paths,
 		searchIndex: index,
 		selected:    0,
 	}
-	if mode == SearchName {
+	if mode == Name {
 		s.results = FuzzySearch("", paths)
 	}
 	return s
 }
 
-func (s *SearchState) SetQuery(query string) {
+func (s *State) SetQuery(query string) {
 	s.query = query
 	s.selected = 0
 
 	switch s.mode {
-	case SearchName:
+	case Name:
 		s.results = FuzzySearch(query, s.allPaths)
-	case SearchContent:
+	case Content:
 		if query == "" {
-			s.results = []SearchResult{}
+			s.results = []Result{}
 		} else {
 			s.results = ContentSearch(query, s.searchIndex)
 		}
 	}
 }
 
-func (s *SearchState) MoveUp() {
+func (s *State) MoveUp() {
 	if s.selected > 0 {
 		s.selected--
 	}
 }
 
-func (s *SearchState) MoveDown() {
+func (s *State) MoveDown() {
 	if s.selected < len(s.results)-1 {
 		s.selected++
 	}
 }
 
-func (s SearchState) ResultCount() int {
+func (s State) ResultCount() int {
 	return len(s.results)
 }
 
-func (s SearchState) SelectedResult() *SearchResult {
+func (s State) Query() string {
+	return s.query
+}
+
+func (s State) SelectedResult() *Result {
 	if s.selected >= 0 && s.selected < len(s.results) {
 		return &s.results[s.selected]
 	}
@@ -164,11 +174,11 @@ func isBoundary(r rune) bool {
 	return r == '/' || r == '-' || r == '_' || r == ' ' || r == '.'
 }
 
-func FuzzySearch(query string, paths []string) []SearchResult {
+func FuzzySearch(query string, paths []string) []Result {
 	if query == "" {
-		results := make([]SearchResult, len(paths))
+		results := make([]Result, len(paths))
 		for i, path := range paths {
-			results[i] = SearchResult{Path: path, Score: 0}
+			results[i] = Result{Path: path, Score: 0}
 		}
 		sort.Slice(results, func(i, j int) bool {
 			return strings.ToLower(results[i].Path) < strings.ToLower(results[j].Path)
@@ -179,11 +189,11 @@ func FuzzySearch(query string, paths []string) []SearchResult {
 		return results
 	}
 
-	var results []SearchResult
+	var results []Result
 	for _, path := range paths {
 		score := FuzzyScore(query, path)
 		if score > 0 {
-			results = append(results, SearchResult{Path: path, Score: score})
+			results = append(results, Result{Path: path, Score: score})
 		}
 	}
 
@@ -218,9 +228,9 @@ func HighlightMatches(query, path string) string {
 	return result.String()
 }
 
-func ContentSearch(query string, index map[string]string) []SearchResult {
+func ContentSearch(query string, index map[string]string) []Result {
 	queryLower := strings.ToLower(query)
-	var results []SearchResult
+	var results []Result
 
 	for path, content := range index {
 		contentLower := strings.ToLower(content)
@@ -232,7 +242,7 @@ func ContentSearch(query string, index map[string]string) []SearchResult {
 					if len(trimmed) > 80 {
 						trimmed = trimmed[:80] + "..."
 					}
-					results = append(results, SearchResult{
+					results = append(results, Result{
 						Path:    path,
 						Context: trimmed,
 						LineNum: lineNum + 1,
@@ -255,15 +265,15 @@ func ContentSearch(query string, index map[string]string) []SearchResult {
 	return results
 }
 
-func RenderSearchResults(state SearchState, width int) string {
-	if state.query == "" && state.mode == SearchName {
-		return renderFileList(state, width)
+func RenderResults(state State, width int, style Style) string {
+	if state.query == "" && state.mode == Name {
+		return renderFileList(state, width, style)
 	}
-	if state.query == "" && state.mode == SearchContent {
-		return lipgloss.NewStyle().Foreground(TextMuted).Render("Type to search note contents...")
+	if state.query == "" && state.mode == Content {
+		return lipgloss.NewStyle().Foreground(style.TextMuted).Render("Type to search note contents...")
 	}
 	if len(state.results) == 0 {
-		return lipgloss.NewStyle().Foreground(TextMuted).Render("No results")
+		return lipgloss.NewStyle().Foreground(style.TextMuted).Render("No results")
 	}
 
 	var sb strings.Builder
@@ -272,13 +282,13 @@ func RenderSearchResults(state SearchState, width int) string {
 			sb.WriteString("\n")
 		}
 
-		line := formatSearchResult(r, state.mode, i == state.selected, width)
+		line := formatResult(r, state.mode, i == state.selected, width, style)
 		sb.WriteString(line)
 	}
 	return sb.String()
 }
 
-func renderFileList(state SearchState, width int) string {
+func renderFileList(state State, width int, style Style) string {
 	var sb strings.Builder
 	for i, r := range state.results {
 		if i > 0 {
@@ -286,7 +296,7 @@ func renderFileList(state SearchState, width int) string {
 		}
 
 		var line string
-		if state.mode == SearchName {
+		if state.mode == Name {
 			highlighted := HighlightMatches(state.query, r.Path)
 			line = fmt.Sprintf("  %s", highlighted)
 		} else {
@@ -294,9 +304,9 @@ func renderFileList(state SearchState, width int) string {
 		}
 
 		if i == state.selected {
-			line = lipgloss.NewStyle().Background(Accent).Foreground(lipgloss.Color("#000000")).Bold(true).Render(line)
+			line = lipgloss.NewStyle().Background(style.Accent).Foreground(lipgloss.Color("#000000")).Bold(true).Render(line)
 		} else {
-			line = lipgloss.NewStyle().Foreground(TextSecondary).Render(line)
+			line = lipgloss.NewStyle().Foreground(style.TextSecondary).Render(line)
 		}
 
 		sb.WriteString(line)
@@ -304,16 +314,16 @@ func renderFileList(state SearchState, width int) string {
 	return sb.String()
 }
 
-func formatSearchResult(r SearchResult, mode SearchMode, selected bool, width int) string {
+func formatResult(r Result, mode Mode, selected bool, width int, style Style) string {
 	var line string
-	if mode == SearchName {
+	if mode == Name {
 		line = fmt.Sprintf("  %s  (%.0f)", r.Path, r.Score)
 	} else {
 		line = fmt.Sprintf("  %s:%d  %s", r.Path, r.LineNum, r.Context)
 	}
 
 	if selected {
-		return lipgloss.NewStyle().Background(Accent).Foreground(lipgloss.Color("#000000")).Bold(true).Render(line)
+		return lipgloss.NewStyle().Background(style.Accent).Foreground(lipgloss.Color("#000000")).Bold(true).Render(line)
 	}
-	return lipgloss.NewStyle().Foreground(TextSecondary).Render(line)
+	return lipgloss.NewStyle().Foreground(style.TextSecondary).Render(line)
 }

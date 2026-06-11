@@ -1,4 +1,4 @@
-package main
+package search
 
 import (
 	"strings"
@@ -27,7 +27,6 @@ func TestFuzzyScore_BoundaryBonus(t *testing.T) {
 
 	_ = boundaryScore
 	_ = noBoundaryScore
-	// Both should score since 'r' matches
 	if boundaryScore <= 0 {
 		t.Error("boundary match should score > 0")
 	}
@@ -37,7 +36,6 @@ func TestFuzzyScore_ExactCaseBonus(t *testing.T) {
 	exactCase := FuzzyScore("ReadMe", "ReadMe.md")
 	lowerCase := FuzzyScore("readme", "ReadMe.md")
 
-	// Exact case match gets case bonus, so should score >= lower case
 	if exactCase < lowerCase {
 		t.Errorf("exact case (%f) should score >= lower case (%f)", exactCase, lowerCase)
 	}
@@ -63,7 +61,6 @@ func TestFuzzySearch_ResultsSorted(t *testing.T) {
 		t.Fatal("expected results for 'readme'")
 	}
 
-	// Results should be sorted descending by score
 	for i := 1; i < len(results); i++ {
 		if results[i].Score > results[i-1].Score {
 			t.Errorf("results not sorted: %f at index %d > %f at index %d",
@@ -127,11 +124,11 @@ func TestContentSearch_CaseInsensitive(t *testing.T) {
 	}
 }
 
-func TestSearchState_SetQuery(t *testing.T) {
+func TestState_SetQuery(t *testing.T) {
 	paths := []string{"readme.md", "index.md", "api.md"}
 	index := map[string]string{}
 
-	s := NewSearchState(SearchName, paths, index)
+	s := NewState(Name, paths, index)
 	s.SetQuery("read")
 
 	if s.query != "read" {
@@ -142,11 +139,11 @@ func TestSearchState_SetQuery(t *testing.T) {
 	}
 }
 
-func TestSearchState_MoveUpDown(t *testing.T) {
+func TestState_MoveUpDown(t *testing.T) {
 	paths := []string{"a.md", "b.md", "c.md"}
 	index := map[string]string{}
 
-	s := NewSearchState(SearchName, paths, index)
+	s := NewState(Name, paths, index)
 
 	s.MoveDown()
 	if s.selected != 1 {
@@ -155,7 +152,7 @@ func TestSearchState_MoveUpDown(t *testing.T) {
 
 	s.MoveDown()
 	s.MoveDown()
-	s.MoveDown() // beyond bounds
+	s.MoveDown()
 	if s.selected != 2 {
 		t.Errorf("clamped at bottom: selected = %d, want 2", s.selected)
 	}
@@ -166,7 +163,7 @@ func TestSearchState_MoveUpDown(t *testing.T) {
 	}
 
 	s.MoveUp()
-	s.MoveUp() // beyond bounds
+	s.MoveUp()
 	if s.selected != 0 {
 		t.Errorf("clamped at top: selected = %d, want 0", s.selected)
 	}

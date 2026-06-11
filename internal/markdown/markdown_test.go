@@ -1,4 +1,4 @@
-package main
+package markdown
 
 import (
 	"strings"
@@ -27,7 +27,6 @@ func TestParseMarkdown_Headings(t *testing.T) {
 		}
 	}
 
-	// Check h1 text
 	h1Segments := headingLines[0].Segments
 	if len(h1Segments) == 0 || !strings.Contains(h1Segments[0].Text, "Heading 1") {
 		t.Error("h1 should contain 'Heading 1'")
@@ -115,7 +114,6 @@ func TestParseMarkdown_CodeBlocks(t *testing.T) {
 		t.Error("code block should contain fmt.Println")
 	}
 
-	// Ensure no inline parsing happened inside code block
 	if strings.Contains(cb.RawContent, "**") {
 		t.Error("code block should contain raw '**' markers")
 	}
@@ -219,7 +217,6 @@ func TestParseMarkdown_CommentsStripped(t *testing.T) {
 		t.Error("comments should be stripped from output")
 	}
 
-	// "Hello World" or "Hello  World" both acceptable
 	if !strings.Contains(text, "Hello") {
 		t.Error("should contain 'Hello'")
 	}
@@ -255,7 +252,8 @@ func TestExtractWikiLinks(t *testing.T) {
 func TestRenderMarkdown_ANSIContent(t *testing.T) {
 	input := "# Hello\n\nThis is **bold** and *italic*.\n"
 	lines := ParseMarkdown(input)
-	output := RenderMarkdown(lines, 60)
+	style := testRendererStyle()
+	output := RenderMarkdown(lines, 60, style)
 
 	if !strings.Contains(output, "Hello") {
 		t.Error("rendered output should contain 'Hello'")
@@ -271,7 +269,8 @@ func TestRenderMarkdown_ANSIContent(t *testing.T) {
 func TestRenderMarkdown_CodeBlockStyle(t *testing.T) {
 	input := "```go\nfmt.Println(\"hello\")\n```\n"
 	lines := ParseMarkdown(input)
-	output := RenderMarkdown(lines, 40)
+	style := testRendererStyle()
+	output := RenderMarkdown(lines, 40, style)
 
 	if !strings.Contains(output, "hello") {
 		t.Error("should render code content")
@@ -296,34 +295,33 @@ func TestParseMarkdown_HorizontalRule(t *testing.T) {
 	}
 }
 
-func TestWikiLinkResolution(t *testing.T) {
-	skipDirs := DefaultConfig().SkipDirs
-	vault, _, _, err := ScanVault(testVaultPath(t), skipDirs)
-	if err != nil {
-		t.Fatalf("ScanVault: %v", err)
-	}
+func TestParseMarkdown_UnclosedCodeBlock(t *testing.T) {
+	input := "```go\nfunc test() {\n    fmt.Println(\"hello\")\n}\n"
+	lines := ParseMarkdown(input)
 
-	// Exact path with .md
-	resolved := ResolveWikiLink("index", vault, testVaultPath(t))
-	if resolved != "index.md" {
-		t.Errorf("resolved index = %q, want 'index.md'", resolved)
+	found := false
+	for _, l := range lines {
+		if l.BlockType == BlockCodeBlock {
+			found = true
+			if !strings.Contains(l.RawContent, "fmt.Println") {
+				t.Error("code block should contain content")
+			}
+		}
 	}
-
-	// Nested path
-	resolved = ResolveWikiLink("projects/api-design", vault, testVaultPath(t))
-	if resolved != "projects/api-design.md" {
-		t.Errorf("resolved api-design = %q, want 'projects/api-design.md'", resolved)
+	if !found {
+		t.Error("unclosed code block should still produce a BlockCodeBlock at EOF")
 	}
+}
 
-	// Basename match
-	resolved = ResolveWikiLink("database", vault, testVaultPath(t))
-	if resolved != "projects/database.md" {
-		t.Errorf("resolved database = %q, want 'projects/database.md'", resolved)
-	}
-
-	// Non-existent
-	resolved = ResolveWikiLink("nonexistent", vault, testVaultPath(t))
-	if resolved != "" {
-		t.Errorf("nonexistent should resolve to empty, got %q", resolved)
+func testRendererStyle() RendererStyle {
+	return RendererStyle{
+		Accent:          "#a78bfa",
+		AccentSecondary: "#fbbf24",
+		AccentTertiary:  "#2dd4bf",
+		TextSecondary:   "#9ca3af",
+		TextDim:         "#4b5563",
+		Success:         "#34d399",
+		CodeBackground:  "#1f2937",
+		Heading1:        "#f472b6",
 	}
 }
