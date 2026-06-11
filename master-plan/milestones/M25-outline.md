@@ -1,6 +1,6 @@
 # M25 — Outline / Table of Contents
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -303,16 +303,16 @@ Add to `help.go`:
 
 ## Completion Criteria
 
-- [ ] ExtractHeadings function in markdown.go
-- [ ] OutlineItem type and outline state in Model
-- [ ] buildOutline and renderOutline methods implemented
-- [ ] handleOutlineKey handler implemented
-- [ ] `t` keybinding added to KeyMap
-- [ ] Outline dispatch in Update() before mode dispatch
-- [ ] Outline rendering in View() when visible
-- [ ] buildOutline called at all note-load sites
-- [ ] Help text updated
-- [ ] KEYBINDINGS.md updated
-- [ ] `make test` passes
-- [ ] `make vet` exits 0
-- [ ] Manual test: outline works for notes with headings
+- [x] ExtractHeadings function in markdown.go
+- [x] OutlineItem type and outline state in Model
+- [x] buildOutline and renderOutline methods implemented
+- [x] handleOutlineKey handler implemented
+- [x] `t` keybinding added to KeyMap
+- [x] Outline dispatch in Update() before mode dispatch
+- [x] Outline rendering in View() when visible
+- [x] buildOutline called at all note-load sites
+- [x] Help text updated
+- [x] KEYBINDINGS.md updated
+- [x] `make test` passes
+- [x] `make vet` exits 0
+- [x] Manual test: outline works for notes with headings

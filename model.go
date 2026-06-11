@@ -9,6 +9,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lthiagol/obsidian-terminal/internal/markdown"
 	"github.com/lthiagol/obsidian-terminal/internal/search"
 )
 
@@ -22,6 +23,14 @@ type Mode int
 type PinnedNote struct {
 	Path    string
 	ScrollY int
+}
+
+// OutlineItem represents a heading in the outline.
+type OutlineItem struct {
+	Level   int
+	Text    string
+	LineIdx int
+	YOffset int
 }
 
 const (
@@ -98,6 +107,10 @@ type Model struct {
 
 	pinnedNotes     []PinnedNote
 	activePinnedIdx int
+
+	outlineVisible bool
+	outlineItems   []OutlineItem
+	outlineCursor  int
 }
 
 // NewModel creates a Model by scanning the vault at cfg.VaultPath.
@@ -237,6 +250,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 
+		if m.outlineVisible {
+			return m.handleOutlineKey(msg)
+		}
+
 		switch m.mode {
 		case ModeBrowse:
 			return m.handleBrowseKey(msg)
@@ -288,7 +305,9 @@ func (m Model) View() string {
 	case ModeTags:
 		rightPanel = m.tagList.View()
 	case ModeView:
-		if m.backlinkMode {
+		if m.outlineVisible {
+			rightPanel = m.renderOutline()
+		} else if m.backlinkMode {
 			viewerHeight := (m.height - 1) * 7 / 10
 			backlinkHeight := m.height - 1 - viewerHeight - 1
 			viewerStyle := ViewerStyle.Width(m.width - m.treeWidth - 1).Height(viewerHeight)
@@ -530,4 +549,98 @@ func (m *Model) validatePins() {
 	if m.activePinnedIdx >= len(m.pinnedNotes) {
 		m.activePinnedIdx = len(m.pinnedNotes) - 1
 	}
+}
+
+func (m *Model) buildOutline() {
+	if m.activeNote == nil {
+		m.outlineItems = nil
+		return
+	}
+
+	lines := markdown.ParseMarkdown(m.activeNote.RawBody)
+	headings := markdown.ExtractHeadings(lines)
+
+	m.outlineItems = make([]OutlineItem, len(headings))
+	for i, h := range headings {
+		m.outlineItems[i] = OutlineItem{
+			Level:   h.Level,
+			Text:    h.Text,
+			LineIdx: h.LineIdx,
+			YOffset: estimateYOffset(lines, h.LineIdx, m.viewer.viewport.Width),
+		}
+	}
+
+	m.outlineCursor = 0
+}
+
+func (m Model) renderOutline() string {
+	if len(m.outlineItems) == 0 {
+		return lipgloss.NewStyle().
+			Foreground(TextMuted).
+			Render("  No headings in this note")
+	}
+
+	var sb strings.Builder
+	header := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(Accent).
+		Render(fmt.Sprintf("  Outline (%d)", len(m.outlineItems)))
+	sb.WriteString(header)
+	sb.WriteString("\n")
+
+	for i, item := range m.outlineItems {
+		indent := strings.Repeat("  ", item.Level-1)
+		line := fmt.Sprintf("%s%s", indent, item.Text)
+
+		if i == m.outlineCursor {
+			line = lipgloss.NewStyle().
+				Background(Accent).
+				Foreground(lipgloss.Color("#000000")).
+				Bold(true).
+				Render(line)
+		} else {
+			line = lipgloss.NewStyle().
+				Foreground(TextSecondary).
+				Render(line)
+		}
+
+		sb.WriteString(line)
+		if i < len(m.outlineItems)-1 {
+			sb.WriteString("\n")
+		}
+	}
+	return sb.String()
+}
+
+func estimateYOffset(lines []markdown.MarkdownLine, targetIdx, width int) int {
+	yOffset := 0
+	for i := 0; i < targetIdx && i < len(lines); i++ {
+		line := lines[i]
+		switch line.BlockType {
+		case markdown.BlockEmpty:
+			yOffset++
+		case markdown.BlockHeading:
+			yOffset++
+		case markdown.BlockCodeBlock:
+			codeLines := strings.Count(line.RawContent, "\n") + 1
+			yOffset += codeLines + 2
+		case markdown.BlockList:
+			yOffset++
+		case markdown.BlockBlockquote:
+			yOffset++
+		case markdown.BlockCallout:
+			yOffset++
+		case markdown.BlockHorizontalRule:
+			yOffset++
+		default:
+			text := markdown.RenderSegmentsPlain(line.Segments)
+			if width > 0 {
+				wrappedLines := (len(text) / width) + 1
+				yOffset += wrappedLines
+			} else {
+				yOffset++
+			}
+		}
+	}
+	return yOffset
 }

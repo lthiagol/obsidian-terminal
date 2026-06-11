@@ -730,3 +730,35 @@ func visibleLen(s string) int {
 	clean := visibleLenRe.ReplaceAllString(s, "")
 	return len([]rune(clean))
 }
+
+// HeadingInfo represents a heading extracted from markdown.
+type HeadingInfo struct {
+	Level   int
+	Text    string
+	LineIdx int
+}
+
+// ExtractHeadings extracts all headings from parsed markdown lines.
+func ExtractHeadings(lines []MarkdownLine) []HeadingInfo {
+	var headings []HeadingInfo
+	for i, line := range lines {
+		if line.BlockType == BlockHeading {
+			text := RenderSegmentsPlain(line.Segments)
+			headings = append(headings, HeadingInfo{
+				Level:   line.HeadingLevel,
+				Text:    text,
+				LineIdx: i,
+			})
+		}
+	}
+	return headings
+}
+
+// RenderSegmentsPlain renders segments without styling (for outline).
+func RenderSegmentsPlain(segments []InlineSegment) string {
+	var sb strings.Builder
+	for _, seg := range segments {
+		sb.WriteString(seg.Text)
+	}
+	return sb.String()
+}

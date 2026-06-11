@@ -28,6 +28,7 @@ type KeyMap struct {
 	TopRune    rune
 	BottomRune rune
 	PinRune    rune
+	Outline    rune
 
 	CyclePinPrev []tea.KeyType
 	CyclePinNext []tea.KeyType
@@ -80,6 +81,7 @@ func DefaultKeys() KeyMap {
 		TopRune:      'g',
 		BottomRune:   'G',
 		PinRune:      'p',
+		Outline:      't',
 		CyclePinPrev: []tea.KeyType{tea.KeyCtrlOpenBracket},
 		CyclePinNext: []tea.KeyType{tea.KeyCtrlCloseBracket},
 	}

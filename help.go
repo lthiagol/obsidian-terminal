@@ -52,6 +52,7 @@ func buildHelpLines() []string {
 				"Tab      — cycle wiki-links",
 				"Enter    — follow selected link",
 				"b        — toggle backlinks",
+				"t        — toggle outline",
 				"p        — pin/unpin note",
 				"Ctrl+[/] — cycle pinned notes",
 				"h / Esc  — back to browse",
