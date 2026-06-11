@@ -4,39 +4,42 @@
 
 ## Goal
 
-Add a fuzzy command palette (`Ctrl+K`) to quickly access any action without remembering keybindings.
+Fuzzy command palette (Ctrl+K) listing all available actions with keybinding hints.
 
-## Steps
+## Implementation Plan
 
-### 1. Define command registry
+### 1. Command registry
 
 ```go
 type Command struct {
-    Name        string
-    Description string
-    Action      func(*Model)
+    Name, Description, Key string
+    Action func(m *Model)
 }
 ```
 
-Register all available commands: open search, toggle help, switch theme, pin note, go to outline, etc.
+Register 15-20 commands: Toggle Help, Fuzzy Search, Content Search, Pin Note, Outline, Daily Note, Recent Notes, Backlinks, Tag Browser, Switch Profile, Force Rescan, Quit, mode-specific (Go Back, Follow Link, Expand/Collapse).
 
-### 2. Add command palette UI
+### 2. Palette state (model.go)
 
-- `Ctrl+K` — open command palette (fuzzy search over commands)
-- Type to filter commands
-- Enter to execute selected command
-- Esc to close
+Fields: `paletteVisible bool`, `paletteQuery string`, `paletteResults []Command`, `paletteCursor int`.
 
-Reuse the existing fuzzy search UI pattern but search over commands instead of files.
+Methods: `openCommandPalette()`, `filterPalette(q)`, `renderPalette()`, `executeSelectedCommand()`.
 
-### 3. Register key commands
+### 3. Handler
 
-About 15-20 commands initially — every action with a keybinding should also be discoverable via the palette. Show the keybinding next to the command name (e.g., `Toggle Help  (?)`).
+`handleCommandPaletteKey()`: Esc dismiss, Backspace/Runes filter, j/k move cursor, Enter execute+dismiss.
 
-## Completion Criteria
+Reuse existing `FuzzyScore` for filtering commands.
 
-- [ ] `Ctrl+K` opens command palette
-- [ ] Fuzzy search over commands
-- [ ] Enter executes selected command
-- [ ] Keybindings shown next to command names
-- [ ] `make test && make vet` pass
+### 4. Wiring
+
+Global `Ctrl+K` in Update opens palette. Check `paletteVisible` before mode dispatch. View overlay: centered, half-width modal.
+
+### Implementation order
+
+1. Define Command struct + register commands
+2. Add palette fields to Model
+3. Implement open/filter/render/execute methods
+4. Add handleCommandPaletteKey
+5. Wire Ctrl+K + dispatch
+6. Add tests

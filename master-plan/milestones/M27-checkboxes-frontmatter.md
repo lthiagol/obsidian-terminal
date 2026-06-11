@@ -4,35 +4,42 @@
 
 ## Goal
 
-Render `- [ ]` and `- [x]` list items with styled checkbox icons, and display parsed frontmatter metadata at the top of the viewer.
+Render `- [ ]` and `- [x]` with styled checkbox icons. Display parsed frontmatter metadata above note content in viewer.
 
-## Steps
+## Implementation Plan
 
-### 1. Checkbox rendering in lists
+### 1. Checkbox parsing (`internal/markdown/markdown.go`)
 
-Add a `IsCheckbox` and `Checked` field to `MarkdownLine`. Detect `- [ ]` and `- [x]` patterns during list parsing. Render unchecked boxes as `☐` and checked boxes as `☑` with distinct styling (dimmed for unchecked, success color for checked).
+Add `Checked bool` and `Checkable bool` to `MarkdownLine`.
 
-### 2. Frontmatter display
+In `ParseMarkdown` list item branch (~line 160): after `parseListItem`, check if text starts with `[ ]` or `[x]`/`[X]`. If so: set `Checkable=true`, `Checked=(text[1]=='x'||text[1]=='X')`, strip `[x] ` prefix from text.
 
-At the top of the viewer, above the rendered markdown, show a metadata block:
+### 2. Checkbox rendering (`internal/markdown/markdown.go`)
 
-```
-Title         Tags           Aliases
-My Note       tag1, tag2     alias1
-```
+In `renderList`: if `Checkable`, render `[x]` or `[ ]` with success/dimmed color instead of bullet.
 
-Only shown if the note has frontmatter. Styled with dimmed colors to distinguish from note content. Toggle with `m` key.
+### 3. Frontmatter rendering (`viewer.go`)
 
-### 3. Parser changes
+New function `renderFrontmatter(rawMarkdown, width, style)`:
+- Detect `---\n...\n---\n` block at start of content
+- Parse key:value pairs from YAML block
+- Render as formatted metadata block with border: `─── Frontmatter` header, key: value pairs, `───` footer
 
-- `parseListItem` — detect `[ ]` and `[x]` markers after the bullet
-- `MarkdownLine` — add `IsCheckbox bool`, `Checked bool` fields
-- `renderList` — use checkbox icons when `IsCheckbox` is true
+Update `SetContent` to prepend frontmatter block before rendered markdown.
 
-## Completion Criteria
+### Edge cases
 
-- [ ] `- [ ]` renders as unchecked checkbox icon
-- [ ] `- [x]` renders as checked checkbox icon  
-- [ ] Frontmatter metadata shown above rendered note
-- [ ] `m` toggles frontmatter display
-- [ ] `make test && make vet` pass
+- `- [x]` followed by bold text (`- [x] **done**`) → checkbox stripped first, then bold parsed
+- Empty frontmatter body → show frontmatter block only, no empty note message
+- Frontmatter with complex values (arrays, objects) → show as raw YAML text
+- No frontmatter → no block shown
+- `- [X]` uppercase → treated as checked
+
+### Implementation order
+
+1. Add Checked/Checkable to MarkdownLine
+2. Update ParseMarkdown list branch
+3. Update renderList
+4. Add renderFrontmatter to viewer.go
+5. Update SetContent
+6. Write tests

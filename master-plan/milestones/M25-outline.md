@@ -4,28 +4,68 @@
 
 ## Goal
 
-Show the headings in the current note as a navigable outline sidebar. Press Enter to jump to that section.
+Show headings from current note as navigable outline overlay. Toggle with `t`, Enter to jump.
 
-## Steps
+## Implementation Plan
 
-### 1. Extract headings from parsed markdown
+### 1. Markdown changes (`internal/markdown/markdown.go`)
 
-When a note is loaded, extract all `BlockHeading` lines with their levels and text. Build a `[]OutlineItem{Level, Text, LineNumber}` slice.
+```go
+type HeadingInfo struct { Level int; Text string; LineIdx int }
+func ExtractHeadings(lines []MarkdownLine) []HeadingInfo
+```
 
-### 2. Add outline sidebar
+### 2. Model fields (`model.go`)
 
-Show on the right side of the viewer (or toggle via `o` key). Each heading indented by level. Selected heading highlighted.
+`outlineVisible bool`, `outlineItems []OutlineItem`, `outlineCursor int`
 
-### 3. Add navigation
+```go
+type OutlineItem struct {
+    Level   int
+    Text    string
+    LineIdx int
+    YOffset int  // approximate Y offset in rendered viewport
+}
+```
 
-- `o` — toggle outline panel
-- `j`/`k` — move cursor in outline
-- `Enter` — jump viewer to that heading's line
-- `Esc` — close outline
+### 3. New methods (`model.go`)
 
-## Completion Criteria
+- `buildOutline()` — parse headings from activeNote, estimate Y offsets
+- `renderOutline()` — styled list with level indentation, cursor highlight
 
-- [ ] `o` toggles outline panel in view mode
-- [ ] Headings shown with level-based indentation
-- [ ] Enter jumps to heading in viewer
-- [ ] `make test && make vet` pass
+### 4. Handler (`handlers.go`)
+
+`handleOutlineKey()` — Esc/`t` dismiss, j/k navigate, Enter jumps to YOffset and dismisses.
+
+In `handleViewKey`: `t` toggles outline, calls `buildOutline()`.
+
+In `Update()`: check `outlineVisible` before mode dispatch, route to `handleOutlineKey`.
+
+### 5. Note-load sites
+
+Call `buildOutline()` at all places where note content is loaded:
+- handleBrowseKey Enter
+- handleSearchOrFind Enter
+- handleViewKey link follow
+- rescanVault note reload
+
+### 6. View()
+
+When `outlineVisible` true, show outline instead of viewer content in right panel.
+
+### Edge cases
+
+- Note with no headings → "No headings in this note"
+- YOffset approximation → accept "good enough" for v1 (lines vary with code blocks/wrapping)
+- Outline + window resize → outline stays visible, SetSize doesn't affect it
+- `t` in other modes → only works in ModeView
+
+### Implementation order
+
+1. Add HeadingInfo + ExtractHeadings to markdown.go
+2. Add outline fields to Model
+3. Implement buildOutline + renderOutline
+4. Add handleOutlineKey
+5. Wire `t` in handleViewKey + dispatch in Update
+6. Add buildOutline at note-load sites
+7. Write tests

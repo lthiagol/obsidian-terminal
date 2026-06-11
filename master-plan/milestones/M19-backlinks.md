@@ -4,25 +4,67 @@
 
 ## Goal
 
-Show backlinks (notes linking TO the current note) in a side panel when viewing a note. Click a backlink to navigate to it.
+Show notes linking TO the current note. Build a reverse wiki-link index during `ScanVault`, display as panel below viewer, Enter to navigate.
 
-## Steps
+## Implementation Plan
 
-### 1. Build reverse link index
+### 1. Build reverse index in `ScanVault` (`vault.go`)
 
-When viewing a note, scan all notes in the search index for wiki-links pointing to the current note's path. Cache the reverse index in Model.
+Add `var wikiLinkRawRe = regexp.MustCompile(`\[\[([^\]|#]+)`)`  
+New function `extractWikiLinkTargetsFromRaw(content string) []string` — regex extracts all `[[target` references, normalizes (lowercase, append .md), deduplicates.
 
-### 2. Add backlinks panel
+Change `ScanVault` signature: add `map[string][]string` return (normalized target → source paths). After walk loop, for each file's body, extract targets and populate index.
 
-Show backlinks in a bottom panel or right sidebar below the viewer. Each backlink shows the source note name and the context line containing the link.
+### 2. New file: `backlinks.go`
 
-### 3. Add navigation
+```go
+type BacklinkPanel struct { links []string; cursor int; width int }
+func NewBacklinkPanel(notePath string, backlinkIndex map[string][]string) BacklinkPanel
+func (bp *BacklinkPanel) MoveUp/Down()
+func (bp BacklinkPanel) SelectedPath() string
+func (bp BacklinkPanel) Count() int
+func (bp BacklinkPanel) View() string  // styled list with cursor highlight
+```
 
-Arrow keys + Enter to select and follow a backlink. `Tab` to switch focus between viewer and backlinks panel.
+### 3. Model changes (`model.go`)
 
-## Completion Criteria
+Add fields: `backlinkIndex map[string][]string`, `backlinkPanel BacklinkPanel`, `backlinkMode bool`
 
-- [ ] Backlinks displayed when viewing a note with incoming links
-- [ ] "No backlinks" shown when none found
-- [ ] Click/Enter to navigate to a backlink source
-- [ ] `make test && make vet` pass
+In `NewModel` and `rescanVault`: capture new return value from `ScanVault`.
+
+In `handleBrowseKey` + `handleViewKey` note-load paths: populate `m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)`.
+
+### 4. handleViewKey additions (`handlers.go`)
+
+Add `BacklinkToggle` rune (`b`) to `KeyMap`. When pressed: `m.backlinkMode = !m.backlinkMode`.
+
+When `backlinkMode` true: arrow keys move backlink cursor, Enter navigates to source note, Esc returns focus.
+
+### 5. View() split layout (`model.go`)
+
+When viewing note with backlinks: divide right panel — top 70% viewer, separator border, bottom 30% backlinks.
+
+### 6. Status bar + help
+
+View mode hint: `"b backlinks | ..."`  
+Help: add Backlinks section
+
+### Edge cases
+
+- Self-referencing links (note links to itself) → appears in backlinks (legitimate)
+- Dead links → LoadNote fails, toast shown
+- Rescan → rebuild backlinkPanel for current note
+- No backlinks → "No backlinks" text
+
+### Implementation order
+
+1. Add `extractWikiLinkTargetsFromRaw()` + regex to vault.go
+2. Change ScanVault signature, build backlink index
+3. Update NewModel/rescanVault in model.go
+4. Create `backlinks.go`
+5. Add fields to Model, populate on note open
+6. Add backlink focus mode in handleViewKey
+7. Split viewer area in View()
+8. Add BacklinkToggle to KeyMap
+9. Update statusbar + help
+10. Write tests

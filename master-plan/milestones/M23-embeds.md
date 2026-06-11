@@ -4,26 +4,59 @@
 
 ## Goal
 
-Parse and render Obsidian block embed syntax (`![[note#heading]]` and `![[note]]`) inline in the viewer, showing the referenced content directly.
+Parse `![[note]]` and `![[note#heading]]` syntax, load referenced content, render inline with border.
 
-## Steps
+## Implementation Plan
 
-### 1. Parse `![[` embed syntax
+### 1. Markdown parser changes (`internal/markdown/markdown.go`)
 
-Already handled by the markdown parser's wiki-link detection. Distinguish `![[` embeds from `[[` links and mark them as embeds.
+Add `BlockEmbed` to BlockType constants.
 
-### 2. Load and render embedded content
+Add fields to `MarkdownLine`: `EmbedTarget string`, `EmbedHeading string` (target note path + optional heading reference).
 
-For `![[note.md]]`, load the full note and render it inline (first few lines or full content depending on config). For `![[note.md#heading]]`, load the note and extract only the section under the specified heading.
+In `ParseMarkdown`, add check before paragraph detection (~line 148): if line starts with `![[` and ends with `]]`, extract target (split on `#` for heading), create `BlockEmbed` line.
 
-### 3. Render embeds in the viewer
+### 2. Embed resolution (`internal/markdown/markdown.go`)
 
-Render embeds as indented blocks with a left border and the source note name as a header. Clickable to navigate to the source.
+```go
+type EmbedResolver func(target, heading string) (string, error)
 
-## Completion Criteria
+func ResolveEmbeds(lines []MarkdownLine, resolve EmbedResolver) []MarkdownLine
+```
 
-- [ ] `![[note]]` renders full note content inline
-- [ ] `![[note#heading]]` renders only the section under that heading
-- [ ] Embeds are visually distinct from regular content
-- [ ] Clickable to open the source note
-- [ ] `make test && make vet` pass
+Walks lines, for each `BlockEmbed`: calls resolver, parses result via `ParseMarkdown`, wraps in `BlockEmbedStart`/`BlockEmbedEnd` sentinel lines (new BlockType values).
+
+### 3. Render embeds (`internal/markdown/markdown.go`)
+
+Add `BlockEmbedStart`, `BlockEmbedEnd` constants.  
+New render function: `renderEmbedBlock(lines []MarkdownLine, ...)` — renders with left border + source header.
+
+### 4. Viewer integration (`viewer.go`)
+
+In `SetContent`, after `ParseMarkdown`, call `ResolveEmbeds` with a closure that calls `LoadNote` and `extractSection`:
+
+```go
+resolveEmbed := func(target, heading string) (string, error) { ... }
+lines = markdown.ResolveEmbeds(lines, resolveEmbed)
+```
+
+### 5. Section extraction (`vault.go`)
+
+`extractSection(markdown, heading string) string` — finds heading in raw markdown, returns content under it until next heading of same or higher level, or EOF.
+
+### Edge cases
+
+- Embed target doesn't exist → render placeholder "(embed not found: target)"
+- Circular embeds (A embeds B, B embeds A) → no recursion guard needed since we only load top-level embeds (not recursive)
+- Heading not found → render full note content
+- Embed width → use same viewport width
+
+### Implementation order
+
+1. Add BlockEmbed type + embed fields to MarkdownLine
+2. Parse `![[` syntax in ParseMarkdown
+3. Add ResolveEmbeds + sentinel types
+4. Add renderEmbedBlock
+5. Add extractSection to vault.go
+6. Wire into viewer.go SetContent
+7. Write tests

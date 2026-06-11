@@ -4,36 +4,58 @@
 
 ## Goal
 
-Parse and render markdown tables with box-drawing borders in the viewer.
+Parse and render pipe-delimited markdown tables with Unicode box-drawing borders and alignment.
 
-## Steps
+## Implementation Plan
 
-### 1. Parse table syntax
+### 1. New types (`internal/markdown/markdown.go`)
 
-Add `BlockTable` type. Detect table rows:
-```
-| Header 1 | Header 2 |
-|----------|----------|
-| cell 1   | cell 2   |
+```go
+type TableAlignment int  // AlignLeft, AlignCenter, AlignRight
 ```
 
-Parse alignment from separator row (`:---`, `:---:`, `---:`).
+Add to MarkdownLine: `TableCells []string`, `TableAlign []TableAlignment`.
 
-### 2. Render with box-drawing characters
+Add `BlockTable` to BlockType.
 
-Use Unicode box-drawing characters (`│`, `─`, `┼`, etc.) for borders. Auto-size columns based on content width. Handle cells that exceed the viewport width (truncate with `…`).
+### 2. Table detection (`internal/markdown/markdown.go`)
 
-### 3. Handle edge cases
+New functions:
+- `isTableRow(line) bool` — starts and ends with `|`
+- `isTableSeparator(line) bool` — only `|`, `-`, `:`, spaces between pipes
+- `parseTableRow(line) []string` — split on `|`, trim whitespace
+- `parseTableAlignment(line) []TableAlignment` — detect `:---`, `:---:`, `---:`
 
-- Single-column tables
-- Missing cells (fewer cells in a row than header)
-- Escaped pipe characters in cells (`\|`)
-- Empty cells
+In `ParseMarkdown` (convert loop to index-based): when line is a table row AND next line is separator: parse header + separator, then consume subsequent table rows.
 
-## Completion Criteria
+### 3. Table rendering (`internal/markdown/markdown.go`)
 
-- [ ] Tables parsed and rendered with box-drawing borders
-- [ ] Column widths auto-sized
-- [ ] Alignment respected (left/center/right)
-- [ ] Wide cells truncated gracefully
-- [ ] `make test && make vet` pass
+`renderTableBlock(lines []MarkdownLine, width int, style RendererStyle) string`:
+- Calculate column widths from all cells
+- Clamp to available width, distribute proportionally
+- Render with Unicode box-drawing: `┌─┬─┐` top border, `│ cell │` rows, `├─┼─┤` separator, `└─┴─┘` bottom
+- Apply alignment (left/center/right padding)
+- Header row bold + accent color, data rows secondary color
+
+In `RenderMarkdown`: collect consecutive BlockTable lines, pass to renderTableBlock as single unit.
+
+### 4. Update renderLine
+
+Add `case BlockTable: ...` (single-row fallback if block rendering fails).
+
+### Edge cases
+
+- Single-column table → minimum padding
+- Missing cells in a row → pad with empty string
+- Escaped pipe `\|` → treat as literal (defer parsing for v2)
+- Table wider than viewport → proportional column scaling
+- No separator row → not detected as table (treated as paragraph with pipes)
+
+### Implementation order
+
+1. Add BlockTable + new fields to MarkdownLine
+2. Add table detection functions
+3. Update ParseMarkdown with index-based loop + table detection
+4. Add renderTableBlock
+5. Update RenderMarkdown to collect consecutive table rows
+6. Write tests

@@ -4,33 +4,46 @@
 
 ## Goal
 
-Allow users to define custom color overrides in config, building on the palette system from M13.
+Allow user-defined color overrides in config via `custom_theme` section. Builds on M13 palette system.
 
-## Steps
+## Implementation Plan
 
-### 1. Add `custom_theme` config section
+### 1. Config changes (`config.go`)
 
-```yaml
-theme: custom
-custom_theme:
-  accent: "#ff0000"
-  background: "#1a1b26"
-  success: "#9ece6a"
+```go
+type CustomTheme struct {
+    Accent, AccentSecondary, AccentTertiary string  // all hex colors
+    TextPrimary, TextSecondary, TextMuted, TextDim string
+    Success, Warning, Error, Info string
+    Background, Surface, Border string
+}
+// Add CustomTheme *CustomTheme to Config
 ```
 
-Any field not specified falls back to the dark theme defaults.
+### 2. Theme changes (`theme.go`)
 
-### 2. Build palette from custom config
+`parseHexColor(s string) (lipgloss.Color, error)` — validates `#RRGGBB` or `#RGB`, normalizes to lowercase.
 
-Add `paletteFromCustom(cfg *Config) Palette` that reads `custom_theme` fields and merges with dark defaults.
+`paletteFromCustom(ct *CustomTheme, base Palette) (Palette, error)` — for each non-empty field, parse hex and override base palette color. Any field unset keeps base value.
 
-### 3. Validate custom colors
+`rebuildDerivedStyles(p Palette) Palette` — rebuilds TreeStyle, ViewerStyle, StatusStyle, HelpStyle, SearchStyle, ModeColors from palette colors. Used after custom overrides applied.
 
-Reject invalid hex codes. Fall back to dark theme defaults on bad values.
+### 3. Wire into NewModel (`model.go`)
 
-## Completion Criteria
+After `lookupPalette(themeName)`, if `cfg.CustomTheme != nil`, call `paletteFromCustom(cfg.CustomTheme, palette)`. On error: show warning toast, fall back to base palette.
 
-- [ ] Custom colors definable in config
-- [ ] Unset fields fall back to dark defaults
-- [ ] Invalid hex codes rejected gracefully
-- [ ] `make test && make vet` pass
+### Edge cases
+
+- `custom_theme: {}` → empty non-nil pointer → all colors skipped → base unchanged
+- 3-digit hex `#abc` → accepted
+- Invalid hex → error toast, base palette used
+- Missing fields → keep base palette values
+- Theme + custom: `theme: dracula` + `custom_theme: {accent: "#ff0000"}` → dracula base with accent overridden
+
+### Implementation order
+
+1. Add CustomTheme struct to config.go
+2. Add parseHexColor to theme.go
+3. Add paletteFromCustom + rebuildDerivedStyles to theme.go
+4. Wire into NewModel in model.go
+5. Write tests
