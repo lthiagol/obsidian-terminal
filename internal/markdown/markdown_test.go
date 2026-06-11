@@ -313,6 +313,93 @@ func TestParseMarkdown_UnclosedCodeBlock(t *testing.T) {
 	}
 }
 
+func TestRenderCallout_EmptySegments(t *testing.T) {
+	line := MarkdownLine{
+		BlockType:   BlockCallout,
+		CalloutType: "note",
+	}
+	style := testRendererStyle()
+	output := RenderMarkdown([]MarkdownLine{line}, 40, style)
+	if !strings.Contains(output, "note") {
+		t.Error("callout should render type even with zero segments")
+	}
+}
+
+func TestWrapText(t *testing.T) {
+	text := "a b c d e f g h i j k l m n o p"
+	output := wrapText(text, 10)
+	lines := strings.Split(output, "\n")
+	if len(lines) < 2 {
+		t.Error("long text should be wrapped to multiple lines")
+	}
+}
+
+func TestRenderBlockquote(t *testing.T) {
+	line := MarkdownLine{
+		BlockType: BlockBlockquote,
+		Segments:  []InlineSegment{{Text: "quoted text"}},
+	}
+	style := testRendererStyle()
+	output := RenderMarkdown([]MarkdownLine{line}, 40, style)
+	if !strings.Contains(output, "quoted text") {
+		t.Error("blockquote should contain the text")
+	}
+}
+
+func TestRenderCallout(t *testing.T) {
+	line := MarkdownLine{
+		BlockType:   BlockCallout,
+		CalloutType: "warning",
+		Segments:    []InlineSegment{{Text: "be careful"}},
+	}
+	style := testRendererStyle()
+	output := RenderMarkdown([]MarkdownLine{line}, 40, style)
+	if !strings.Contains(output, "warning") {
+		t.Error("callout should show type")
+	}
+	if !strings.Contains(output, "be careful") {
+		t.Error("callout should show text")
+	}
+}
+
+func TestRenderList(t *testing.T) {
+	line := MarkdownLine{
+		BlockType:   BlockList,
+		IndentLevel: 1,
+		Segments:    []InlineSegment{{Text: "list item"}},
+	}
+	style := testRendererStyle()
+	output := RenderMarkdown([]MarkdownLine{line}, 40, style)
+	if !strings.Contains(output, "list item") {
+		t.Error("list should contain the item text")
+	}
+}
+
+func TestRenderCodeBlock(t *testing.T) {
+	line := MarkdownLine{
+		BlockType:  BlockCodeBlock,
+		Language:   "go",
+		RawContent: "package main",
+	}
+	style := testRendererStyle()
+	output := RenderMarkdown([]MarkdownLine{line}, 40, style)
+	if !strings.Contains(output, "package main") {
+		t.Error("code block should contain content")
+	}
+	if !strings.Contains(output, "go") {
+		t.Error("code block should show language")
+	}
+}
+
+func TestRenderHorizontalRule(t *testing.T) {
+	line := MarkdownLine{BlockType: BlockHorizontalRule}
+	style := testRendererStyle()
+	output := RenderMarkdown([]MarkdownLine{line}, 20, style)
+	if len(output) == 0 {
+		t.Error("horizontal rule should produce output")
+	}
+}
+
 func testRendererStyle() RendererStyle {
 	return RendererStyle{
 		Accent:          "#a78bfa",

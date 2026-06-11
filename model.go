@@ -67,7 +67,8 @@ type Model struct {
 	ready   bool
 	quitting bool
 
-	err error
+	err        error
+	scanErrors []string
 
 	helpScroll int
 
@@ -101,7 +102,7 @@ func NewModel(cfg *Config) Model {
 		}
 	}
 
-	tree, searchIndex, _, err := ScanVault(cfg.VaultPath, skipDirs)
+	tree, searchIndex, scanErrors, err := ScanVault(cfg.VaultPath, skipDirs)
 	if err != nil {
 		return Model{
 			config: cfg,
@@ -123,6 +124,7 @@ func NewModel(cfg *Config) Model {
 		fileTree:    NewFileTree(tree),
 		viewer:      NewViewer(defaultMarkdownStyle()),
 		searchStyle: defaultSearchStyle(),
+		scanErrors:  scanErrors,
 	}
 }
 
@@ -150,8 +152,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		m.treeWidth = max(msg.Width/4, 25)
+		if m.treeWidth < 5 {
+			m.treeWidth = 5
+		}
 		m.fileTree.SetSize(m.treeWidth, m.height-1)
-		m.viewer.SetSize(m.width-m.treeWidth-2, m.height-1)
+		viewerWidth := m.width - m.treeWidth - 2
+		if viewerWidth < 10 {
+			viewerWidth = 10
+		}
+		m.viewer.SetSize(viewerWidth, m.height-1)
 		m.ready = true
 		return m, nil
 
@@ -277,6 +286,7 @@ func (m *Model) checkVaultChanges() {
 
 	info, err := os.Stat(m.config.VaultPath)
 	if err != nil {
+		m.addToast("Could not check vault: "+err.Error(), ToastWarning)
 		return
 	}
 
@@ -296,10 +306,11 @@ func (m *Model) rescanVault() {
 	}
 	m.lastRootModTime = info.ModTime()
 
-	tree, searchIndex, _, err := ScanVault(m.config.VaultPath, m.config.SkipDirs)
+	tree, searchIndex, scanErrors, err := ScanVault(m.config.VaultPath, m.config.SkipDirs)
 	if err != nil {
 		return
 	}
+	m.scanErrors = scanErrors
 
 	oldActivePath := ""
 	if m.activeNote != nil {
@@ -312,13 +323,12 @@ func (m *Model) rescanVault() {
 	m.fileTree = NewFileTree(tree)
 
 	if oldActivePath != "" {
-		_, err := LoadNote(m.config.VaultPath, oldActivePath)
+		note, err := LoadNote(m.config.VaultPath, oldActivePath)
 		if err != nil {
 			m.addToast("Note was deleted: "+oldActivePath, ToastWarning)
 			m.mode = ModeBrowse
 			m.activeNote = nil
-		} else if m.activeNote != nil {
-			note, _ := LoadNote(m.config.VaultPath, oldActivePath)
+		} else {
 			m.activeNote = note
 			m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
 		}

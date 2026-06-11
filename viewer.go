@@ -90,8 +90,8 @@ func (v *MarkdownViewer) ScrollHalfPageDown() {
 }
 
 func (v *MarkdownViewer) SetSize(width, height int) {
-	v.viewport.Width = width - 2
-	v.viewport.Height = height - 2
+	v.viewport.Width = max(width-2, 10)
+	v.viewport.Height = max(height-2, 5)
 }
 
 func (v *MarkdownViewer) CycleLink() {

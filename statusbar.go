@@ -18,6 +18,9 @@ func (m Model) renderStatusBar() string {
 	switch m.mode {
 	case ModeBrowse:
 		info = fmt.Sprintf("%d files", countFiles(m.vault))
+		if len(m.scanErrors) > 0 {
+			info += fmt.Sprintf(" (%d scan errors)", len(m.scanErrors))
+		}
 	case ModeView:
 		if m.activeNote != nil {
 			info = truncatePath(m.activeNote.Path, m.width-60)

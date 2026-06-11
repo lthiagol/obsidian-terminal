@@ -139,6 +139,18 @@ func TestState_SetQuery(t *testing.T) {
 	}
 }
 
+func TestFuzzyScore_EmptyInput(t *testing.T) {
+	if score := FuzzyScore("", "anything"); score != 0 {
+		t.Errorf("empty query score = %f, want 0", score)
+	}
+	if score := FuzzyScore("test", ""); score != 0 {
+		t.Errorf("empty target score = %f, want 0", score)
+	}
+	if score := FuzzyScore("", ""); score != 0 {
+		t.Errorf("both empty score = %f, want 0", score)
+	}
+}
+
 func TestState_MoveUpDown(t *testing.T) {
 	paths := []string{"a.md", "b.md", "c.md"}
 	index := map[string]string{}

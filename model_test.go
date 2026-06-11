@@ -393,6 +393,66 @@ func TestHelpPanel_EscCloses(t *testing.T) {
 		t.Errorf("after Esc: mode = %v, want ModeBrowse", model.(Model).mode)
 	}
 }
+func TestCheckVaultChanges_StatError(t *testing.T) {
+	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
+	var model tea.Model = NewModel(cfg)
+	m := model.(Model)
+	if m.err != nil {
+		t.Fatalf("NewModel error: %v", m.err)
+	}
+
+	originalPath := m.config.VaultPath
+	m.config.VaultPath = "/nonexistent/path/for/stat/test"
+	m.checkVaultChanges()
+	if len(m.toasts) == 0 {
+		t.Error("expected toast on stat error")
+	}
+	m.config.VaultPath = originalPath
+}
+
+func TestRescanVault_ScanError(t *testing.T) {
+	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
+	var model tea.Model = NewModel(cfg)
+	m := model.(Model)
+	if m.err != nil {
+		t.Fatalf("NewModel error: %v", m.err)
+	}
+
+	originalPath := m.config.VaultPath
+	m.config.VaultPath = "/nonexistent/path/for/rescan/test"
+	m.rescanVault()
+	m.config.VaultPath = originalPath
+}
+
+func TestTruncatePath(t *testing.T) {
+	if p := truncatePath("short", 20); p != "short" {
+		t.Errorf("short path: got %q, want 'short'", p)
+	}
+	long := "a/very/long/path/that/should/be/truncated.md"
+	p := truncatePath(long, 20)
+	if len(p) > 20 {
+		t.Errorf("truncated path should be <= maxLen: %d > 20", len(p))
+	}
+	if !strings.HasPrefix(p, ".../") {
+		t.Error("truncated path should start with .../")
+	}
+}
+
+func TestTruncateContent(t *testing.T) {
+	lines := []string{}
+	for i := 0; i < 100; i++ {
+		lines = append(lines, "line")
+	}
+	content := strings.Join(lines, "\n")
+	result := truncateContent(content, 5)
+	if strings.Count(result, "\n") < 5 {
+		t.Errorf("expected at most 5+1 lines, got %d", strings.Count(result, "\n")+1)
+	}
+	if !strings.Contains(result, "...") {
+		t.Error("truncated content should end with ...")
+	}
+}
+
 func indexOfFirstFile(ft FileTree) int {
 	for i, item := range ft.Items() {
 		if !item.entry.IsDir {

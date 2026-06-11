@@ -7,6 +7,33 @@ import (
 	"testing"
 )
 
+func TestLoadNote_EmptyFilename(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, ".md"), []byte("# Only extension\n"), 0644)
+
+	note, err := LoadNote(dir, ".md")
+	if err != nil {
+		t.Fatalf("LoadNote: %v", err)
+	}
+	if note.Title == "" {
+		t.Error("should have fallback title for .md file")
+	}
+}
+
+func TestParseFrontmatter_InvalidYAML(t *testing.T) {
+	dir := t.TempDir()
+	content := "---\ninvalid: [: yaml\n---\n\n# After frontmatter\n"
+	os.WriteFile(filepath.Join(dir, "bad.md"), []byte(content), 0644)
+
+	note, err := LoadNote(dir, "bad.md")
+	if err != nil {
+		t.Fatalf("LoadNote: %v", err)
+	}
+	if note.Body == "" || !strings.Contains(note.Body, "After frontmatter") {
+		t.Error("body should contain content after frontmatter even with invalid YAML")
+	}
+}
+
 func testVaultPath(t *testing.T) string {
 	t.Helper()
 	wd, _ := os.Getwd()

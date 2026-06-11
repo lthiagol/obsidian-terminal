@@ -78,7 +78,10 @@ func extractAliasesFromFile(vaultRoot, relativePath string) ([]string, error) {
 	}
 
 	content := string(data)
-	fm, _ := parseFrontmatter(content)
+	fm, body := parseFrontmatter(content)
+	if fm.Aliases == nil && body == content {
+		return nil, nil
+	}
 	return fm.Aliases, nil
 }
 

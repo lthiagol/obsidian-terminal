@@ -104,7 +104,7 @@ func FuzzyScore(query, target string) float64 {
 	queryLower := strings.ToLower(query)
 	targetLower := strings.ToLower(target)
 
-	if queryLower == "" {
+	if queryLower == "" || targetLower == "" {
 		return 0
 	}
 

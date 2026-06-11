@@ -4,6 +4,16 @@ import (
 	"testing"
 )
 
+func TestFindAlias_FileReadError(t *testing.T) {
+	aliasEntries, err := extractAliasesFromFile("/nonexistent/path", "no-such-file.md")
+	if err == nil {
+		t.Error("expected error for nonexistent file")
+	}
+	if aliasEntries != nil {
+		t.Error("expected nil aliases for error")
+	}
+}
+
 func TestWikiLinkResolution(t *testing.T) {
 	skipDirs := DefaultConfig().SkipDirs
 	vault, _, _, err := ScanVault(testVaultPath(t), skipDirs)

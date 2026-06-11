@@ -203,7 +203,11 @@ func LoadNote(vaultRoot, relativePath string) (*VaultNote, error) {
 		base := filepath.Base(relativePath)
 		ext := filepath.Ext(base)
 		name := strings.TrimSuffix(base, ext)
-		title = strings.ToUpper(name[:1]) + name[1:]
+		if len(name) > 0 {
+			title = strings.ToUpper(name[:1]) + name[1:]
+		} else {
+			title = "Untitled"
+		}
 	}
 
 	return &VaultNote{
@@ -239,7 +243,7 @@ func parseFrontmatter(content string) (frontmatterData, string) {
 	}
 	yamlBlock := content[yamlStart:yamlEnd]
 	if err := yaml.Unmarshal([]byte(yamlBlock), &fm); err != nil {
-		return frontmatterData{}, content
+		return frontmatterData{Title: fm.Title}, content
 	}
 	return fm, content[yamlEnd+5:]
 }

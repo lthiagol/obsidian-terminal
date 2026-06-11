@@ -643,7 +643,11 @@ func renderCallout(line MarkdownLine, width int, style RendererStyle) string {
 	typeStyle := lipgloss.NewStyle().Bold(true).Foreground(style.AccentSecondary)
 	bodyStyle := lipgloss.NewStyle().Foreground(style.TextSecondary)
 
-	return icon + " " + typeStyle.Render(line.CalloutType) + " " + bodyStyle.Render(line.Segments[0].Text)
+	body := ""
+	if len(line.Segments) > 0 {
+		body = line.Segments[0].Text
+	}
+	return icon + " " + typeStyle.Render(line.CalloutType) + " " + bodyStyle.Render(body)
 }
 
 func renderHorizontalRule(width int, style RendererStyle) string {

@@ -28,6 +28,8 @@ func (m Model) handleBrowseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 					m.prevMode = m.mode
 					m.mode = ModeView
 					m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
+				} else {
+					m.addToast("Could not load note: "+err.Error(), ToastError)
 				}
 			}
 		}
@@ -84,6 +86,8 @@ func (m Model) handleViewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 					if err == nil {
 						m.activeNote = note
 						m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
+					} else {
+						m.addToast("Could not load note: "+err.Error(), ToastError)
 					}
 				}
 			}
@@ -147,6 +151,8 @@ func (m Model) handleSearchOrFind(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				m.prevMode = ModeBrowse
 				m.mode = ModeView
 				m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
+			} else {
+				m.addToast("Could not load note: "+err.Error(), ToastError)
 			}
 		}
 		return m, nil

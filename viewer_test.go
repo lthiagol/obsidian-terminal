@@ -147,6 +147,15 @@ func TestViewer_NoLinks(t *testing.T) {
 	}
 }
 
+func TestSetSize_NegativeDimensions(t *testing.T) {
+	v := NewViewer(defaultMarkdownStyle())
+	v.SetContent("# Test", 80)
+	v.SetSize(-10, -5)
+	if v.viewport.Width < 5 || v.viewport.Height < 3 {
+		t.Error("SetSize should clamp negative dimensions")
+	}
+}
+
 func TestViewer_SetSize(t *testing.T) {
 	v := NewViewer(defaultMarkdownStyle())
 	v.SetContent("# Test\n\nHello.", 80)
