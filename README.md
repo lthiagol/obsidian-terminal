@@ -104,7 +104,6 @@ This TUI is read-only by design — no editing, no writing to the vault.
 - [ ] Tag browsing and filtering
 - [ ] Multiple vault profiles
 - [ ] Custom CSS-like themes
-- [ ] Graph view (ASCII-based)
 - [ ] Embedded search results (block embeds)
 - [ ] Mouse support for tree and viewer
 - [ ] Export to PDF/HTML

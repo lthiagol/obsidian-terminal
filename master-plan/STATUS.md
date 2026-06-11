@@ -55,5 +55,12 @@
 | M16: Shed Dependencies | ⏳ pending | 0 | — | — |
 | M17: Performance: Hot Path Optimizations | ⏳ pending | 0 | — | — |
 | M18: Mouse Support | ⏳ pending | 0 | — | — |
+| M19: Backlinks Panel | ⏳ pending | 0 | — | — |
+| M20: Tag Browsing & Filtering | ⏳ pending | 0 | — | — |
+| M21: Multiple Vault Profiles | ⏳ pending | 0 | — | — |
+| M22: Custom Themes | ⏳ pending | 0 | — | — |
+| M23: Embedded Block Embeds | ⏳ pending | 0 | — | — |
+| M97: Export to PDF/HTML | ⏳ pending | 0 | — | — |
+| M98: Image Preview | ⏳ pending | 0 | — | — |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
 | **Total** | | **98** | | |

@@ -150,6 +150,10 @@ Description of what to do.
 - [ ] `make vet` exits 0
 ```
 
+## Low-Priority Milestones (M85-M99)
+
+Milestones numbered M85 through M99 are low-priority and complex — they require better planning, new dependencies, or significant architectural changes. These must **always be addressed individually** (one at a time) and never bundled into batch execution loops.
+
 ## About this file
 
 `AGENTS.md` can be updated as the project evolves. When editing it:
