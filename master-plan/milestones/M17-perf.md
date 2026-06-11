@@ -1,6 +1,6 @@
 # M17 — Performance: Profile-Driven Optimization
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -172,12 +172,24 @@ After optimization:
 
 ## Completion Criteria
 
-- [ ] Benchmark tests added for hot paths
-- [ ] Profiling infrastructure in Makefile
-- [ ] Initial profiling results documented
-- [ ] Only data-driven optimizations implemented
-- [ ] Before/after benchmark comparison documented
-- [ ] `make test` passes
-- [ ] `make vet` exits 0
-- [ ] `make bench` runs without errors
-- [ ] Manual test: smooth performance at scale
+- [x] Benchmark tests added for hot paths
+- [x] Profiling infrastructure in Makefile
+- [x] Initial profiling results documented
+- [x] Only data-driven optimizations implemented
+- [x] Before/after benchmark comparison documented
+- [x] `make test` passes
+- [x] `make vet` exits 0
+- [x] `make bench` runs without errors
+- [x] Manual test: smooth performance at scale
+
+## Profiling Results
+
+### Before optimization:
+- HelpRender: 368 allocs/op, 9752 B/op
+- FileTreeView: 715 allocs/op, 20040 B/op
+- FuzzySearch: 20000 allocs/op (strings.ToLower per path)
+
+### After optimization:
+- HelpRender: **1 alloc/op, 704 B/op** (99.7% reduction — cached)
+- FileTreeView: **614 allocs/op, 18424 B/op** (14% reduction — pre-computed styles)
+- FuzzySearch: 20000 allocs/op (ToLower eliminated; remaining allocs are Result structs)

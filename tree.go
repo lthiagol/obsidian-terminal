@@ -21,6 +21,11 @@ type FileTree struct {
 	vault  *VaultEntry
 	width  int
 	height int
+
+	fileStyle     lipgloss.Style
+	dirStyle      lipgloss.Style
+	selectedStyle lipgloss.Style
+	prefixCache   []string
 }
 
 // NewFileTree creates a FileTree from a vault entry tree.
@@ -31,10 +36,26 @@ func NewFileTree(vault *VaultEntry) FileTree {
 		height: 20,
 	}
 	var items []treeItem
+	maxDepth := 0
 	for _, child := range vault.Children {
 		items = append(items, flattenTree(child, 0, !child.IsDir)...)
 	}
+	for _, item := range items {
+		if item.depth > maxDepth {
+			maxDepth = item.depth
+		}
+	}
 	ft.items = items
+
+	ft.fileStyle = lipgloss.NewStyle().Foreground(TextSecondary)
+	ft.dirStyle = lipgloss.NewStyle().Foreground(AccentSecondary)
+	ft.selectedStyle = lipgloss.NewStyle().Background(Accent).Foreground(lipgloss.Color("#000000")).Bold(true)
+
+	ft.prefixCache = make([]string, maxDepth+1)
+	for d := 0; d <= maxDepth; d++ {
+		ft.prefixCache[d] = strings.Repeat("  ", d)
+	}
+
 	return ft
 }
 
@@ -214,7 +235,7 @@ func (ft FileTree) View() string {
 	for i, item := range ft.items {
 		isSelected := i == ft.cursor
 
-		prefix := strings.Repeat("  ", item.depth)
+		prefix := ft.prefixCache[item.depth]
 
 		var icon string
 		if item.entry.IsDir {
@@ -237,19 +258,16 @@ func (ft FileTree) View() string {
 			fullLine = fullLine[:availableWidth]
 		}
 
-		line := lipgloss.NewStyle()
-
-		if item.entry.IsDir {
-			line = line.Foreground(AccentSecondary)
-		} else {
-			line = line.Foreground(TextSecondary)
-		}
-
+		var rendered string
 		if isSelected {
-			line = line.Background(Accent).Foreground(lipgloss.Color("#000000")).Bold(true)
+			rendered = ft.selectedStyle.Render(fullLine)
+		} else if item.entry.IsDir {
+			rendered = ft.dirStyle.Render(fullLine)
+		} else {
+			rendered = ft.fileStyle.Render(fullLine)
 		}
 
-		sb.WriteString(line.Render(fullLine))
+		sb.WriteString(rendered)
 		if i < len(ft.items)-1 {
 			sb.WriteString("\n")
 		}

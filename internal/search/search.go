@@ -32,6 +32,7 @@ type State struct {
 	results     []Result
 	selected    int
 	allPaths    []string
+	allLower    []string
 	searchIndex map[string]string
 }
 
@@ -44,14 +45,19 @@ type Style struct {
 
 // NewState creates a new search state with the given mode and data.
 func NewState(mode Mode, paths []string, index map[string]string) State {
+	lower := make([]string, len(paths))
+	for i, p := range paths {
+		lower[i] = strings.ToLower(p)
+	}
 	s := State{
 		mode:        mode,
 		allPaths:    paths,
+		allLower:    lower,
 		searchIndex: index,
 		selected:    0,
 	}
 	if mode == Name {
-		s.results = FuzzySearch("", paths)
+		s.results = FuzzySearch("", paths, lower)
 	}
 	return s
 }
@@ -62,7 +68,7 @@ func (s *State) SetQuery(query string) {
 
 	switch s.mode {
 	case Name:
-		s.results = FuzzySearch(query, s.allPaths)
+		s.results = FuzzySearch(query, s.allPaths, s.allLower)
 	case Content:
 		if query == "" {
 			s.results = []Result{}
@@ -100,9 +106,9 @@ func (s State) SelectedResult() *Result {
 }
 
 // FuzzyScore computes a match score between query and target.
-func FuzzyScore(query, target string) float64 {
+// targetLower must be strings.ToLower(target).
+func FuzzyScore(query, target, targetLower string) float64 {
 	queryLower := strings.ToLower(query)
-	targetLower := strings.ToLower(target)
 
 	if queryLower == "" || targetLower == "" {
 		return 0
@@ -181,14 +187,15 @@ func isBoundary(r rune) bool {
 }
 
 // FuzzySearch performs fuzzy matching on file paths.
-func FuzzySearch(query string, paths []string) []Result {
+// pathsLower must contain strings.ToLower for each path.
+func FuzzySearch(query string, paths, pathsLower []string) []Result {
 	if query == "" {
 		results := make([]Result, len(paths))
 		for i, path := range paths {
 			results[i] = Result{Path: path, Score: 0}
 		}
 		sort.Slice(results, func(i, j int) bool {
-			return strings.ToLower(results[i].Path) < strings.ToLower(results[j].Path)
+			return pathsLower[i] < pathsLower[j]
 		})
 		if len(results) > 50 {
 			results = results[:50]
@@ -197,8 +204,8 @@ func FuzzySearch(query string, paths []string) []Result {
 	}
 
 	var results []Result
-	for _, path := range paths {
-		score := FuzzyScore(query, path)
+	for i, path := range paths {
+		score := FuzzyScore(query, path, pathsLower[i])
 		if score > 0 {
 			results = append(results, Result{Path: path, Score: score})
 		}

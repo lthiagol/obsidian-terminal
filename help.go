@@ -6,7 +6,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func (m Model) renderHelp() string {
+var cachedHelpLines []string
+
+func buildHelpLines() []string {
+	if cachedHelpLines != nil {
+		return cachedHelpLines
+	}
+
 	groups := []struct {
 		title    string
 		bindings []string
@@ -78,6 +84,13 @@ func (m Model) renderHelp() string {
 		}
 		lines = append(lines, "")
 	}
+
+	cachedHelpLines = lines
+	return lines
+}
+
+func (m Model) renderHelp() string {
+	lines := buildHelpLines()
 
 	if m.helpScroll > len(lines)-1 {
 		m.helpScroll = len(lines) - 1

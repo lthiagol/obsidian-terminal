@@ -5,16 +5,24 @@ import (
 	"testing"
 )
 
+func lowerPaths(paths []string) []string {
+	lower := make([]string, len(paths))
+	for i, p := range paths {
+		lower[i] = strings.ToLower(p)
+	}
+	return lower
+}
+
 func TestFuzzyScore_ExactMatch(t *testing.T) {
-	score := FuzzyScore("test", "test")
+	score := FuzzyScore("test", "test", "test")
 	if score < 100 {
 		t.Errorf("exact match score = %f, want >= 100", score)
 	}
 }
 
 func TestFuzzyScore_Substring(t *testing.T) {
-	consecutive := FuzzyScore("abc", "abcxxx")
-	scattered := FuzzyScore("axc", "axbxc")
+	consecutive := FuzzyScore("abc", "abcxxx", "abcxxx")
+	scattered := FuzzyScore("axc", "axbxc", "axbxc")
 
 	if consecutive <= scattered {
 		t.Errorf("consecutive match (%f) should score higher than scattered (%f)", consecutive, scattered)
@@ -22,8 +30,8 @@ func TestFuzzyScore_Substring(t *testing.T) {
 }
 
 func TestFuzzyScore_BoundaryBonus(t *testing.T) {
-	boundaryScore := FuzzyScore("readme", "projects/readme.md")
-	noBoundaryScore := FuzzyScore("readme", "some_readme_file.md")
+	boundaryScore := FuzzyScore("readme", "projects/readme.md", "projects/readme.md")
+	noBoundaryScore := FuzzyScore("readme", "some_readme_file.md", "some_readme_file.md")
 
 	_ = boundaryScore
 	_ = noBoundaryScore
@@ -33,8 +41,8 @@ func TestFuzzyScore_BoundaryBonus(t *testing.T) {
 }
 
 func TestFuzzyScore_ExactCaseBonus(t *testing.T) {
-	exactCase := FuzzyScore("ReadMe", "ReadMe.md")
-	lowerCase := FuzzyScore("readme", "ReadMe.md")
+	exactCase := FuzzyScore("ReadMe", "ReadMe.md", "readme.md")
+	lowerCase := FuzzyScore("readme", "ReadMe.md", "readme.md")
 
 	if exactCase < lowerCase {
 		t.Errorf("exact case (%f) should score >= lower case (%f)", exactCase, lowerCase)
@@ -42,7 +50,7 @@ func TestFuzzyScore_ExactCaseBonus(t *testing.T) {
 }
 
 func TestFuzzyScore_NoMatch(t *testing.T) {
-	score := FuzzyScore("xyz", "abcdef")
+	score := FuzzyScore("xyz", "abcdef", "abcdef")
 	if score != 0 {
 		t.Errorf("no-match score = %f, want 0", score)
 	}
@@ -56,7 +64,7 @@ func TestFuzzySearch_ResultsSorted(t *testing.T) {
 		"notes/meeting.md",
 	}
 
-	results := FuzzySearch("readme", paths)
+	results := FuzzySearch("readme", paths, lowerPaths(paths))
 	if len(results) == 0 {
 		t.Fatal("expected results for 'readme'")
 	}
@@ -71,7 +79,7 @@ func TestFuzzySearch_ResultsSorted(t *testing.T) {
 
 func TestFuzzySearch_NoMatchingFiles(t *testing.T) {
 	paths := []string{"readme.md", "index.md"}
-	results := FuzzySearch("zzz", paths)
+	results := FuzzySearch("zzz", paths, lowerPaths(paths))
 	if len(results) != 0 {
 		t.Errorf("expected no results, got %d", len(results))
 	}
@@ -140,13 +148,13 @@ func TestState_SetQuery(t *testing.T) {
 }
 
 func TestFuzzyScore_EmptyInput(t *testing.T) {
-	if score := FuzzyScore("", "anything"); score != 0 {
+	if score := FuzzyScore("", "anything", "anything"); score != 0 {
 		t.Errorf("empty query score = %f, want 0", score)
 	}
-	if score := FuzzyScore("test", ""); score != 0 {
+	if score := FuzzyScore("test", "", ""); score != 0 {
 		t.Errorf("empty target score = %f, want 0", score)
 	}
-	if score := FuzzyScore("", ""); score != 0 {
+	if score := FuzzyScore("", "", ""); score != 0 {
 		t.Errorf("both empty score = %f, want 0", score)
 	}
 }

@@ -57,7 +57,7 @@
 | M15: Polish & Complete Remaining Gaps | ✅ done | 3 | 2026-06-11 | 2026-06-11 |
 | M16a: Replace Viewport Dependency | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M16b: Replace YAML Dependency | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
-| M17: Performance (Profile-Driven) | ⏳ pending | 0 | — | — |
+| M17: Performance (Profile-Driven) | ✅ done | 0 | 2026-06-11 | 2026-06-11 |
 | M18: Mouse Support | ⏳ pending | 0 | — | — |
 
 ### Phase 2: Core Indexes
