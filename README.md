@@ -16,13 +16,13 @@ A terminal-based TUI for browsing and reading [Obsidian](https://obsidian.md) va
 ## Installation
 
 ```bash
-go install github.com/atr0t0s/obsidian-terminal@latest
+go install github.com/lthiagol/obsidian-terminal@latest
 ```
 
 Or build from source:
 
 ```bash
-git clone https://github.com/atr0t0s/obsidian-terminal.git
+git clone https://github.com/lthiagol/obsidian-terminal.git
 cd obsidian-terminal
 go build -o obsidian-terminal
 ```
