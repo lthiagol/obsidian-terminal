@@ -73,6 +73,14 @@ func (v *MarkdownViewer) ScrollBottom() {
 	v.viewport.GotoBottom()
 }
 
+func (v *MarkdownViewer) GetScrollPosition() int {
+	return v.viewport.YOffset
+}
+
+func (v *MarkdownViewer) SetScrollPosition(y int) {
+	v.viewport.SetYOffset(y)
+}
+
 func (v *MarkdownViewer) ScrollHalfPageUp() {
 	v.viewport.HalfViewUp()
 }

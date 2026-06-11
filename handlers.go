@@ -49,6 +49,18 @@ func (m Model) handleBrowseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.fileTree.cursor = len(m.fileTree.items) - 1
 		}
 		return m, nil
+	case MatchRune(msg, m.keys.PinRune):
+		entry := m.fileTree.SelectedEntry()
+		if entry != nil && !entry.IsDir {
+			m.togglePin(entry.Path)
+		}
+		return m, nil
+	case MatchKey(msg, m.keys.CyclePinPrev):
+		m.cyclePinnedPrev()
+		return m, nil
+	case MatchKey(msg, m.keys.CyclePinNext):
+		m.cyclePinnedNext()
+		return m, nil
 	}
 	return m, nil
 }
@@ -108,6 +120,17 @@ func (m Model) handleViewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case msg.Type == tea.KeyPgDown:
 		m.viewer.ScrollHalfPageDown()
+		return m, nil
+	case MatchRune(msg, m.keys.PinRune):
+		if m.activeNote != nil {
+			m.togglePin(m.activeNote.Path)
+		}
+		return m, nil
+	case MatchKey(msg, m.keys.CyclePinPrev):
+		m.cyclePinnedPrev()
+		return m, nil
+	case MatchKey(msg, m.keys.CyclePinNext):
+		m.cyclePinnedNext()
 		return m, nil
 	}
 	return m, nil

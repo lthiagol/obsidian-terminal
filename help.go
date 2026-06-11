@@ -37,20 +37,24 @@ func buildHelpLines() []string {
 		{
 			title: "File Tree",
 			bindings: []string{
-				"Enter — open note / toggle folder",
-				"← →   — collapse / expand folder",
-				"T     — browse tags",
+				"Enter    — open note / toggle folder",
+				"← →      — collapse / expand folder",
+				"T        — browse tags",
+				"p        — pin/unpin note",
+				"Ctrl+[/] — cycle pinned notes",
 			},
 		},
 		{
 			title: "Viewer",
 			bindings: []string{
-				"j / k  — scroll down / up",
-				"g / G  — top / bottom",
-				"Tab    — cycle wiki-links",
-				"Enter  — follow selected link",
-				"b      — toggle backlinks",
-				"h / Esc — back to browse",
+				"j / k    — scroll down / up",
+				"g / G    — top / bottom",
+				"Tab      — cycle wiki-links",
+				"Enter    — follow selected link",
+				"b        — toggle backlinks",
+				"p        — pin/unpin note",
+				"Ctrl+[/] — cycle pinned notes",
+				"h / Esc  — back to browse",
 			},
 		},
 		{

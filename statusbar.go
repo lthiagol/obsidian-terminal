@@ -27,6 +27,10 @@ func (m Model) renderStatusBar() string {
 			if m.viewer.SelectedLinkIndex() >= 0 {
 				info += " → " + m.viewer.SelectedLinkPath()
 			}
+			if m.activePinnedIdx >= 0 && m.activePinnedIdx < len(m.pinnedNotes) &&
+				m.pinnedNotes[m.activePinnedIdx].Path == m.activeNote.Path {
+				info += " 📌"
+			}
 		}
 	case ModeSearch, ModeFind:
 		info = m.searchState.Query()

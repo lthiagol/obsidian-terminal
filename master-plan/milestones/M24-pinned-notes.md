@@ -1,6 +1,6 @@
 # M24 — Pinned Notes
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -78,17 +78,17 @@ After rescan: validate pinned paths still exist, remove invalid. Reset activePin
 
 ## Completion Criteria
 
-- [ ] PinnedNote type with Path and ScrollY fields
-- [ ] `p` keybinding pins/unpins current note
-- [ ] `Ctrl+]` cycles to next pinned note
-- [ ] `Ctrl+[` cycles to previous pinned note
-- [ ] Scroll position saved when switching pinned notes
-- [ ] Scroll position restored when opening pinned note
-- [ ] 📌 indicator shown in status bar for pinned notes
-- [ ] Only `.md` files can be pinned (not directories)
-- [ ] Invalid pins removed on rescan
-- [ ] Help text updated
-- [ ] KEYBINDINGS.md updated
-- [ ] `make test` passes
-- [ ] `make vet` exits 0
-- [ ] Manual test: pin cycling and scroll memory work
+- [x] PinnedNote type with Path and ScrollY fields
+- [x] `p` keybinding pins/unpins current note
+- [x] `Ctrl+]` cycles to next pinned note
+- [x] `Ctrl+[` cycles to previous pinned note
+- [x] Scroll position saved when switching pinned notes
+- [x] Scroll position restored when opening pinned note
+- [x] 📌 indicator shown in status bar for pinned notes
+- [x] Only `.md` files can be pinned (not directories)
+- [x] Invalid pins removed on rescan
+- [x] Help text updated
+- [x] KEYBINDINGS.md updated
+- [x] `make test` passes
+- [x] `make vet` exits 0
+- [x] Manual test: pin cycling and scroll memory work

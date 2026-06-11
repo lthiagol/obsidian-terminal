@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -16,6 +17,12 @@ type TickMsg struct{}
 
 // Mode represents the current TUI mode.
 type Mode int
+
+// PinnedNote represents a pinned note with saved scroll position.
+type PinnedNote struct {
+	Path    string
+	ScrollY int
+}
 
 const (
 	ModeBrowse Mode = iota
@@ -88,6 +95,9 @@ type Model struct {
 	tagIndex  map[string][]string
 	tagList   TagList
 	tagFilter string
+
+	pinnedNotes     []PinnedNote
+	activePinnedIdx int
 }
 
 // NewModel creates a Model by scanning the vault at cfg.VaultPath.
@@ -139,20 +149,21 @@ func NewModel(cfg *Config) Model {
 	paths := allPaths(tree)
 
 	m := Model{
-		mode:          ModeBrowse,
-		prevMode:      ModeBrowse,
-		vault:         tree,
-		searchIndex:   indexes.Search,
-		backlinkIndex: indexes.Backlinks,
-		tagIndex:      indexes.Tags,
-		allPaths:      paths,
-		keys:          keys,
-		config:        cfg,
-		fileTree:      NewFileTree(tree),
-		viewer:        NewViewer(markdownStyleFrom(palette)),
-		searchStyle:   searchStyleFrom(palette),
-		scanErrors:    scanErrors,
-		palette:       palette,
+		mode:            ModeBrowse,
+		prevMode:        ModeBrowse,
+		vault:           tree,
+		searchIndex:     indexes.Search,
+		backlinkIndex:   indexes.Backlinks,
+		tagIndex:        indexes.Tags,
+		allPaths:        paths,
+		keys:            keys,
+		config:          cfg,
+		fileTree:        NewFileTree(tree),
+		viewer:          NewViewer(markdownStyleFrom(palette)),
+		searchStyle:     searchStyleFrom(palette),
+		scanErrors:      scanErrors,
+		palette:         palette,
+		activePinnedIdx: -1,
 	}
 	if themeWarning != "" {
 		m.addToast(themeWarning, ToastWarning)
@@ -380,6 +391,7 @@ func (m *Model) rescanVault() {
 	m.tagIndex = indexes.Tags
 	m.allPaths = allPaths(tree)
 	m.fileTree = NewFileTree(tree)
+	m.validatePins()
 
 	if oldActivePath != "" {
 		note, err := LoadNote(m.config.VaultPath, oldActivePath)
@@ -417,4 +429,105 @@ func truncateContent(content string, maxLines int) string {
 		lines = append(lines, "...")
 	}
 	return strings.Join(lines, "\n")
+}
+
+func (m *Model) togglePin(path string) {
+	if path == "" {
+		return
+	}
+
+	for i, pin := range m.pinnedNotes {
+		if pin.Path == path {
+			m.pinnedNotes = append(m.pinnedNotes[:i], m.pinnedNotes[i+1:]...)
+			if m.activePinnedIdx >= len(m.pinnedNotes) {
+				m.activePinnedIdx = len(m.pinnedNotes) - 1
+			}
+			m.addToast("Unpinned note", ToastInfo)
+			return
+		}
+	}
+
+	scrollY := 0
+	if m.activeNote != nil && m.activeNote.Path == path {
+		scrollY = m.viewer.GetScrollPosition()
+	}
+
+	m.pinnedNotes = append(m.pinnedNotes, PinnedNote{Path: path, ScrollY: scrollY})
+	m.addToast("Pinned note", ToastInfo)
+}
+
+func (m *Model) openPinnedNote(index int) {
+	if index < 0 || index >= len(m.pinnedNotes) {
+		return
+	}
+
+	pin := m.pinnedNotes[index]
+	note, err := LoadNote(m.config.VaultPath, pin.Path)
+	if err != nil {
+		m.addToast("Failed to load pinned note: "+err.Error(), ToastError)
+		m.pinnedNotes = append(m.pinnedNotes[:index], m.pinnedNotes[index+1:]...)
+		if m.activePinnedIdx >= len(m.pinnedNotes) {
+			m.activePinnedIdx = len(m.pinnedNotes) - 1
+		}
+		return
+	}
+
+	m.activeNote = note
+	m.prevMode = m.mode
+	m.mode = ModeView
+	m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
+	m.viewer.SetScrollPosition(pin.ScrollY)
+	m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)
+	m.backlinkMode = false
+	m.activePinnedIdx = index
+}
+
+func (m *Model) cyclePinnedNext() {
+	if len(m.pinnedNotes) == 0 {
+		m.addToast("No pinned notes", ToastWarning)
+		return
+	}
+
+	if m.activePinnedIdx >= 0 && m.activePinnedIdx < len(m.pinnedNotes) && m.activeNote != nil {
+		m.pinnedNotes[m.activePinnedIdx].ScrollY = m.viewer.GetScrollPosition()
+	}
+
+	m.activePinnedIdx++
+	if m.activePinnedIdx >= len(m.pinnedNotes) {
+		m.activePinnedIdx = 0
+	}
+
+	m.openPinnedNote(m.activePinnedIdx)
+}
+
+func (m *Model) cyclePinnedPrev() {
+	if len(m.pinnedNotes) == 0 {
+		m.addToast("No pinned notes", ToastWarning)
+		return
+	}
+
+	if m.activePinnedIdx >= 0 && m.activePinnedIdx < len(m.pinnedNotes) && m.activeNote != nil {
+		m.pinnedNotes[m.activePinnedIdx].ScrollY = m.viewer.GetScrollPosition()
+	}
+
+	m.activePinnedIdx--
+	if m.activePinnedIdx < 0 {
+		m.activePinnedIdx = len(m.pinnedNotes) - 1
+	}
+
+	m.openPinnedNote(m.activePinnedIdx)
+}
+
+func (m *Model) validatePins() {
+	var valid []PinnedNote
+	for _, pin := range m.pinnedNotes {
+		path := filepath.Join(m.config.VaultPath, pin.Path)
+		if _, err := os.Stat(path); err == nil {
+			valid = append(valid, pin)
+		}
+	}
+	m.pinnedNotes = valid
+	if m.activePinnedIdx >= len(m.pinnedNotes) {
+		m.activePinnedIdx = len(m.pinnedNotes) - 1
+	}
 }

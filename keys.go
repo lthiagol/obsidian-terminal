@@ -21,12 +21,16 @@ type KeyMap struct {
 	PageDown tea.KeyType
 	CtrlC    tea.KeyType
 
-	QuitRune  rune
-	Search    rune
-	Find      rune
-	Help      rune
-	TopRune   rune
+	QuitRune   rune
+	Search     rune
+	Find       rune
+	Help       rune
+	TopRune    rune
 	BottomRune rune
+	PinRune    rune
+
+	CyclePinPrev []tea.KeyType
+	CyclePinNext []tea.KeyType
 }
 
 // MatchKey reports whether msg matches any of the given key types.
@@ -69,11 +73,14 @@ func DefaultKeys() KeyMap {
 		PageUp:     tea.KeyPgUp,
 		PageDown:   tea.KeyPgDown,
 		CtrlC:      tea.KeyCtrlC,
-		QuitRune:   'q',
-		Search:     '/',
-		Find:       's',
-		Help:       '?',
-		TopRune:    'g',
-		BottomRune: 'G',
+		QuitRune:     'q',
+		Search:       '/',
+		Find:         's',
+		Help:         '?',
+		TopRune:      'g',
+		BottomRune:   'G',
+		PinRune:      'p',
+		CyclePinPrev: []tea.KeyType{tea.KeyCtrlOpenBracket},
+		CyclePinNext: []tea.KeyType{tea.KeyCtrlCloseBracket},
 	}
 }
