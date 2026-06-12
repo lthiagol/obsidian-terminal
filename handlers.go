@@ -425,24 +425,18 @@ func (m Model) handleProfilePickerKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case msg.Type == tea.KeyEnter:
 		profileName := m.profilePicker.Selected()
 		if profileName != "" {
-			m.pendingProfileName = profileName
-			return m, m.applyProfile
+			m.switchToProfile(profileName)
 		}
 		return m, nil
 	}
 	return m, nil
 }
 
-func (m Model) applyProfile() tea.Msg {
-	profileName := m.pendingProfileName
-	if profileName == "" {
-		return nil
-	}
-
+func (m *Model) switchToProfile(profileName string) {
 	profile, ok := m.config.Profiles[profileName]
 	if !ok {
 		m.addToast("Profile not found: "+profileName, ToastError)
-		return nil
+		return
 	}
 
 	// Apply profile settings
@@ -451,13 +445,7 @@ func (m Model) applyProfile() tea.Msg {
 	}
 	if profile.Theme != "" {
 		m.config.Theme = profile.Theme
-		palette, err := lookupPalette(profile.Theme)
-		if err == nil {
-			activatePalette(palette)
-			m.palette = palette
-			m.viewer.renderStyle = markdownStyleFrom(palette, m.config.LineSpacing)
-			m.searchStyle = searchStyleFrom(palette)
-		}
+		m.setTheme(profile.Theme)
 	}
 	if len(profile.SkipDirs) > 0 {
 		m.config.SkipDirs = profile.SkipDirs
@@ -466,8 +454,16 @@ func (m Model) applyProfile() tea.Msg {
 	// Rescan vault with new settings
 	m.rescanVault()
 	m.mode = ModeBrowse
-	m.pendingProfileName = ""
 	m.addToast("Switched to profile: "+profileName, ToastInfo)
+}
 
-	return nil
+func (m *Model) setTheme(themeName string) {
+	palette, err := lookupPalette(themeName)
+	if err != nil {
+		return
+	}
+	activatePalette(palette)
+	m.palette = palette
+	m.viewer.renderStyle = markdownStyleFrom(palette, m.config.LineSpacing)
+	m.searchStyle = searchStyleFrom(palette)
 }

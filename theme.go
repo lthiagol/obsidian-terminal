@@ -39,326 +39,228 @@ type Palette struct {
 	SearchStyle lipgloss.Style
 }
 
-func newDarkPalette() Palette {
-	return Palette{
-		Accent:          "#a78bfa",
-		AccentSecondary: "#fbbf24",
-		AccentTertiary:  "#2dd4bf",
-		TextPrimary:     "#e5e7eb",
-		TextSecondary:   "#9ca3af",
-		TextMuted:       "#6b7280",
-		TextDim:         "#4b5563",
-		Success:         "#34d399",
-		Warning:         "#fbbf24",
-		Error:           "#f87171",
-		Info:            "#60a5fa",
-		Background:      "#111827",
-		Surface:         "#1f2937",
-		Border:          "#374151",
-
-		ModeBrowse: "#a78bfa",
-		ModeView:   "#2dd4bf",
-		ModeSearch: "#fbbf24",
-		ModeFind:   "#fbbf24",
-		ModeHelp:   "#60a5fa",
-
-		TreeStyle: lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder(), false, false, false, true).
-			BorderForeground(lipgloss.Color("#a78bfa")).
-			Padding(0, 1),
-
-		ViewerStyle: lipgloss.NewStyle().
-			Padding(0, 1),
-
-		StatusStyle: lipgloss.NewStyle().
-			Background(lipgloss.Color("#1f2937")).
-			Padding(0, 1),
-
-		HelpStyle: lipgloss.NewStyle().
-			Padding(1, 2),
-
-		SearchStyle: lipgloss.NewStyle().
-			Padding(1, 2),
-	}
+type themeDef struct {
+	Colors map[string]string
 }
 
-func newCatppuccinLatte() Palette {
-	return Palette{
-		Accent:          "#8839ef",
-		AccentSecondary: "#7287fd",
-		AccentTertiary:  "#1e66f5",
-		TextPrimary:     "#4c4f69",
-		TextSecondary:   "#6c6f85",
-		TextMuted:       "#9ca0b0",
-		TextDim:         "#8c8fa1",
-		Success:         "#40a02b",
-		Warning:         "#df8e1d",
-		Error:           "#d20f39",
-		Info:            "#1e66f5",
-		Background:      "#eff1f5",
-		Surface:         "#ccd0da",
-		Border:          "#acb0be",
-
-		ModeBrowse: "#8839ef",
-		ModeView:   "#1e66f5",
-		ModeSearch: "#7287fd",
-		ModeFind:   "#7287fd",
-		ModeHelp:   "#1e66f5",
-
-		TreeStyle: lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder(), false, false, false, true).
-			BorderForeground(lipgloss.Color("#8839ef")).
-			Padding(0, 1),
-
-		ViewerStyle: lipgloss.NewStyle().
-			Padding(0, 1),
-
-		StatusStyle: lipgloss.NewStyle().
-			Background(lipgloss.Color("#ccd0da")).
-			Padding(0, 1),
-
-		HelpStyle: lipgloss.NewStyle().
-			Padding(1, 2),
-
-		SearchStyle: lipgloss.NewStyle().
-			Padding(1, 2),
-	}
+var themeData = map[string]themeDef{
+	"dark": {
+		Colors: map[string]string{
+			"accent":           "#a78bfa",
+			"accent_secondary": "#fbbf24",
+			"accent_tertiary":  "#2dd4bf",
+			"text_primary":     "#e5e7eb",
+			"text_secondary":   "#9ca3af",
+			"text_muted":       "#6b7280",
+			"text_dim":         "#4b5563",
+			"success":          "#34d399",
+			"warning":          "#fbbf24",
+			"error":            "#f87171",
+			"info":             "#60a5fa",
+			"background":       "#111827",
+			"surface":          "#1f2937",
+			"border":           "#374151",
+			"mode_browse":      "#a78bfa",
+			"mode_view":        "#2dd4bf",
+			"mode_search":      "#fbbf24",
+			"mode_find":        "#fbbf24",
+			"mode_help":        "#60a5fa",
+		},
+	},
+	"catppuccin-latte": {
+		Colors: map[string]string{
+			"accent":           "#8839ef",
+			"accent_secondary": "#7287fd",
+			"accent_tertiary":  "#1e66f5",
+			"text_primary":     "#4c4f69",
+			"text_secondary":   "#6c6f85",
+			"text_muted":       "#9ca0b0",
+			"text_dim":         "#8c8fa1",
+			"success":          "#40a02b",
+			"warning":          "#df8e1d",
+			"error":            "#d20f39",
+			"info":             "#1e66f5",
+			"background":       "#eff1f5",
+			"surface":          "#ccd0da",
+			"border":           "#acb0be",
+			"mode_browse":      "#8839ef",
+			"mode_view":        "#1e66f5",
+			"mode_search":      "#7287fd",
+			"mode_find":        "#7287fd",
+			"mode_help":        "#1e66f5",
+		},
+	},
+	"catppuccin-frappe": {
+		Colors: map[string]string{
+			"accent":           "#ca9ee6",
+			"accent_secondary": "#babbf1",
+			"accent_tertiary":  "#8caaee",
+			"text_primary":     "#c6d0f5",
+			"text_secondary":   "#a5adce",
+			"text_muted":       "#949cbb",
+			"text_dim":         "#838ba7",
+			"success":          "#a6d189",
+			"warning":          "#e5c890",
+			"error":            "#e78284",
+			"info":             "#8caaee",
+			"background":       "#303446",
+			"surface":          "#414559",
+			"border":           "#626880",
+			"mode_browse":      "#ca9ee6",
+			"mode_view":        "#8caaee",
+			"mode_search":      "#babbf1",
+			"mode_find":        "#babbf1",
+			"mode_help":        "#8caaee",
+		},
+	},
+	"catppuccin-macchiato": {
+		Colors: map[string]string{
+			"accent":           "#c6a0f6",
+			"accent_secondary": "#b7bdf8",
+			"accent_tertiary":  "#8aadf4",
+			"text_primary":     "#cad3f5",
+			"text_secondary":   "#a5adcb",
+			"text_muted":       "#939ab7",
+			"text_dim":         "#8087a2",
+			"success":          "#a6da95",
+			"warning":          "#eed49f",
+			"error":            "#ed8796",
+			"info":             "#8aadf4",
+			"background":       "#24273a",
+			"surface":          "#363a4f",
+			"border":           "#5b6078",
+			"mode_browse":      "#c6a0f6",
+			"mode_view":        "#8aadf4",
+			"mode_search":      "#b7bdf8",
+			"mode_find":        "#b7bdf8",
+			"mode_help":        "#8aadf4",
+		},
+	},
+	"catppuccin-mocha": {
+		Colors: map[string]string{
+			"accent":           "#cba6f7",
+			"accent_secondary": "#b4befe",
+			"accent_tertiary":  "#89b4fa",
+			"text_primary":     "#cdd6f4",
+			"text_secondary":   "#a6adc8",
+			"text_muted":       "#9399b2",
+			"text_dim":         "#7f849c",
+			"success":          "#a6e3a1",
+			"warning":          "#f9e2af",
+			"error":            "#f38ba8",
+			"info":             "#89b4fa",
+			"background":       "#1e1e2e",
+			"surface":          "#313244",
+			"border":           "#585b70",
+			"mode_browse":      "#cba6f7",
+			"mode_view":        "#89b4fa",
+			"mode_search":      "#b4befe",
+			"mode_find":        "#b4befe",
+			"mode_help":        "#89b4fa",
+		},
+	},
+	"dracula": {
+		Colors: map[string]string{
+			"accent":           "#bd93f9",
+			"accent_secondary": "#ff79c6",
+			"accent_tertiary":  "#8be9fd",
+			"text_primary":     "#f8f8f2",
+			"text_secondary":   "#6272a4",
+			"text_muted":       "#6272a4",
+			"text_dim":         "#44475a",
+			"success":          "#50fa7b",
+			"warning":          "#ffb86c",
+			"error":            "#ff5555",
+			"info":             "#8be9fd",
+			"background":       "#282a36",
+			"surface":          "#44475a",
+			"border":           "#6272a4",
+			"mode_browse":      "#bd93f9",
+			"mode_view":        "#8be9fd",
+			"mode_search":      "#ff79c6",
+			"mode_find":        "#ff79c6",
+			"mode_help":        "#8be9fd",
+		},
+	},
+	"alucard": {
+		Colors: map[string]string{
+			"accent":           "#b390e3",
+			"accent_secondary": "#e377a9",
+			"accent_tertiary":  "#6cb6c5",
+			"text_primary":     "#c2c2c9",
+			"text_secondary":   "#576284",
+			"text_muted":       "#576284",
+			"text_dim":         "#45495a",
+			"success":          "#43945f",
+			"warning":          "#d08735",
+			"error":            "#d94e5d",
+			"info":             "#6cb6c5",
+			"background":       "#1e2029",
+			"surface":          "#323540",
+			"border":           "#576284",
+			"mode_browse":      "#b390e3",
+			"mode_view":        "#6cb6c5",
+			"mode_search":      "#e377a9",
+			"mode_find":        "#e377a9",
+			"mode_help":        "#6cb6c5",
+		},
+	},
 }
 
-func newCatppuccinFrappe() Palette {
-	return Palette{
-		Accent:          "#ca9ee6",
-		AccentSecondary: "#babbf1",
-		AccentTertiary:  "#8caaee",
-		TextPrimary:     "#c6d0f5",
-		TextSecondary:   "#a5adce",
-		TextMuted:       "#949cbb",
-		TextDim:         "#838ba7",
-		Success:         "#a6d189",
-		Warning:         "#e5c890",
-		Error:           "#e78284",
-		Info:            "#8caaee",
-		Background:      "#303446",
-		Surface:         "#414559",
-		Border:          "#626880",
-
-		ModeBrowse: "#ca9ee6",
-		ModeView:   "#8caaee",
-		ModeSearch: "#babbf1",
-		ModeFind:   "#babbf1",
-		ModeHelp:   "#8caaee",
-
-		TreeStyle: lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder(), false, false, false, true).
-			BorderForeground(lipgloss.Color("#ca9ee6")).
-			Padding(0, 1),
-
-		ViewerStyle: lipgloss.NewStyle().
-			Padding(0, 1),
-
-		StatusStyle: lipgloss.NewStyle().
-			Background(lipgloss.Color("#414559")).
-			Padding(0, 1),
-
-		HelpStyle: lipgloss.NewStyle().
-			Padding(1, 2),
-
-		SearchStyle: lipgloss.NewStyle().
-			Padding(1, 2),
+func buildPalette(name string) (Palette, error) {
+	def, ok := themeData[name]
+	if !ok {
+		return Palette{}, fmt.Errorf("unknown theme %q", name)
 	}
+	p := Palette{
+		Accent:          parseHex(def.Colors["accent"]),
+		AccentSecondary: parseHex(def.Colors["accent_secondary"]),
+		AccentTertiary:  parseHex(def.Colors["accent_tertiary"]),
+		TextPrimary:     parseHex(def.Colors["text_primary"]),
+		TextSecondary:   parseHex(def.Colors["text_secondary"]),
+		TextMuted:       parseHex(def.Colors["text_muted"]),
+		TextDim:         parseHex(def.Colors["text_dim"]),
+		Success:         parseHex(def.Colors["success"]),
+		Warning:         parseHex(def.Colors["warning"]),
+		Error:           parseHex(def.Colors["error"]),
+		Info:            parseHex(def.Colors["info"]),
+		Background:      parseHex(def.Colors["background"]),
+		Surface:         parseHex(def.Colors["surface"]),
+		Border:          parseHex(def.Colors["border"]),
+	}
+	return rebuildDerivedStyles(p), nil
 }
 
-func newCatppuccinMacchiato() Palette {
-	return Palette{
-		Accent:          "#c6a0f6",
-		AccentSecondary: "#b7bdf8",
-		AccentTertiary:  "#8aadf4",
-		TextPrimary:     "#cad3f5",
-		TextSecondary:   "#a5adcb",
-		TextMuted:       "#939ab7",
-		TextDim:         "#8087a2",
-		Success:         "#a6da95",
-		Warning:         "#eed49f",
-		Error:           "#ed8796",
-		Info:            "#8aadf4",
-		Background:      "#24273a",
-		Surface:         "#363a4f",
-		Border:          "#5b6078",
-
-		ModeBrowse: "#c6a0f6",
-		ModeView:   "#8aadf4",
-		ModeSearch: "#b7bdf8",
-		ModeFind:   "#b7bdf8",
-		ModeHelp:   "#8aadf4",
-
-		TreeStyle: lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder(), false, false, false, true).
-			BorderForeground(lipgloss.Color("#c6a0f6")).
-			Padding(0, 1),
-
-		ViewerStyle: lipgloss.NewStyle().
-			Padding(0, 1),
-
-		StatusStyle: lipgloss.NewStyle().
-			Background(lipgloss.Color("#363a4f")).
-			Padding(0, 1),
-
-		HelpStyle: lipgloss.NewStyle().
-			Padding(1, 2),
-
-		SearchStyle: lipgloss.NewStyle().
-			Padding(1, 2),
-	}
+func parseHex(s string) lipgloss.Color {
+	return lipgloss.Color(s)
 }
 
-func newCatppuccinMocha() Palette {
-	return Palette{
-		Accent:          "#cba6f7",
-		AccentSecondary: "#b4befe",
-		AccentTertiary:  "#89b4fa",
-		TextPrimary:     "#cdd6f4",
-		TextSecondary:   "#a6adc8",
-		TextMuted:       "#9399b2",
-		TextDim:         "#7f849c",
-		Success:         "#a6e3a1",
-		Warning:         "#f9e2af",
-		Error:           "#f38ba8",
-		Info:            "#89b4fa",
-		Background:      "#1e1e2e",
-		Surface:         "#313244",
-		Border:          "#585b70",
-
-		ModeBrowse: "#cba6f7",
-		ModeView:   "#89b4fa",
-		ModeSearch: "#b4befe",
-		ModeFind:   "#b4befe",
-		ModeHelp:   "#89b4fa",
-
-		TreeStyle: lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder(), false, false, false, true).
-			BorderForeground(lipgloss.Color("#cba6f7")).
-			Padding(0, 1),
-
-		ViewerStyle: lipgloss.NewStyle().
-			Padding(0, 1),
-
-		StatusStyle: lipgloss.NewStyle().
-			Background(lipgloss.Color("#313244")).
-			Padding(0, 1),
-
-		HelpStyle: lipgloss.NewStyle().
-			Padding(1, 2),
-
-		SearchStyle: lipgloss.NewStyle().
-			Padding(1, 2),
+// ValidThemeNames returns a list of all available theme names.
+func ValidThemeNames() []string {
+	var names []string
+	for name := range themeData {
+		names = append(names, name)
 	}
-}
-
-func newDracula() Palette {
-	return Palette{
-		Accent:          "#bd93f9",
-		AccentSecondary: "#ff79c6",
-		AccentTertiary:  "#8be9fd",
-		TextPrimary:     "#f8f8f2",
-		TextSecondary:   "#6272a4",
-		TextMuted:       "#6272a4",
-		TextDim:         "#44475a",
-		Success:         "#50fa7b",
-		Warning:         "#ffb86c",
-		Error:           "#ff5555",
-		Info:            "#8be9fd",
-		Background:      "#282a36",
-		Surface:         "#44475a",
-		Border:          "#6272a4",
-
-		ModeBrowse: "#bd93f9",
-		ModeView:   "#8be9fd",
-		ModeSearch: "#ff79c6",
-		ModeFind:   "#ff79c6",
-		ModeHelp:   "#8be9fd",
-
-		TreeStyle: lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder(), false, false, false, true).
-			BorderForeground(lipgloss.Color("#bd93f9")).
-			Padding(0, 1),
-
-		ViewerStyle: lipgloss.NewStyle().
-			Padding(0, 1),
-
-		StatusStyle: lipgloss.NewStyle().
-			Background(lipgloss.Color("#44475a")).
-			Padding(0, 1),
-
-		HelpStyle: lipgloss.NewStyle().
-			Padding(1, 2),
-
-		SearchStyle: lipgloss.NewStyle().
-			Padding(1, 2),
-	}
-}
-
-func newAlucard() Palette {
-	return Palette{
-		Accent:          "#b390e3",
-		AccentSecondary: "#e377a9",
-		AccentTertiary:  "#6cb6c5",
-		TextPrimary:     "#c2c2c9",
-		TextSecondary:   "#576284",
-		TextMuted:       "#576284",
-		TextDim:         "#45495a",
-		Success:         "#43945f",
-		Warning:         "#d08735",
-		Error:           "#d94e5d",
-		Info:            "#6cb6c5",
-		Background:      "#1e2029",
-		Surface:         "#323540",
-		Border:          "#576284",
-
-		ModeBrowse: "#b390e3",
-		ModeView:   "#6cb6c5",
-		ModeSearch: "#e377a9",
-		ModeFind:   "#e377a9",
-		ModeHelp:   "#6cb6c5",
-
-		TreeStyle: lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder(), false, false, false, true).
-			BorderForeground(lipgloss.Color("#b390e3")).
-			Padding(0, 1),
-
-		ViewerStyle: lipgloss.NewStyle().
-			Padding(0, 1),
-
-		StatusStyle: lipgloss.NewStyle().
-			Background(lipgloss.Color("#323540")).
-			Padding(0, 1),
-
-		HelpStyle: lipgloss.NewStyle().
-			Padding(1, 2),
-
-		SearchStyle: lipgloss.NewStyle().
-			Padding(1, 2),
-	}
+	return names
 }
 
 func lookupPalette(name string) (Palette, error) {
-	switch name {
-	case "dark":
-		return newDarkPalette(), nil
-	case "catppuccin-latte":
-		return newCatppuccinLatte(), nil
-	case "catppuccin-frappe":
-		return newCatppuccinFrappe(), nil
-	case "catppuccin-macchiato":
-		return newCatppuccinMacchiato(), nil
-	case "catppuccin-mocha":
-		return newCatppuccinMocha(), nil
-	case "dracula":
-		return newDracula(), nil
-	case "alucard":
-		return newAlucard(), nil
-	default:
-		return Palette{}, fmt.Errorf("unknown theme %q", name)
+	return buildPalette(name)
+}
+
+// newDarkPalette is a test helper that returns the dark theme palette.
+func newDarkPalette() Palette {
+	p, err := buildPalette("dark")
+	if err != nil {
+		p = rebuildDerivedStyles(Palette{
+			Accent: "#a78bfa", AccentSecondary: "#fbbf24", AccentTertiary: "#2dd4bf",
+			TextPrimary: "#e5e7eb", TextSecondary: "#9ca3af", TextMuted: "#6b7280",
+			TextDim: "#4b5563", Success: "#34d399", Warning: "#fbbf24",
+			Error: "#f87171", Info: "#60a5fa", Background: "#111827",
+			Surface: "#1f2937", Border: "#374151",
+		})
 	}
+	return p
 }
 
 var (

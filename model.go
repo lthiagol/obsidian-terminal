@@ -123,7 +123,6 @@ type Model struct {
 	recentCursor  int
 
 	profilePicker      ProfilePicker
-	pendingProfileName string
 
 	commandPaletteVisible bool
 	commandPaletteQuery   string
