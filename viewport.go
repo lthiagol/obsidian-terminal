@@ -88,6 +88,11 @@ func softWrap(line string, width int) []string {
 		i++
 
 		if vis >= width {
+			// If the current line has ANSI codes, close them before the break
+			// to prevent style bleed. Plain text lines skip the reset.
+			if strings.ContainsRune(current.String(), '\x1b') {
+				current.WriteString("\x1b[0m")
+			}
 			lines = append(lines, current.String())
 			current.Reset()
 			vis = 0

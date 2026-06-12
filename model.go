@@ -656,7 +656,7 @@ func (m *Model) buildOutline() {
 			Level:   h.Level,
 			Text:    h.Text,
 			LineIdx: h.LineIdx,
-			YOffset: estimateYOffset(lines, h.LineIdx, m.viewer.viewport.Width),
+			YOffset: estimateYOffset(lines, h.LineIdx, m.viewer.Width()),
 		}
 	}
 
@@ -725,7 +725,11 @@ func estimateYOffset(lines []markdown.MarkdownLine, targetIdx, width int) int {
 		default:
 			text := markdown.RenderSegmentsPlain(line.Segments)
 			if width > 0 {
-				wrappedLines := (len(text) / width) + 1
+				// Use rune count for width estimation.
+				// Multi-width characters (CJK, emoji) occupy 2+ columns but
+				// count as 1 rune — this may slightly underestimate wraps.
+				runeCount := len([]rune(text))
+				wrappedLines := (runeCount / width) + 1
 				yOffset += wrappedLines
 			} else {
 				yOffset++

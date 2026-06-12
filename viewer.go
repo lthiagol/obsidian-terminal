@@ -138,6 +138,11 @@ func (v MarkdownViewer) SelectedLinkDisplay() string {
 	return v.links[v.selectedLink].Display
 }
 
+// Width returns the current viewport content width.
+func (v MarkdownViewer) Width() int {
+	return v.viewport.Width
+}
+
 func (v MarkdownViewer) LinkCount() int {
 	return len(v.links)
 }
