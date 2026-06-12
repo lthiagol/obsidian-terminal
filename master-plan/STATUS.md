@@ -101,9 +101,20 @@
 | M32: Modern Terminal Polish | ✅ done | 4 | 2026-06-11 | 2026-06-11 |
 | M33: UX Refinements (Scroll, Spacing, Session) | ✅ done | 3 | 2026-06-11 | 2026-06-11 |
 | M34: Horizontal Scroll for Viewer | ⏳ deferred | 0 | — | — |
-| M35: Resizable Tree/Viewer Split | ⏳ pending | 0 | — | — |
+| M35: Resizable Tree/Viewer Split | ✅ done | 5 | 2026-06-11 | 2026-06-11 |
 
-### Phase 7: Future (Low Priority)
+### Phase 7: Code Quality & Bugfixes
+
+| Milestone | Status | Tests | Started | Completed |
+|-----------|--------|-------|---------|-----------|
+| M36: Fix Critical Bugs | ⏳ pending | 0 | — | — |
+| M37: Refactor Theme System | ⏳ pending | 0 | — | — |
+| M38: Split model.go | ⏳ pending | 0 | — | — |
+| M39: ANSI Wrapping & Scroll Fixes | ⏳ pending | 0 | — | — |
+| M40: Config & Parser Hardening | ⏳ pending | 0 | — | — |
+| M41: Dead Code Cleanup & Papercuts | ⏳ pending | 0 | — | — |
+
+### Phase 8: Future (Low Priority)
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
@@ -164,12 +175,15 @@ future reference but M35 (Resizable Split) is the priority. Giving the
 viewer more width naturally solves the same problems (long tables, wide
 content) without ANSI-aware horizontal clipping complexity.
 
-### Batch 7: Future (individual, low priority)
-- **M97** — Export to PDF/HTML
-- **M98** — Image Preview
-- **M99** — Homebrew Distribution
+### Batch 7: Code Quality (recommended order, M36 first)
+20. **M36** — Fix Critical Bugs (do first)
+21. **M37** — Refactor Theme System
+22. **M38** — Split model.go
+23. **M39** — ANSI Wrapping Fixes
+24. **M40** — Config & Parser Hardening
+25. **M41** — Dead Code Cleanup & Papercuts
 
-**Rationale:** Low priority, tackle individually when needed.
+**Rationale:** M36 fixes the most impactful bugs (theme races, accidental quit, broken profile switching) and should be done first. M37-M41 are quality improvements that can be done in any order after M36. They are independent — M37 touches theme system, M38 touches model.go structure, M39 touches viewport, M40 touches YAML parser, M41 is cosmetic.
 
 ## Milestone Dependencies
 
