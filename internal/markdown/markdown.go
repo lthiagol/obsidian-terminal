@@ -7,6 +7,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lthiagol/obsidian-terminal/internal/ansiext"
 )
 
 // BlockType classifies a markdown block element.
@@ -1369,10 +1370,14 @@ func renderSegment(seg InlineSegment, style RendererStyle) string {
 	switch {
 	case seg.IsWikiLink:
 		s = s.Foreground(style.AccentTertiary).Underline(true)
+		rendered := s.Render(seg.Text)
+		return ansiext.Undercurl(rendered)
 	case seg.Code:
 		s = s.Foreground(style.Success).Background(style.CodeBackground)
 	case seg.Highlight:
 		s = s.Foreground(style.AccentSecondary)
+		rendered := s.Render(seg.Text)
+		return ansiext.Overline(rendered)
 	case seg.Strikethrough:
 		s = s.Strikethrough(true)
 	case seg.Bold && seg.Italic:

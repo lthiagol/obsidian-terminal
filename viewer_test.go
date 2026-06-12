@@ -169,14 +169,11 @@ func TestViewer_RenderPipeline_NoBrokenANSI(t *testing.T) {
 	v.SetContent(md, 80)
 	output := v.View()
 
-	// Every \033[ must have a matching m within reasonable distance
+	// Every ANSI escape must be properly terminated (no truncated sequences)
 	lines := strings.Split(output, "\n")
 	for i, line := range lines {
-		opens := strings.Count(line, "\033[")
-		closes := strings.Count(line, "m")
-		if opens > 0 && opens != closes {
-			t.Errorf("line %d has %d ANSI starts but %d 'm' closers (possible broken escape): %q",
-				i, opens, closes, line)
+		if hasTruncatedANSI(line) {
+			t.Errorf("line %d has broken ANSI escape: %q", i, line)
 		}
 	}
 
