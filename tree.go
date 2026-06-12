@@ -37,14 +37,8 @@ func NewFileTree(vault *VaultEntry) FileTree {
 		height: 20,
 	}
 	var items []treeItem
-	maxDepth := 0
 	for _, child := range vault.Children {
 		items = append(items, flattenTree(child, 0, !child.IsDir)...)
-	}
-	for _, item := range items {
-		if item.depth > maxDepth {
-			maxDepth = item.depth
-		}
 	}
 	ft.items = items
 
@@ -52,6 +46,7 @@ func NewFileTree(vault *VaultEntry) FileTree {
 	ft.dirStyle = lipgloss.NewStyle().Foreground(AccentSecondary)
 	ft.selectedStyle = lipgloss.NewStyle().Background(Accent).Foreground(lipgloss.Color("#000000")).Bold(true)
 
+	maxDepth := maxEntryDepth(vault)
 	ft.prefixCache = make([]string, maxDepth+1)
 	for d := 0; d <= maxDepth; d++ {
 		ft.prefixCache[d] = strings.Repeat("  ", d)
@@ -277,7 +272,7 @@ func (ft FileTree) View() string {
 	for i, item := range ft.items {
 		isSelected := i == ft.cursor
 
-		prefix := ft.prefixCache[item.depth]
+		prefix := ft.getPrefix(item.depth)
 
 		var icon string
 		if item.entry.IsDir {
@@ -318,6 +313,13 @@ func (ft FileTree) View() string {
 	return sb.String()
 }
 
+func (ft FileTree) getPrefix(depth int) string {
+	if depth < len(ft.prefixCache) {
+		return ft.prefixCache[depth]
+	}
+	return strings.Repeat("  ", depth)
+}
+
 func (ft FileTree) Items() []treeItem {
 	return ft.items
 }
@@ -327,3 +329,20 @@ func (ft FileTree) ItemCount() int {
 }
 
 const depthIncrement = 1
+
+func maxEntryDepth(entry *VaultEntry) int {
+	maxDepth := 0
+	var walk func(e *VaultEntry, depth int)
+	walk = func(e *VaultEntry, depth int) {
+		if depth > maxDepth {
+			maxDepth = depth
+		}
+		for _, child := range e.Children {
+			walk(child, depth+1)
+		}
+	}
+	for _, child := range entry.Children {
+		walk(child, 0)
+	}
+	return maxDepth
+}

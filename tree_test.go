@@ -140,6 +140,28 @@ func TestTree_SelectionClamped(t *testing.T) {
 	}
 }
 
+func TestTree_ViewAfterExpand(t *testing.T) {
+	skipDirs := DefaultConfig().SkipDirs
+	tree, _, _, err := ScanVault(testVaultPath(t), skipDirs)
+	if err != nil {
+		t.Fatalf("ScanVault failed: %v", err)
+	}
+
+	ft := NewFileTree(tree)
+
+	// Expand all directories to reveal deep nesting
+	for i := 0; i < ft.ItemCount(); i++ {
+		item := ft.Items()[i]
+		if item.entry.IsDir && !item.expanded {
+			ft.MoveToY(i)
+			ft, _ = ft.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'l'}})
+		}
+	}
+
+	// View() must not panic with nested directories expanded
+	_ = ft.View()
+}
+
 func TestTree_SymlinkShownInTree(t *testing.T) {
 	skipDirs := DefaultConfig().SkipDirs
 	tree, _, _, err := ScanVault(testVaultPath(t), skipDirs)
