@@ -133,34 +133,7 @@ func (m Model) openTreeItem() (tea.Model, tea.Cmd) {
 		m.fileTree.toggleExpand()
 		return m, nil
 	}
-	note, err := LoadNote(m.config.VaultPath, entry.Path)
-	if err != nil {
-		m.addToast("Could not load note: "+err.Error(), ToastError)
-		return m, nil
-	}
-	m.activeNote = note
-	m.prevMode = m.mode
-	m.mode = ModeView
-	m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
-	m.addRecentNote(entry.Path)
-	m.buildOutline()
-	m.backlinkPanel = NewBacklinkPanel(entry.Path, m.backlinkIndex)
-	if m.vault != nil {
-		m.viewer.SetEmbedResolver(func(target, heading string) (string, error) {
-			resolved := ResolveWikiLink(target, m.vault, m.config.VaultPath)
-			if resolved == "" {
-				return "", nil
-			}
-			note, loadErr := LoadNote(m.config.VaultPath, resolved)
-			if loadErr != nil {
-				return "", loadErr
-			}
-			if heading != "" {
-				return extractSection(note.RawBody, heading), nil
-			}
-			return note.Body, nil
-		})
-	}
+	m.openNote(entry.Path)
 	return m, nil
 }
 
@@ -169,34 +142,8 @@ func (m Model) openSearchResult() (tea.Model, tea.Cmd) {
 	if result == nil {
 		return m, nil
 	}
-	note, err := LoadNote(m.config.VaultPath, result.Path)
-	if err != nil {
-		m.addToast("Could not load note: "+err.Error(), ToastError)
-		return m, nil
-	}
-	m.activeNote = note
 	m.prevMode = ModeBrowse
-	m.mode = ModeView
-	m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
-	m.addRecentNote(result.Path)
-	m.buildOutline()
-	m.backlinkPanel = NewBacklinkPanel(result.Path, m.backlinkIndex)
-	if m.vault != nil {
-		m.viewer.SetEmbedResolver(func(target, heading string) (string, error) {
-			resolved := ResolveWikiLink(target, m.vault, m.config.VaultPath)
-			if resolved == "" {
-				return "", nil
-			}
-			note, loadErr := LoadNote(m.config.VaultPath, resolved)
-			if loadErr != nil {
-				return "", loadErr
-			}
-			if heading != "" {
-				return extractSection(note.RawBody, heading), nil
-			}
-			return note.Body, nil
-		})
-	}
+	m.openNote(result.Path)
 	return m, nil
 }
 

@@ -523,9 +523,7 @@ func (m *Model) rescanVault() {
 			m.mode = ModeBrowse
 			m.activeNote = nil
 		} else {
-			m.activeNote = note
-			m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
-			m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)
+			m.openNote(note.Path)
 		}
 	}
 }
@@ -576,9 +574,11 @@ func (m *Model) openPinnedNote(index int) {
 	}
 
 	pin := m.pinnedNotes[index]
-	note, err := LoadNote(m.config.VaultPath, pin.Path)
+
+	// Validate pin still exists before opening
+	_, err := LoadNote(m.config.VaultPath, pin.Path)
 	if err != nil {
-		m.addToast("Failed to load pinned note: "+err.Error(), ToastError)
+		m.addToast("Pinned note deleted: "+err.Error(), ToastError)
 		m.pinnedNotes = append(m.pinnedNotes[:index], m.pinnedNotes[index+1:]...)
 		if m.activePinnedIdx >= len(m.pinnedNotes) {
 			m.activePinnedIdx = len(m.pinnedNotes) - 1
@@ -586,13 +586,8 @@ func (m *Model) openPinnedNote(index int) {
 		return
 	}
 
-	m.activeNote = note
-	m.prevMode = m.mode
-	m.mode = ModeView
-	m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
+	m.openNote(pin.Path)
 	m.viewer.SetScrollPosition(pin.ScrollY)
-	m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)
-	m.backlinkMode = false
 	m.activePinnedIdx = index
 }
 
@@ -751,20 +746,19 @@ func (m *Model) openDailyNote() {
 	note, err := LoadNote(m.config.VaultPath, path)
 	if err != nil {
 		dateStr := time.Now().Format(m.config.DailyNotesFormat)
-		note = &VaultNote{
+		m.activeNote = &VaultNote{
 			Path:  path,
 			Title: "Daily: " + dateStr,
 			Body:  "",
 		}
+		m.prevMode = m.mode
+		m.mode = ModeView
+		m.viewer.SetContent(m.activeNote.Body, m.width-m.treeWidth-2)
+		m.buildOutline()
+		m.addRecentNote(path)
+		return
 	}
-	m.activeNote = note
-	m.prevMode = m.mode
-	m.mode = ModeView
-	m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
-	m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)
-	m.backlinkMode = false
-	m.buildOutline()
-	m.addRecentNote(path)
+	m.openNote(note.Path)
 }
 
 func (m *Model) addRecentNote(path string) {
@@ -801,7 +795,8 @@ func (m *Model) openRecentNote(index int) {
 	}
 
 	path := m.recentNotes[index]
-	note, err := LoadNote(m.config.VaultPath, path)
+	// Validate note still exists
+	_, err := LoadNote(m.config.VaultPath, path)
 	if err != nil {
 		m.addToast("Failed to load recent note: "+err.Error(), ToastError)
 		m.recentNotes = append(m.recentNotes[:index], m.recentNotes[index+1:]...)
@@ -811,15 +806,8 @@ func (m *Model) openRecentNote(index int) {
 		return
 	}
 
-	m.activeNote = note
-	m.prevMode = m.mode
-	m.mode = ModeView
-	m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
-	m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)
-	m.backlinkMode = false
-	m.buildOutline()
+	m.openNote(path)
 	m.recentVisible = false
-	m.addRecentNote(path)
 }
 
 func (m Model) renderRecents() string {
