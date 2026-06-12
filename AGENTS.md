@@ -8,6 +8,8 @@ Instructions for AI agents working on this repository.
 
 **Key constraint: read-only.** Never add editing, writing, or vault-modification features.
 
+> **Architecture reference:** See [DESIGN.md](./DESIGN.md) for the full architecture, data flow, module map, state machine, and design decisions. This file covers commands, conventions, and rules only.
+
 ## Commands
 
 ```bash
