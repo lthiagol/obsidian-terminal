@@ -27,6 +27,7 @@ type FileTree struct {
 	dirStyle      lipgloss.Style
 	selectedStyle lipgloss.Style
 	prefixCache   []string
+	keyMap        KeyMap
 }
 
 // NewFileTree creates a FileTree from a vault entry tree.
@@ -45,6 +46,8 @@ func NewFileTree(vault *VaultEntry) FileTree {
 	ft.fileStyle = lipgloss.NewStyle().Foreground(TextSecondary)
 	ft.dirStyle = lipgloss.NewStyle().Foreground(AccentSecondary)
 	ft.selectedStyle = lipgloss.NewStyle().Background(Accent).Foreground(SelectionText).Bold(true)
+
+	ft.keyMap = DefaultKeys()
 
 	maxDepth := maxEntryDepth(vault)
 	ft.prefixCache = make([]string, maxDepth+1)
@@ -155,7 +158,7 @@ func (ft *FileTree) Update(msg tea.Msg) (FileTree, tea.Cmd) {
 }
 
 func (ft FileTree) keys() KeyMap {
-	return DefaultKeys()
+	return ft.keyMap
 }
 
 func (ft *FileTree) toggleExpand() {

@@ -268,6 +268,9 @@ func tickCmd() tea.Cmd {
 	})
 }
 
+// Update implements tea.Model. Value receiver required by Bubble Tea interface.
+// Model is large (~30 fields), but Bubble Tea handles the value copy efficiently
+// because Updates return a new Model that replaces the old one via the event loop.
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.err != nil {
 		return m, tea.Quit

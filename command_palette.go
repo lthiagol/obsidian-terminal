@@ -315,5 +315,7 @@ func (m Model) renderCommandPalette() string {
 
 func (m *Model) commandPaletteSearch() {
 	m.commandPaletteResults = m.filterCommands(m.commandPaletteQuery)
-	m.commandPaletteCursor = 0
+	if m.commandPaletteCursor >= len(m.commandPaletteResults) {
+		m.commandPaletteCursor = 0
+	}
 }
