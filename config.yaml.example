@@ -1,0 +1,66 @@
+# obsidian-terminal configuration
+# Path: ~/.config/obsidian-terminal/config.yaml
+
+# Required: path to your Obsidian vault
+vault_path: /path/to/your/vault
+
+# # Theme (optional)
+# # Available: dark, catppuccin-latte, catppuccin-frappe, catppuccin-macchiato,
+# #           catppuccin-mocha, dracula, alucard
+# theme: dark
+
+# # Key binding style (optional)
+# # Available: vim
+# default_keys: vim
+
+# # Line spacing between markdown blocks (optional)
+# # Available: compact (default), normal, relaxed
+# #   compact  — single \n between blocks (dense, no blank lines)
+# #   normal   — double \n between blocks (one blank line)
+# #   relaxed  — triple \n between blocks (two blank lines)
+# line_spacing: compact
+
+# # Directories to skip during vault scanning (optional)
+# skip_dirs:
+#   - .obsidian
+#   - .git
+#   - .trash
+#   - node_modules
+#   - archive
+
+# # Daily notes directory (optional)
+# # Subdirectory within vault where daily notes are stored
+# daily_notes_dir: Journal
+
+# # Daily notes filename format (optional)
+# # Uses Go time formatting: 2006 = year, 01 = month, 02 = day
+# daily_notes_format: "2006-01-02"
+
+# # Multiple vault profiles (optional)
+# # Each profile has a path, optional theme, and optional skip_dirs
+# profiles:
+#   work:
+#     path: /path/to/work-vault
+#     theme: dark
+#     skip_dirs: [".obsidian", ".git", "archive"]
+#   personal:
+#     path: /path/to/personal-vault
+#     theme: catppuccin-mocha
+
+# # Custom color overrides (optional)
+# # Override any palette color with a hex value (#RRGGBB)
+# custom_theme:
+#   accent: "#a78bfa"
+#   accent_secondary: "#fbbf24"
+#   accent_tertiary: "#2dd4bf"
+#   text_primary: "#e2e8f0"
+#   text_secondary: "#9ca3af"
+#   text_muted: "#6b7280"
+#   text_dim: "#4b5563"
+#   success: "#34d399"
+#   warning: "#f59e0b"
+#   error: "#ef4444"
+#   info: "#60a5fa"
+#   background: "#1e1e2e"
+#   surface: "#181825"
+#   border: "#313244"
