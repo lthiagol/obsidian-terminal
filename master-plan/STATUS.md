@@ -100,7 +100,7 @@
 | M31: Inline Formatting Parser Fix | ✅ done | 4 | 2026-06-11 | 2026-06-11 |
 | M32: Modern Terminal Polish | ✅ done | 4 | 2026-06-11 | 2026-06-11 |
 | M33: UX Refinements (Scroll, Spacing, Session) | ✅ done | 3 | 2026-06-11 | 2026-06-11 |
-| M34: Horizontal Scroll for Viewer | ⏳ superseded by M35 | 0 | — | — |
+| M34: Horizontal Scroll for Viewer | ⏳ deferred | 0 | — | — |
 | M35: Resizable Tree/Viewer Split | ⏳ pending | 0 | — | — |
 
 ### Phase 7: Future (Low Priority)
@@ -156,12 +156,13 @@ Milestones are organized into execution batches. Within each batch, milestones c
 16. **M31** — Inline Formatting Parser Fix
 17. **M32** — Modern Terminal Polish
 18. **M33** — UX Refinements (Tree ellipsis, Line spacing, Session)
-19. **M35** — Resizable Tree/Viewer Split (supersedes M34)
+19. **M35** — Resizable Tree/Viewer Split
 
 **Rationale:** M29-M33 are independent UX polish items completed in sequence.
-M34 (Horizontal Scroll) is superseded by M35 — a resizable split gives the
-viewer more width naturally, which solves the same problem (long tables,
-wide content) without the complexity of ANSI-aware horizontal clipping.
+M34 (Horizontal Scroll) is deferred — the milestone document is kept for
+future reference but M35 (Resizable Split) is the priority. Giving the
+viewer more width naturally solves the same problems (long tables, wide
+content) without ANSI-aware horizontal clipping complexity.
 
 ### Batch 7: Future (individual, low priority)
 - **M97** — Export to PDF/HTML
