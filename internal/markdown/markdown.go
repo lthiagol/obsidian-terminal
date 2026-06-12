@@ -1,6 +1,7 @@
 package markdown
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -956,103 +957,340 @@ func renderTableBlock(lines []MarkdownLine, width int, style RendererStyle) stri
 	}
 
 	colCount := len(lines[0].TableCells)
-	colWidths := make([]int, colCount)
+	desired := make([]int, colCount)
 
 	for _, line := range lines {
 		for j, cell := range line.TableCells {
 			if j < colCount {
 				w := len([]rune(cell))
-				if w > colWidths[j] {
-					colWidths[j] = w
+				if w > desired[j] {
+					desired[j] = w
 				}
 			}
 		}
 	}
 
-	minColWidth := 3
-	total := 0
-	for _, w := range colWidths {
-		if w < minColWidth {
-			w = minColWidth
+	// Box-drawing mode
+	boxOverhead := colCount*3 + 1
+	if boxOverhead < width {
+		avail := width - boxOverhead
+		colWidths := allocateColWidths(desired, avail)
+		totalContent := 0
+		for _, w := range colWidths {
+			totalContent += w
 		}
-		total += w + 3
+		if totalContent+boxOverhead <= width {
+			return renderTableBox(lines, colWidths, style)
+		}
 	}
 
-	if total > width {
-		scale := float64(width) / float64(total)
-		for j := range colWidths {
-			if colWidths[j] < minColWidth {
-				colWidths[j] = minColWidth
+	// Borderless mode
+	gapOverhead := (colCount - 1) * 2
+	if gapOverhead < width {
+		avail := width - gapOverhead
+		colWidths := allocateColWidths(desired, avail)
+		totalContent := 0
+		for _, w := range colWidths {
+			totalContent += w
+		}
+		if totalContent+gapOverhead <= width {
+			return renderBorderlessTable(lines, colWidths, style)
+		}
+	}
+
+	// Single-column fallback
+	return renderSingleColumnTable(lines, style)
+}
+
+func allocateColWidths(desired []int, available int) []int {
+	if len(desired) == 0 {
+		return nil
+	}
+	result := make([]int, 0, len(desired))
+	totalDesired := 0
+	for _, w := range desired {
+		totalDesired += max(w, 3)
+	}
+	if totalDesired <= available {
+		for _, w := range desired {
+			result = append(result, max(w, 3))
+		}
+		return result
+	}
+
+	// Largest remainder: give each floor, distribute leftovers
+	given := 0
+	var remainders []float64
+	for _, w := range desired {
+		minW := max(w, 3)
+		alloc := int(float64(minW) / float64(totalDesired) * float64(available))
+		if alloc < 3 {
+			alloc = 3
+		}
+		if alloc > minW {
+			alloc = minW
+		}
+		result = append(result, alloc)
+		given += alloc
+		rem := float64(minW)/float64(totalDesired)*float64(available) - float64(alloc)
+		remainders = append(remainders, rem)
+	}
+
+	remaining := available - given
+	for remaining > 0 {
+		bestIdx := -1
+		bestRem := -1.0
+		for i, r := range remainders {
+			if r > bestRem && result[i] < max(desired[i], 3) {
+				bestRem = r
+				bestIdx = i
 			}
-			colWidths[j] = max(int(float64(colWidths[j])*scale), minColWidth)
 		}
+		if bestIdx < 0 {
+			break
+		}
+		result[bestIdx]++
+		remainders[bestIdx] = -1
+		remaining--
+	}
+	return result
+}
+
+func wrapCell(content string, width int) []string {
+	if width < 1 {
+		return []string{""}
+	}
+	runes := []rune(content)
+	if len(runes) <= width {
+		return []string{content}
 	}
 
+	var lines []string
+	for len(runes) > 0 {
+		if len(runes) <= width {
+			lines = append(lines, string(runes))
+			break
+		}
+		// Try to break at last space within width
+		chunk := runes[:width+1]
+		lastSpace := -1
+		for j := len(chunk) - 1; j >= 0; j-- {
+			if chunk[j] == ' ' {
+				lastSpace = j
+				break
+			}
+		}
+		if lastSpace > 0 {
+			lines = append(lines, string(runes[:lastSpace]))
+			runes = runes[lastSpace+1:]
+		} else {
+			// No space found, hard-break
+			lines = append(lines, string(runes[:width]))
+			runes = runes[width:]
+		}
+	}
+	return lines
+}
+
+func renderTableBox(lines []MarkdownLine, colWidths []int, style RendererStyle) string {
 	var sb strings.Builder
-	separatorStyle := lipgloss.NewStyle().Foreground(style.TextDim)
+	sepStyle := lipgloss.NewStyle().Foreground(style.TextDim)
 	headerStyle := lipgloss.NewStyle().Foreground(style.Accent).Bold(true)
 	cellStyle := lipgloss.NewStyle().Foreground(style.TextSecondary)
 
-	topBorder := buildTableBorder(separatorStyle, colWidths, "┌", "┬", "┐")
-	sb.WriteString(topBorder)
+	// Wrap all cells
+	type wrappedRow struct {
+		lines [][]string
+		maxH  int
+	}
+	var rows []wrappedRow
+	for _, row := range lines {
+		var wr wrappedRow
+		for j, cell := range row.TableCells {
+			w := colWidths[j]
+			wrapped := wrapCell(cell, w)
+			wr.lines = append(wr.lines, wrapped)
+			if len(wrapped) > wr.maxH {
+				wr.maxH = len(wrapped)
+			}
+		}
+		rows = append(rows, wr)
+	}
 
-	header := buildTableRow(headerStyle, colWidths, lines[0].TableCells, lines[0].TableAlign)
-	sb.WriteString("\n")
-	sb.WriteString(header)
+	// Ensure all cells in a row have same number of lines
+	for ri := range rows {
+		for ci := 0; ci < len(colWidths); ci++ {
+			for len(rows[ri].lines[ci]) < rows[ri].maxH {
+				rows[ri].lines[ci] = append(rows[ri].lines[ci], "")
+			}
+		}
+	}
 
-	middleBorder := buildTableBorder(separatorStyle, colWidths, "├", "┼", "┤")
-	sb.WriteString("\n")
-	sb.WriteString(middleBorder)
-
-	for _, line := range lines[1:] {
-		row := buildTableRow(cellStyle, colWidths, line.TableCells, line.TableAlign)
+	aligns := lines[0].TableAlign
+	border := func(left, mid, right string) {
+		sb.WriteString(sepStyle.Render(left))
+		for j, w := range colWidths {
+			sb.WriteString(sepStyle.Render(strings.Repeat("─", w+2)))
+			if j < len(colWidths)-1 {
+				sb.WriteString(sepStyle.Render(mid))
+			}
+		}
+		sb.WriteString(sepStyle.Render(right))
 		sb.WriteString("\n")
-		sb.WriteString(row)
 	}
 
-	bottomBorder := buildTableBorder(separatorStyle, colWidths, "└", "┴", "┘")
-	sb.WriteString("\n")
-	sb.WriteString(bottomBorder)
-
-	return sb.String()
-}
-
-func buildTableBorder(style lipgloss.Style, colWidths []int, left, mid, right string) string {
-	var sb strings.Builder
-	sb.WriteString(style.Render(left))
-	for j, w := range colWidths {
-		sb.WriteString(style.Render(strings.Repeat("─", w+2)))
-		if j < len(colWidths)-1 {
-			sb.WriteString(style.Render(mid))
+	rowLines := func(rowIdx int, sty lipgloss.Style) {
+		wr := rows[rowIdx]
+		align := aligns
+		if rowIdx > 0 && len(lines[rowIdx].TableAlign) > 0 {
+			align = lines[rowIdx].TableAlign
 		}
-	}
-	sb.WriteString(style.Render(right))
-	return sb.String()
-}
-
-func buildTableRow(style lipgloss.Style, colWidths []int, cells []string, aligns []TableAlignment) string {
-	var sb strings.Builder
-	sb.WriteString("│")
-	for j, w := range colWidths {
-		cell := ""
-		if j < len(cells) {
-			cell = cells[j]
-		}
-		padded := padCell(cell, w)
-		if j < len(aligns) && aligns[j] == AlignCenter {
-			padded = padCellCenter(cell, w)
-		} else if j < len(aligns) && aligns[j] == AlignRight {
-			padded = padCellRight(cell, w)
-		}
-		sb.WriteString(" ")
-		sb.WriteString(style.Render(padded))
-		sb.WriteString(" ")
-		if j < len(colWidths)-1 {
+		for h := 0; h < wr.maxH; h++ {
 			sb.WriteString("│")
+			for j, w := range colWidths {
+				text := ""
+				if h < len(wr.lines[j]) {
+					text = wr.lines[j][h]
+				}
+				var padded string
+				al := AlignLeft
+				if j < len(align) {
+					al = align[j]
+				}
+				switch al {
+				case AlignCenter:
+					padded = padCellCenter(text, w)
+				case AlignRight:
+					padded = padCellRight(text, w)
+				default:
+					padded = padCell(text, w)
+				}
+				sb.WriteString(" ")
+				sb.WriteString(sty.Render(padded))
+				sb.WriteString(" ")
+				if j < len(colWidths)-1 {
+					sb.WriteString("│")
+				}
+			}
+			sb.WriteString("│\n")
 		}
 	}
-	sb.WriteString("│")
-	return sb.String()
+
+	border("┌", "┬", "┐")
+	rowLines(0, headerStyle)
+	border("├", "┼", "┤")
+	for ri := 1; ri < len(lines); ri++ {
+		if ri > 1 {
+			// No separator between data rows
+		}
+		rowLines(ri, cellStyle)
+	}
+	border("└", "┴", "┘")
+
+	return strings.TrimRight(sb.String(), "\n")
+}
+
+func renderBorderlessTable(lines []MarkdownLine, colWidths []int, style RendererStyle) string {
+	var sb strings.Builder
+	headerStyle := lipgloss.NewStyle().Foreground(style.Accent).Bold(true)
+	cellStyle := lipgloss.NewStyle().Foreground(style.TextSecondary)
+	aligns := lines[0].TableAlign
+
+	type wrappedRow struct {
+		lines [][]string
+		maxH  int
+	}
+	var rows []wrappedRow
+	for _, row := range lines {
+		var wr wrappedRow
+		for j, cell := range row.TableCells {
+			w := colWidths[j]
+			wrapped := wrapCell(cell, w)
+			wr.lines = append(wr.lines, wrapped)
+			if len(wrapped) > wr.maxH {
+				wr.maxH = len(wrapped)
+			}
+		}
+		for j := 0; j < len(colWidths); j++ {
+			for len(wr.lines[j]) < wr.maxH {
+				wr.lines[j] = append(wr.lines[j], "")
+			}
+		}
+		rows = append(rows, wr)
+	}
+
+	for ri, wr := range rows {
+		if ri > 0 {
+			// Single blank line between data rows in borderless mode
+		}
+		for h := 0; h < wr.maxH; h++ {
+			for j, w := range colWidths {
+				text := ""
+				if h < len(wr.lines[j]) {
+					text = wr.lines[j][h]
+				}
+				al := AlignLeft
+				if j < len(aligns) {
+					al = aligns[j]
+				}
+				var padded string
+				switch al {
+				case AlignCenter:
+					padded = padCellCenter(text, w)
+				case AlignRight:
+					padded = padCellRight(text, w)
+				default:
+					padded = padCell(text, w)
+				}
+				sty := cellStyle
+				if ri == 0 {
+					sty = headerStyle
+				}
+				if j > 0 {
+					sb.WriteString("  ")
+				}
+				sb.WriteString(sty.Render(padded))
+			}
+			sb.WriteString("\n")
+		}
+	}
+	return strings.TrimRight(sb.String(), "\n")
+}
+
+func renderSingleColumnTable(lines []MarkdownLine, style RendererStyle) string {
+	var sb strings.Builder
+	dimStyle := lipgloss.NewStyle().Foreground(style.TextDim)
+	headerStyle := lipgloss.NewStyle().Foreground(style.Accent).Bold(true)
+
+	for ri, row := range lines {
+		if ri > 0 {
+			sb.WriteString("\n")
+		}
+		if ri == 0 {
+			// Header row: show column names as table title
+			var names []string
+			for _, cell := range row.TableCells {
+				names = append(names, cell)
+			}
+			sb.WriteString(headerStyle.Render(strings.Join(names, " / ")))
+			sb.WriteString("\n")
+			sb.WriteString(dimStyle.Render(strings.Repeat("─", 40)))
+			continue
+		}
+		for j, cell := range row.TableCells {
+			name := ""
+			if j < len(lines[0].TableCells) {
+				name = lines[0].TableCells[j]
+			}
+			label := lipgloss.NewStyle().Foreground(style.Accent).Bold(true).Render(name)
+			value := lipgloss.NewStyle().Foreground(style.TextSecondary).Render(cell)
+			sb.WriteString(fmt.Sprintf("  %s  %s", label, value))
+			if j < len(row.TableCells)-1 {
+				sb.WriteString("\n")
+			}
+		}
+	}
+	return strings.TrimRight(sb.String(), "\n")
 }
 
 func padCell(s string, width int) string {

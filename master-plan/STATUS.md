@@ -96,6 +96,10 @@
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
 | M29: Command Palette | ✅ done | 6 | 2026-06-11 | 2026-06-11 |
+| M30: Table Rendering Fix | ⏳ pending | 0 | — | — |
+| M31: Inline Formatting Parser Fix | ⏳ pending | 0 | — | — |
+| M32: Modern Terminal Polish | ⏳ pending | 0 | — | — |
+| M33: UX Refinements (Scroll, Spacing, Session) | ⏳ pending | 0 | — | — |
 
 ### Phase 7: Future (Low Priority)
 
@@ -146,8 +150,11 @@ Milestones are organized into execution batches. Within each batch, milestones c
 
 ### Batch 6: UX Polish (individual)
 14. **M29** — Command Palette
+15. **M30** — Table Rendering Fix
+16. **M31** — Inline Formatting Parser Fix
+17. **M32** — Modern Terminal Polish
 
-**Rationale:** References many features, better to implement after they exist.
+**Rationale:** M29 covers the command palette. M30 fixes table rendering. M31 fixes parser bugs that leak raw markup. M32 adds undercurl and synchronized output. All are independent and can be done in any order.
 
 ### Batch 7: Future (individual, low priority)
 - **M97** — Export to PDF/HTML
