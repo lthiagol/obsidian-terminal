@@ -94,7 +94,7 @@ func (tl TagList) View() string {
 		if i == tl.cursor {
 			line = lipgloss.NewStyle().
 				Background(Accent).
-				Foreground(lipgloss.Color("#000000")).
+				Foreground(SelectionText).
 				Bold(true).
 				Render(line)
 		} else {

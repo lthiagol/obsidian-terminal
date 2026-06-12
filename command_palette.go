@@ -295,7 +295,7 @@ func (m Model) renderCommandPalette() string {
 		if i == m.commandPaletteCursor {
 			line = lipgloss.NewStyle().
 				Background(Accent).
-				Foreground(lipgloss.Color("#000000")).
+				Foreground(SelectionText).
 				Bold(true).
 				Render(line)
 		} else {

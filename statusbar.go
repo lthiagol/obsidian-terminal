@@ -10,7 +10,7 @@ func (m Model) renderStatusBar() string {
 	modeColor := ModeColors[m.mode]
 	modeBadge := lipgloss.NewStyle().
 		Background(modeColor).
-		Foreground(lipgloss.Color("#000000")).
+		Foreground(SelectionText).
 		Padding(0, 1).
 		Render(fmt.Sprintf(" %s ", m.mode.String()))
 

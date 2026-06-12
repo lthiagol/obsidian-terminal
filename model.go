@@ -542,15 +542,6 @@ func countFiles(entry *VaultEntry) int {
 	return count
 }
 
-func truncateContent(content string, maxLines int) string {
-	lines := strings.Split(content, "\n")
-	if len(lines) > maxLines {
-		lines = lines[:maxLines]
-		lines = append(lines, "...")
-	}
-	return strings.Join(lines, "\n")
-}
-
 func (m *Model) togglePin(path string) {
 	if path == "" {
 		return
@@ -696,7 +687,7 @@ func (m Model) renderOutline() string {
 		if i == m.outlineCursor {
 			line = lipgloss.NewStyle().
 				Background(Accent).
-				Foreground(lipgloss.Color("#000000")).
+				Foreground(SelectionText).
 				Bold(true).
 				Render(line)
 		} else {
@@ -849,7 +840,7 @@ func (m Model) renderRecents() string {
 		if i == m.recentCursor {
 			line = lipgloss.NewStyle().
 				Background(Accent).
-				Foreground(lipgloss.Color("#000000")).
+				Foreground(SelectionText).
 				Bold(true).
 				Render(line)
 		} else {

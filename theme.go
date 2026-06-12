@@ -25,6 +25,7 @@ type Palette struct {
 	Background      lipgloss.Color
 	Surface         lipgloss.Color
 	Border          lipgloss.Color
+	SelectionText   lipgloss.Color
 
 	ModeBrowse lipgloss.Color
 	ModeView   lipgloss.Color
@@ -60,6 +61,7 @@ var themeData = map[string]themeDef{
 			"background":       "#111827",
 			"surface":          "#1f2937",
 			"border":           "#374151",
+			"selection_text":   "#000000",
 			"mode_browse":      "#a78bfa",
 			"mode_view":        "#2dd4bf",
 			"mode_search":      "#fbbf24",
@@ -227,11 +229,19 @@ func buildPalette(name string) (Palette, error) {
 		Background:      parseHex(def.Colors["background"]),
 		Surface:         parseHex(def.Colors["surface"]),
 		Border:          parseHex(def.Colors["border"]),
+		SelectionText:   parseHexOrDefault(def.Colors["selection_text"], "#000000"),
 	}
 	return rebuildDerivedStyles(p), nil
 }
 
 func parseHex(s string) lipgloss.Color {
+	return lipgloss.Color(s)
+}
+
+func parseHexOrDefault(s, def string) lipgloss.Color {
+	if s == "" {
+		return lipgloss.Color(def)
+	}
 	return lipgloss.Color(s)
 }
 
@@ -280,9 +290,9 @@ var (
 	IconFolderOpen   = "▾ "
 	IconFolderClosed = "▸ "
 	IconFile         = "◇ "
-	IconVertical     = "│"
-	IconDiamond      = "◆"
 )
+
+var SelectionText = lipgloss.Color("#000000")
 
 var (
 	TreeStyle = lipgloss.NewStyle().
@@ -323,6 +333,7 @@ func activatePalette(p Palette) {
 	Warning = p.Warning
 	Error = p.Error
 	Info = p.Info
+	SelectionText = p.SelectionText
 	TreeStyle = p.TreeStyle
 	ViewerStyle = p.ViewerStyle
 	StatusStyle = p.StatusStyle
@@ -356,6 +367,7 @@ func searchStyleFrom(p Palette) search.Style {
 		Accent:        p.Accent,
 		TextSecondary: p.TextSecondary,
 		TextMuted:     p.TextMuted,
+		SelectionText: p.SelectionText,
 	}
 }
 

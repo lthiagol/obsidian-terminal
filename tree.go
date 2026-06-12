@@ -44,7 +44,7 @@ func NewFileTree(vault *VaultEntry) FileTree {
 
 	ft.fileStyle = lipgloss.NewStyle().Foreground(TextSecondary)
 	ft.dirStyle = lipgloss.NewStyle().Foreground(AccentSecondary)
-	ft.selectedStyle = lipgloss.NewStyle().Background(Accent).Foreground(lipgloss.Color("#000000")).Bold(true)
+	ft.selectedStyle = lipgloss.NewStyle().Background(Accent).Foreground(SelectionText).Bold(true)
 
 	maxDepth := maxEntryDepth(vault)
 	ft.prefixCache = make([]string, maxDepth+1)

@@ -438,21 +438,6 @@ func TestTruncatePath(t *testing.T) {
 	}
 }
 
-func TestTruncateContent(t *testing.T) {
-	lines := []string{}
-	for i := 0; i < 100; i++ {
-		lines = append(lines, "line")
-	}
-	content := strings.Join(lines, "\n")
-	result := truncateContent(content, 5)
-	if strings.Count(result, "\n") < 5 {
-		t.Errorf("expected at most 5+1 lines, got %d", strings.Count(result, "\n")+1)
-	}
-	if !strings.Contains(result, "...") {
-		t.Error("truncated content should end with ...")
-	}
-}
-
 func TestKeyDispatch_TagsEnterExit(t *testing.T) {
 	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
 	var model tea.Model = NewModel(cfg)
@@ -533,21 +518,6 @@ func TestKeyDispatch_BacklinkPanel(t *testing.T) {
 		}
 	}
 	// backlinkMode may be false if the note has no backlinks — that's fine
-}
-
-func TestTruncateContent_Empty(t *testing.T) {
-	result := truncateContent("", 5)
-	if result != "" {
-		t.Errorf("empty content should yield empty: %q", result)
-	}
-}
-
-func TestTruncateContent_ShortLines(t *testing.T) {
-	content := "line1\nline2"
-	result := truncateContent(content, 10)
-	if result != content {
-		t.Errorf("content with fewer lines than max should be unchanged: %q", result)
-	}
 }
 
 func TestModel_ViewReturnsNonEmpty(t *testing.T) {

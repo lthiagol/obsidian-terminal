@@ -90,7 +90,7 @@ func (pp ProfilePicker) View() string {
 		if i == pp.cursor {
 			line = lipgloss.NewStyle().
 				Background(Accent).
-				Foreground(lipgloss.Color("#000000")).
+				Foreground(SelectionText).
 				Bold(true).
 				Render(fmt.Sprintf("  %s  ", name))
 		} else {

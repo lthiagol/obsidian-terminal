@@ -47,6 +47,7 @@ type Style struct {
 	Accent        lipgloss.Color
 	TextSecondary lipgloss.Color
 	TextMuted     lipgloss.Color
+	SelectionText lipgloss.Color
 }
 
 // NewState creates a new search state with the given mode and data.
@@ -376,5 +377,5 @@ func formatResult(r Result, mode Mode, selected bool, width int, style Style) st
 }
 
 func styleSelected(line string, style Style) string {
-	return lipgloss.NewStyle().Background(style.Accent).Foreground(lipgloss.Color("#000000")).Bold(true).Render(line)
+	return lipgloss.NewStyle().Background(style.Accent).Foreground(style.SelectionText).Bold(true).Render(line)
 }

@@ -68,7 +68,7 @@ func (bp BacklinkPanel) View() string {
 		if i == bp.cursor {
 			line = lipgloss.NewStyle().
 				Background(Accent).
-				Foreground(lipgloss.Color("#000000")).
+				Foreground(SelectionText).
 				Bold(true).
 				Render(line)
 		} else {
