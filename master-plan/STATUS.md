@@ -126,6 +126,14 @@
 | M42: Godoc Comments | ✅ done | 0 | 2026-06-11 | 2026-06-12 |
 | M43: Performance & UX Papercuts | ✅ done | — | 2026-06-11 | 2026-06-11 |
 
+### Phase 9b: Visual & UX Upgrade (Priority: 🟡 High)
+
+| Milestone | Status | Tests | Started | Completed |
+|-----------|--------|-------|---------|-----------|
+| M47: Visual Polish & Look-and-Feel | ✅ done | 0 | 2026-06-12 | 2026-06-12 |
+| M48: Note Preview Pane | ⏳ pending | 0 | — | — |
+| M49: Graph View (ASCII) | ⏳ pending | 0 | — | — |
+
 ### Phase 10: Robustness (Priority: 🔵 Future)
 
 | Milestone | Status | Tests | Started | Completed |
@@ -145,6 +153,13 @@
 **Total Tests:** 144
 
 ## Execution Order
+
+... (continues from Batch 9)
+
+### Batch 9b: Visual & UX Upgrade (🟡 High)
+34. **M47** — Visual Polish & Look-and-Feel Upgrade (callout icons, heading colors, in-note search, preview pane, history, graph view)
+
+**Rationale:** High-impact UX improvements. Independent — can be done before or after robustness work. Adds in-note search, preview pane, graph view — all read-only compatible features inspired by obsitui's design.
 
 Milestones are organized into execution batches. Within each batch, milestones can be done sequentially or in parallel where noted.
 
