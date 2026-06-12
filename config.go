@@ -40,6 +40,7 @@ type Config struct {
 	SkipDirs         []string
 	DailyNotesDir    string
 	DailyNotesFormat string
+	LineSpacing      string
 	Profiles         map[string]Profile
 	CustomTheme      *CustomTheme
 }
@@ -52,6 +53,7 @@ func DefaultConfig() *Config {
 		SkipDirs:         []string{".obsidian", ".git", ".trash", "node_modules", "archive"},
 		DailyNotesDir:    "Journal",
 		DailyNotesFormat: "2006-01-02",
+		LineSpacing:      "compact",
 	}
 }
 
@@ -99,6 +101,10 @@ func parseConfigYAML(data []byte, cfg *Config) {
 		case "daily_notes_format":
 			if value != "" {
 				cfg.DailyNotesFormat = value
+			}
+		case "line_spacing":
+			if value != "" {
+				cfg.LineSpacing = value
 			}
 		}
 	})

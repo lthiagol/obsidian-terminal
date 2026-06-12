@@ -435,7 +435,7 @@ func activatePalette(p Palette) {
 	}
 }
 
-func markdownStyleFrom(p Palette) markdown.RendererStyle {
+func markdownStyleFrom(p Palette, lineSpacing string) markdown.RendererStyle {
 	return markdown.RendererStyle{
 		Accent:          p.Accent,
 		AccentSecondary: p.AccentSecondary,
@@ -445,6 +445,7 @@ func markdownStyleFrom(p Palette) markdown.RendererStyle {
 		Success:         p.Success,
 		CodeBackground:  p.Surface,
 		Heading1:        p.AccentSecondary,
+		LineSpacing:     lineSpacing,
 	}
 }
 

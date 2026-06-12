@@ -49,7 +49,7 @@ func TestLoadNote_MalformedFrontmatter(t *testing.T) {
 }
 
 func TestViewer_EmptyNote(t *testing.T) {
-	v := NewViewer(markdownStyleFrom(newDarkPalette()))
+	v := NewViewer(markdownStyleFrom(newDarkPalette(), "compact"))
 	v.SetContent("", 80)
 	view := v.View()
 
@@ -61,7 +61,7 @@ func TestViewer_EmptyNote(t *testing.T) {
 
 func TestViewer_SingleLongLine(t *testing.T) {
 	longLine := strings.Repeat("x", 5000)
-	v := NewViewer(markdownStyleFrom(newDarkPalette()))
+	v := NewViewer(markdownStyleFrom(newDarkPalette(), "compact"))
 	v.SetContent(longLine, 60)
 	view := v.View()
 

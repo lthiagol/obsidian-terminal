@@ -83,6 +83,7 @@ type RendererStyle struct {
 	Success         lipgloss.Color
 	CodeBackground  lipgloss.Color
 	Heading1        lipgloss.Color
+	LineSpacing     string
 }
 
 var (
@@ -746,6 +747,14 @@ func RenderMarkdown(lines []MarkdownLine, width int, style RendererStyle) string
 		width = 20
 	}
 
+	spacingGap := "\n"
+	switch style.LineSpacing {
+	case "normal":
+		spacingGap = "\n\n"
+	case "relaxed":
+		spacingGap = "\n\n\n"
+	}
+
 	var sb strings.Builder
 	for i := 0; i < len(lines); i++ {
 		if lines[i].BlockType == BlockTable {
@@ -757,7 +766,7 @@ func RenderMarkdown(lines []MarkdownLine, width int, style RendererStyle) string
 			rendered := renderTableBlock(tableLines, width, style)
 			if rendered != "" {
 				if sb.Len() > 0 {
-					sb.WriteString("\n")
+					sb.WriteString(spacingGap)
 				}
 				sb.WriteString(rendered)
 			}
@@ -777,7 +786,7 @@ func RenderMarkdown(lines []MarkdownLine, width int, style RendererStyle) string
 			rendered := renderEmbedBlock(embedLines, width, style)
 			if rendered != "" {
 				if sb.Len() > 0 {
-					sb.WriteString("\n")
+					sb.WriteString(spacingGap)
 				}
 				sb.WriteString(rendered)
 			}
@@ -791,7 +800,7 @@ func RenderMarkdown(lines []MarkdownLine, width int, style RendererStyle) string
 		rendered := renderLine(lines[i], width, style)
 		if rendered != "" {
 			if sb.Len() > 0 {
-				sb.WriteString("\n")
+				sb.WriteString(spacingGap)
 			}
 			sb.WriteString(rendered)
 		}

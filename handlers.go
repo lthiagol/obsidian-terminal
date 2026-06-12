@@ -443,7 +443,7 @@ func (m Model) applyProfile() tea.Msg {
 		if err == nil {
 			activatePalette(palette)
 			m.palette = palette
-			m.viewer.renderStyle = markdownStyleFrom(palette)
+			m.viewer.renderStyle = markdownStyleFrom(palette, m.config.LineSpacing)
 			m.searchStyle = searchStyleFrom(palette)
 		}
 	}

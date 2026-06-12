@@ -291,8 +291,9 @@ func (ft FileTree) View() string {
 		}
 
 		fullLine := prefix + icon + name
-		if len(fullLine) > availableWidth {
-			fullLine = fullLine[:availableWidth]
+		if len([]rune(fullLine)) > availableWidth {
+			runes := []rune(fullLine)
+			fullLine = string(runes[:availableWidth-1]) + "…"
 		}
 
 		var rendered string

@@ -216,7 +216,7 @@ func NewModel(cfg *Config) Model {
 		keys:            keys,
 		config:          cfg,
 		fileTree:        NewFileTree(tree),
-		viewer:          NewViewer(markdownStyleFrom(palette)),
+		viewer:          NewViewer(markdownStyleFrom(palette, cfg.LineSpacing)),
 		searchStyle:     searchStyleFrom(palette),
 		scanErrors:      scanErrors,
 		palette:         palette,

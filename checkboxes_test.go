@@ -106,7 +106,7 @@ func TestCheckbox_NormalListItem(t *testing.T) {
 
 func TestFrontmatter_Displayed(t *testing.T) {
 	content := "---\ntitle: Test\ntags: [a, b]\n---\n\n# Heading\n\nBody text"
-	v := NewViewer(markdownStyleFrom(newDarkPalette()))
+	v := NewViewer(markdownStyleFrom(newDarkPalette(), "compact"))
 	v.SetContent(content, 80)
 
 	view := v.View()
@@ -123,7 +123,7 @@ func TestFrontmatter_Displayed(t *testing.T) {
 
 func TestFrontmatter_NoFrontmatter(t *testing.T) {
 	content := "# Just a heading\n\nNo frontmatter here"
-	v := NewViewer(markdownStyleFrom(newDarkPalette()))
+	v := NewViewer(markdownStyleFrom(newDarkPalette(), "compact"))
 	v.SetContent(content, 80)
 
 	view := v.View()
@@ -134,7 +134,7 @@ func TestFrontmatter_NoFrontmatter(t *testing.T) {
 
 func TestFrontmatter_EmptyBody(t *testing.T) {
 	content := "---\ntitle: Metadata Only\n---"
-	v := NewViewer(markdownStyleFrom(newDarkPalette()))
+	v := NewViewer(markdownStyleFrom(newDarkPalette(), "compact"))
 	v.SetContent(content, 80)
 
 	view := v.View()
