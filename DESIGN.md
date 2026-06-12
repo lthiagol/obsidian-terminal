@@ -35,6 +35,13 @@ ModeBrowse ──Enter──→ ModeView ──Esc──→ ModeBrowse
     ├──T──→ ModeTags      ├──s──→ ModeFind
     ├──?──→ ModeHelp      └──b──→ backlink panel (overlay, not a separate mode)
     └──P──→ ModeProfilePicker
+
+Overlays (render over main panel without mode change):
+  Command palette (Ctrl+K), Recent notes (Ctrl+O), Outline (t), Scan errors (from palette)
+
+Vault states:
+  VaultStateOK → VaultStateBroken (inaccessible) → VaultStateOK (auto-recover)
+  VaultStateOK → VaultStatePartial (some files failed to scan)
 ```
 
 | Mode | Handler | Description |
@@ -63,7 +70,7 @@ ModeBrowse ──Enter──→ ModeView ──Esc──→ ModeBrowse
 | `viewport.go` | Custom viewport: scroll, soft-wrap (ANSI-aware), X/Y offset | `viewport`, `softWrap` |
 | `vault.go` | Vault scanning, tree building, note loading, frontmatter parsing | `ScanVault`, `LoadNote`, `VaultEntry` |
 | `session.go` | Session state save/restore (tree expansion, cursor position) | `saveSession`, `restoreSession` |
-| `config.go` | YAML config loading, defaults, profile and theme parsing | `Config`, `LoadConfig` |
+| `config.go` | YAML config loading, defaults, validation with auto-fix, profile and theme parsing | `Config`, `LoadConfig`, `ValidateConfig` |
 | `theme.go` | Color palettes, lipgloss styles, style rebuild | `Palette`, `activatePalette`, `lookupPalette` |
 | `keys.go` | Key binding definitions, vim + arrow key dispatch | `KeyMap`, `DefaultKeys`, `MatchKey`, `MatchRune` |
 | `mouse.go` | Mouse event handling: tree click, split drag, scroll, double-click | `handleMouse`, `opentreeItem` |
@@ -135,7 +142,8 @@ Browse mode → Enter on a file → LoadNote(vaultPath, relativePath)
 ```
 Model.Update(msg tea.KeyMsg)
   → check global keys (Ctrl+C, Ctrl+R, Ctrl+K, Ctrl+O, Ctrl+D, q, Q)
-  → check overlays (command palette, recents, outline)
+  → check overlays (command palette, recents, outline, scan errors)
+  → check broken vault retry ('r')
   → dispatch to mode handler (handleBrowseKey, handleViewKey, etc.)
   → mode handler calls tree.Update, viewer methods, etc.
   → returns (Model, Cmd)
@@ -207,6 +215,13 @@ The `RendererStyle` struct carries all colors used during rendering. It's create
 | `daily_notes_format` | string | `"2006-01-02"` | Go time format |
 | `profiles` | map | — | Named vault profiles |
 | `custom_theme` | map | — | Color overrides (hex values) |
+
+Config validation runs at startup (`ValidateConfig`). Invalid values are auto-fixed to defaults with warning toasts:
+- Unknown theme → `"dark"` with message listing valid themes
+- Invalid `line_spacing` → `"compact"` with valid values
+- Invalid `daily_notes_format` → `"2006-01-02"` (round-trip validated)
+- Invalid `custom_theme` hex colors → warning for each bad field
+- Empty profile paths → warning
 
 ### Profile system
 
@@ -287,6 +302,7 @@ State saved to `$XDG_STATE_HOME/obsidian-terminal/session.json` (fallback: `~/.l
 
 - `model_test.go` — mode transitions, key dispatch, status bar, help, truncation, resize
 - `model_e2e_test.go` — rescan watcher, wiki-link resolution, toasts
+- `model_integration_test.go` — end-to-end workflows (render pipeline, search→open, tree→open, wiki-link follow, theme switch, resize, session restore)
 - `tree_test.go` — expand/collapse, filtering, empty vault, cursor, ellipsis
 - `viewer_test.go` — render pipelines (no broken ANSI, tables), scrolling, links
 - `viewport_test.go` — ANSI-aware softWrap, visibleLength

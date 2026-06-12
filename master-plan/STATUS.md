@@ -1,6 +1,6 @@
 # obsidian-terminal — Build Status
 
-**Last updated:** 2026-06-11
+**Last updated:** 2026-06-12
 **Language:** Go 1.24+
 **Framework:** Bubble Tea + Bubbles + Lipgloss
 **Dependencies:** bubbletea, lipgloss (2 total)
@@ -123,16 +123,16 @@
 |-----------|--------|-------|---------|-----------|
 | M40: Config & Parser Hardening | ✅ done | — | 2026-06-11 | 2026-06-11 |
 | M41: Dead Code, Unused Exports & Hardcoded Colors | ✅ done | — | 2026-06-11 | 2026-06-11 |
-| M42: Godoc Comments | ⏳ pending | 0 | — | — |
+| M42: Godoc Comments | ✅ done | 0 | 2026-06-11 | 2026-06-12 |
 | M43: Performance & UX Papercuts | ✅ done | — | 2026-06-11 | 2026-06-11 |
 
 ### Phase 10: Robustness (Priority: 🔵 Future)
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M44: Config Validation | ⏳ pending | 0 | — | — |
-| M45: Graceful Degradation | ⏳ pending | 0 | — | — |
-| M46: Integration Test Suite | ⏳ pending | 0 | — | — |
+| M44: Config Validation | ✅ done | 19 | 2026-06-12 | 2026-06-12 |
+| M45: Graceful Degradation | ✅ done | 9 | 2026-06-12 | 2026-06-12 |
+| M46: Integration Test Suite | ✅ done | 7 | 2026-06-12 | 2026-06-12 |
 
 ### Phase 11: Future (Low Priority)
 
@@ -142,7 +142,7 @@
 | M98: Image Preview | ⏳ pending | 0 | — | — |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
 
-**Total Tests:** 109
+**Total Tests:** 144
 
 ## Execution Order
 

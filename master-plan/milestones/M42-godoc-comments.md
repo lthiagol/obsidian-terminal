@@ -1,6 +1,6 @@
 # M42 — Godoc Comments
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -51,11 +51,17 @@ Add missing godoc comments on all exported symbols to improve code documentation
 
 ## Completion Criteria
 
-- [ ] All exported symbols have godoc comments
-- [ ] Comments follow Go conventions (start with symbol name, describe purpose)
-- [ ] `go doc` shows useful documentation for all public APIs
-- [ ] `make test` passes all tests
-- [ ] `make vet` exits 0
+- [x] All exported symbols have godoc comments
+- [x] Comments follow Go conventions (start with symbol name, describe purpose)
+- [x] `go doc` shows useful documentation for all public APIs
+- [x] `make test` passes all tests
+- [x] `make vet` exits 0
+
+## Completed
+
+2026-06-12
+
+Added godoc comments to: `Profile`, `CustomTheme`, `Config` structs and all fields; `KeyMap` fields; `VaultIndexes`, `VaultEntry`, `VaultNote` fields; `BlockType` and `TableAlignment` constants; `Mode` constants; `State` methods (`SetQuery`, `MoveUp`, `MoveDown`, `SetSelected`, `SelectedIndex`, `ResultCount`, `Query`, `SelectedResult`); `Result`, `Style`, `InlineSegment`, `MarkdownLine`, `WikiLink`, `RendererStyle`, `HeadingInfo` fields.
 
 ## Estimated Time
 

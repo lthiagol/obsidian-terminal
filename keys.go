@@ -4,39 +4,39 @@ import tea "github.com/charmbracelet/bubbletea"
 
 // KeyMap holds vim-style and arrow key bindings.
 type KeyMap struct {
-	Up    []tea.KeyType
-	Down  []tea.KeyType
-	Left  []tea.KeyType
-	Right []tea.KeyType
+	Up    []tea.KeyType // Up moves the cursor or scrolls up.
+	Down  []tea.KeyType // Down moves the cursor or scrolls down.
+	Left  []tea.KeyType // Left collapses a tree directory or navigates back.
+	Right []tea.KeyType // Right expands a tree directory or navigates forward.
 
-	UpRune    rune
-	DownRune  rune
-	LeftRune  rune
-	RightRune rune
+	UpRune    rune // UpRune is the vim-style key for moving up (k).
+	DownRune  rune // DownRune is the vim-style key for moving down (j).
+	LeftRune  rune // LeftRune is the vim-style key for moving left (h).
+	RightRune rune // RightRune is the vim-style key for moving right (l).
 
-	Enter    tea.KeyType
-	Esc      tea.KeyType
-	Tab      tea.KeyType
-	PageUp   tea.KeyType
-	PageDown tea.KeyType
-	CtrlC    tea.KeyType
+	Enter    tea.KeyType // Enter confirms selection or opens a note.
+	Esc      tea.KeyType // Esc cancels or returns to browse mode.
+	Tab      tea.KeyType // Tab cycles between wiki-links.
+	PageUp   tea.KeyType // PageUp scrolls up one page.
+	PageDown tea.KeyType // PageDown scrolls down one page.
+	CtrlC    tea.KeyType // CtrlC quits the application.
 
-	QuitRune   rune
-	Search     rune
-	Find       rune
-	Help       rune
-	TopRune    rune
-	BottomRune rune
-	PinRune    rune
-	Outline    rune
-	ProfileSwitch rune
+	QuitRune      rune // QuitRune quits the application (q).
+	Search        rune // Search activates the fuzzy search bar (/).
+	Find          rune // Find activates content search (s).
+	Help          rune // Help shows the keybinding reference (?).
+	TopRune       rune // TopRune jumps to the top (g).
+	BottomRune    rune // BottomRune jumps to the bottom (G).
+	PinRune       rune // PinRune pins the current note (p).
+	Outline       rune // Outline shows the table of contents (t).
+	ProfileSwitch rune // ProfileSwitch opens the profile picker (P).
 
-	CyclePinPrev []tea.KeyType
-	CyclePinNext []tea.KeyType
+	CyclePinPrev []tea.KeyType // CyclePinPrev cycles to the previous pinned note.
+	CyclePinNext []tea.KeyType // CyclePinNext cycles to the next pinned note.
 
-	ShrinkTree tea.KeyType
-	GrowTree   tea.KeyType
-	ResetTree  tea.KeyType
+	ShrinkTree tea.KeyType // ShrinkTree decreases the tree panel width.
+	GrowTree   tea.KeyType // GrowTree increases the tree panel width.
+	ResetTree  tea.KeyType // ResetTree restores the default tree panel width.
 }
 
 // MatchKey reports whether msg matches any of the given key types.

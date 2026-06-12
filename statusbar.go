@@ -18,7 +18,9 @@ func (m Model) renderStatusBar() string {
 	switch m.mode {
 	case ModeBrowse:
 		info = fmt.Sprintf("%d files", countFiles(m.vault))
-		if len(m.scanErrors) > 0 {
+		if m.vaultState == VaultStateBroken {
+			info += " BROKEN"
+		} else if m.vaultState == VaultStatePartial {
 			info += fmt.Sprintf(" (%d scan errors)", len(m.scanErrors))
 		}
 	case ModeView:
@@ -31,6 +33,9 @@ func (m Model) renderStatusBar() string {
 				m.pinnedNotes[m.activePinnedIdx].Path == m.activeNote.Path {
 				info += " 📌"
 			}
+		}
+		if m.vaultState == VaultStateBroken {
+			info += " BROKEN"
 		}
 	case ModeSearch, ModeFind:
 		info = m.searchState.Query()

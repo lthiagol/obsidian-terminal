@@ -5,44 +5,45 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // Profile represents a vault profile with its own settings.
 type Profile struct {
-	Path     string
-	Theme    string
-	SkipDirs []string
+	Path     string   // Path is the vault directory for this profile.
+	Theme    string   // Theme is the theme name for this profile.
+	SkipDirs []string // SkipDirs are directory names to exclude from scanning.
 }
 
 // CustomTheme represents user-defined color overrides.
 type CustomTheme struct {
-	Accent          string
-	AccentSecondary string
-	AccentTertiary  string
-	TextPrimary     string
-	TextSecondary   string
-	TextMuted       string
-	TextDim         string
-	Success         string
-	Warning         string
-	Error           string
-	Info            string
-	Background      string
-	Surface         string
-	Border          string
+	Accent          string // Accent is the primary accent color (hex).
+	AccentSecondary string // AccentSecondary is a secondary accent color (hex).
+	AccentTertiary  string // AccentTertiary is a tertiary accent color (hex).
+	TextPrimary     string // TextPrimary is the main text color (hex).
+	TextSecondary   string // TextSecondary is the secondary text color (hex).
+	TextMuted       string // TextMuted is the muted text color (hex).
+	TextDim         string // TextDim is the dimmed text color (hex).
+	Success         string // Success is the color for success indicators (hex).
+	Warning         string // Warning is the color for warning indicators (hex).
+	Error           string // Error is the color for error indicators (hex).
+	Info            string // Info is the color for informational text (hex).
+	Background      string // Background is the terminal background color (hex).
+	Surface         string // Surface is the elevated surface color (hex).
+	Border          string // Border is the border/separator color (hex).
 }
 
 // Config holds user configuration loaded from YAML.
 type Config struct {
-	VaultPath        string
-	Theme            string
-	DefaultKeys      string
-	SkipDirs         []string
-	DailyNotesDir    string
-	DailyNotesFormat string
-	LineSpacing      string
-	Profiles         map[string]Profile
-	CustomTheme      *CustomTheme
+	VaultPath        string            // VaultPath is the root directory of the Obsidian vault.
+	Theme            string            // Theme is the active theme name.
+	DefaultKeys      string            // DefaultKeys is the keybinding preset ("vim" or "arrow").
+	SkipDirs         []string          // SkipDirs are directory names to exclude from scanning.
+	DailyNotesDir    string            // DailyNotesDir is the directory for daily notes (default: "Journal").
+	DailyNotesFormat string            // DailyNotesFormat is the date format for daily notes (default: "2006-01-02").
+	LineSpacing      string            // LineSpacing controls paragraph spacing ("compact", "normal", or "relaxed").
+	Profiles         map[string]Profile // Profiles maps profile names to their settings.
+	CustomTheme      *CustomTheme      // CustomTheme holds user-defined color overrides.
 }
 
 // DefaultConfig returns a Config with sensible defaults.
@@ -195,4 +196,130 @@ func configPathOrDefault(explicit string) string {
 		configDir = filepath.Join(home, ".config")
 	}
 	return filepath.Join(configDir, "obsidian-terminal", "config.yaml")
+}
+
+// ValidLineSpacing values for the line_spacing config field.
+var ValidLineSpacing = []string{"compact", "normal", "relaxed"}
+
+// ValidateConfig validates all configuration values, auto-fixing invalid ones
+// where possible. Returns warnings for any issues found (intended for toast display).
+func ValidateConfig(cfg *Config) []string {
+	var warnings []string
+
+	if cfg.Theme == "" {
+		cfg.Theme = "dark"
+	} else {
+		valid := ValidThemeNames()
+		if !stringInSlice(cfg.Theme, valid) {
+			warnings = append(warnings, fmt.Sprintf(
+				"Invalid theme %q — valid themes: %s",
+				cfg.Theme, strings.Join(valid, ", "),
+			))
+			cfg.Theme = "dark"
+		}
+	}
+
+	if cfg.LineSpacing == "" {
+		cfg.LineSpacing = "compact"
+	} else if !stringInSlice(cfg.LineSpacing, ValidLineSpacing) {
+		warnings = append(warnings, fmt.Sprintf(
+			"Invalid line_spacing %q — valid values: compact, normal, relaxed",
+			cfg.LineSpacing,
+		))
+		cfg.LineSpacing = "compact"
+	}
+
+	if cfg.DailyNotesFormat != "" && !isValidDateFormat(cfg.DailyNotesFormat) {
+		warnings = append(warnings, fmt.Sprintf(
+			"Invalid daily_notes_format %q — using default 2006-01-02",
+			cfg.DailyNotesFormat,
+		))
+		cfg.DailyNotesFormat = "2006-01-02"
+	}
+
+	if len(cfg.SkipDirs) == 0 {
+		cfg.SkipDirs = DefaultConfig().SkipDirs
+	}
+	for _, d := range cfg.SkipDirs {
+		if strings.Contains(d, string(filepath.Separator)) ||
+			d == "" || d == "." || d == ".." {
+			warnings = append(warnings, fmt.Sprintf(
+				"Invalid skip_dirs entry %q — entries must be directory names, not paths",
+				d,
+			))
+		}
+	}
+
+	if cfg.CustomTheme != nil {
+		colorWarnings := validateCustomThemeColors(cfg.CustomTheme)
+		warnings = append(warnings, colorWarnings...)
+	}
+
+	for name, profile := range cfg.Profiles {
+		if profile.Path == "" {
+			warnings = append(warnings, fmt.Sprintf(
+				"Profile %q has no path — skipped", name,
+			))
+		}
+	}
+
+	return warnings
+}
+
+func stringInSlice(s string, slice []string) bool {
+	for _, item := range slice {
+		if item == s {
+			return true
+		}
+	}
+	return false
+}
+
+func isValidDateFormat(format string) bool {
+	ref := time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC)
+	formatted := ref.Format(format)
+	parsed, err := time.Parse(format, formatted)
+	if err != nil {
+		return false
+	}
+	return parsed.Year() == ref.Year() &&
+		parsed.Month() == ref.Month() &&
+		parsed.Day() == ref.Day()
+}
+
+func validateCustomThemeColors(ct *CustomTheme) []string {
+	var warnings []string
+
+	fields := []struct {
+		name  string
+		value string
+	}{
+		{"accent", ct.Accent},
+		{"accent_secondary", ct.AccentSecondary},
+		{"accent_tertiary", ct.AccentTertiary},
+		{"text_primary", ct.TextPrimary},
+		{"text_secondary", ct.TextSecondary},
+		{"text_muted", ct.TextMuted},
+		{"text_dim", ct.TextDim},
+		{"success", ct.Success},
+		{"warning", ct.Warning},
+		{"error", ct.Error},
+		{"info", ct.Info},
+		{"background", ct.Background},
+		{"surface", ct.Surface},
+		{"border", ct.Border},
+	}
+
+	for _, f := range fields {
+		if f.value == "" {
+			continue
+		}
+		if _, err := parseHexColor(f.value); err != nil {
+			warnings = append(warnings, fmt.Sprintf(
+				"Invalid custom_theme %s: %s", f.name, err.Error(),
+			))
+		}
+	}
+
+	return warnings
 }

@@ -5,13 +5,25 @@ A terminal-based TUI for browsing and reading [Obsidian](https://obsidian.md) va
 ## Features
 
 - **File tree navigation** — browse your vault's directory structure with vim-style keybindings
-- **Markdown rendering** — view notes with syntax-highlighted headings, bold, italic, inline code, and callouts
+- **Markdown rendering** — view notes with syntax-highlighted headings, bold, italic, inline code, callouts, tables, checkboxes, and frontmatter
 - **Wiki-link navigation** — cycle and follow `[[wikilinks]]` between notes
 - **Fuzzy file search** — quickly find notes by name (`/`)
 - **Full-text search** — search across all note contents (`s`)
+- **Backlinks** — see which notes link to the current note (`b`)
+- **Tag browser** — browse and filter notes by tags (`T`)
+- **Outline / table of contents** — jump to headings within a note (`t`)
+- **Pinned notes** — keep frequently used notes in a working set (`p`)
+- **Daily notes** — quickly open today's daily note (`Ctrl+D`)
+- **Recent notes** — revisit recently opened notes (`Ctrl+O`)
+- **Command palette** — discover and run commands (`Ctrl+K`)
+- **Multiple vault profiles** — switch between vaults (`P`)
+- **Custom themes** — 7 built-in palettes + per-color overrides
+- **Mouse support** — click tree items, scroll viewer, drag split
+- **Resizable panels** — adjust tree/viewer width (`Ctrl+←`/`→`)
 - **Auto-rescan** — automatically detects external vault changes every few seconds
+- **Graceful degradation** — broken vault shows error screen with retry
+- **Config validation** — invalid config values are auto-fixed with helpful warnings
 - **Configurable** — YAML config for vault path, theme, skip directories, and keybindings
-- **Vim and Emacs keys** — configurable navigation styles
 
 ## Installation
 
@@ -90,12 +102,23 @@ See [KEYBINDINGS.md](KEYBINDINGS.md) for the complete keybinding reference, incl
 | `k` / `↑` | Move up |
 | `h` / `←` | Collapse / back |
 | `l` / `→` | Expand / forward |
+| `g` | Jump to top |
+| `G` | Jump to bottom |
 | `Enter` | Open note / toggle folder |
+| `Esc` | Go back / cancel |
 | `/` | Fuzzy file name search |
 | `s` | Full-text content search |
+| `t` | Outline / table of contents |
+| `b` | Backlinks panel |
+| `T` | Tag browser |
+| `p` | Pin / unpin note |
+| `P` | Switch profile |
 | `Tab` | Cycle wiki-links (in viewer) |
-| `Enter` | Follow selected link |
+| `Ctrl+D` | Open daily note |
+| `Ctrl+O` | Recent notes |
 | `Ctrl+R` | Force rescan vault |
+| `Ctrl+K` | Command palette |
+| `Ctrl+←` / `Ctrl+→` | Resize tree panel |
 | `?` | Help screen |
 | `q` | Quit |
 
@@ -104,18 +127,6 @@ See [KEYBINDINGS.md](KEYBINDINGS.md) for the complete keybinding reference, incl
 This TUI is read-only by design — no editing, no writing to the vault.
 
 - [ ] Image preview (sixel/kitty protocol)
-- [ ] Backlinks panel
-- [ ] Tag browsing and filtering
-- [ ] Multiple vault profiles
-- [ ] Custom CSS-like themes
-- [ ] Pinned notes (working set)
-- [ ] Outline / table of contents
-- [ ] Daily notes + recent notes
-- [ ] Checkbox rendering (`- [ ]` / `- [x]`)
-- [ ] Frontmatter metadata display
-- [ ] Markdown table rendering
-- [ ] Command palette
-- [ ] Mouse support for tree and viewer
 - [ ] Export to PDF/HTML
 
 ## Dependencies

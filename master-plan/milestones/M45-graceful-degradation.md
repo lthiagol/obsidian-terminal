@@ -1,6 +1,6 @@
 # M45 — Graceful Degradation
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -83,15 +83,49 @@ Add a "Scan Errors" command to the command palette that shows:
 
 ## Completion Criteria
 
-- [ ] Vault state is tracked (OK/Partial/Broken)
-- [ ] Partial scan failures show clear error messages with failed paths
-- [ ] Broken vault shows error screen with recovery options
-- [ ] Retry option re-scans the vault
-- [ ] Switch vault option opens profile picker
-- [ ] Features that require vault are disabled when vault is broken
-- [ ] No panics or crashes when vault becomes inaccessible
-- [ ] `make test` passes all tests (add error handling tests)
-- [ ] `make vet` exits 0
+- [x] Vault state is tracked (OK/Partial/Broken)
+- [x] Partial scan failures show clear error messages with failed paths
+- [x] Broken vault shows error screen with recovery options
+- [x] Retry option re-scans the vault
+- [x] Switch vault option opens profile picker
+- [x] Features that require vault are disabled when vault is broken
+- [x] No panics or crashes when vault becomes inaccessible
+- [x] `make test` passes all tests (add error handling tests)
+- [x] `make vet` exits 0
+
+## Completed
+
+2026-06-12
+
+Added `VaultState` type with three states: `VaultStateOK`, `VaultStatePartial`, `VaultStateBroken`.
+
+**checkVaultChanges hardened:**
+- Detects vault inaccessibility → sets `VaultStateBroken` with error toast
+- Auto-recovers when vault becomes accessible again → rescans
+- No longer spams toasts (only fires on state transition)
+
+**rescanVault hardened:**
+- Stat/sync failures now set `VaultStateBroken` with toast (was silent return)
+- Scan errors update `vaultState` to `Partial`/`OK` based on count
+- `vaultStateFrom(scanErrorCount)` helper added
+
+**Error screen:**
+- When vault is broken, `renderBrokenVaultScreen()` shows in right panel
+- Displays error message, recovery instructions (r/P/q)
+- 'r' key triggers rescan from broken state
+- Quit from scan errors display blocked (added `!m.scanErrorsVisible` to quit guard)
+
+**Scan errors display:**
+- `showScanErrors()` toggles `scanErrorsVisible`
+- `renderScanErrors()` renders list of failed paths with error details
+- "Scan Errors" command added to command palette (only when errors exist)
+- Esc/'q' dismiss the display
+
+**Status bar:**
+- Shows " BROKEN" indicator when vault inaccessible
+- Shows "(N scan errors)" only when `vaultState == Partial`
+
+9 new tests.
 
 ## Estimated Time
 

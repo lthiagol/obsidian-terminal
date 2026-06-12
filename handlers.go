@@ -88,6 +88,24 @@ func (m Model) handleViewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	}
 
 	switch {
+	case msg.Type == m.keys.ShrinkTree:
+		m.adjustTreeWidth(m.treeWidth - 5)
+		if m.activeNote != nil {
+			m.viewer.SetContent(m.activeNote.Body, m.width-m.treeWidth-2)
+		}
+		return m, nil
+	case msg.Type == m.keys.GrowTree:
+		m.adjustTreeWidth(m.treeWidth + 5)
+		if m.activeNote != nil {
+			m.viewer.SetContent(m.activeNote.Body, m.width-m.treeWidth-2)
+		}
+		return m, nil
+	case msg.Type == m.keys.ResetTree:
+		m.adjustTreeWidth(m.width / 4)
+		if m.activeNote != nil {
+			m.viewer.SetContent(m.activeNote.Body, m.width-m.treeWidth-2)
+		}
+		return m, nil
 	case msg.Type == tea.KeyEsc:
 		m.mode = m.prevMode
 		m.activeNote = nil

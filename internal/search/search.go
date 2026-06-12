@@ -19,16 +19,16 @@ const (
 )
 
 const (
-	Name Mode = iota
-	Content
+	Name    Mode = iota // Name is file name fuzzy search.
+	Content             // Content is full-text content search.
 )
 
 // Result represents a single search match.
 type Result struct {
-	Path    string
-	Score   float64
-	Context string
-	LineNum int
+	Path    string  // Path is the file path of the match.
+	Score   float64 // Score is the relevance score (higher = better match).
+	Context string  // Context is the matching line excerpt (content search only).
+	LineNum int     // LineNum is the line number of the match (content search only).
 }
 
 // State holds the current state of a search session.
@@ -44,10 +44,10 @@ type State struct {
 
 // Style holds colors for search result rendering.
 type Style struct {
-	Accent        lipgloss.Color
-	TextSecondary lipgloss.Color
-	TextMuted     lipgloss.Color
-	SelectionText lipgloss.Color
+	Accent        lipgloss.Color // Accent is the primary accent color.
+	TextSecondary lipgloss.Color // TextSecondary is the secondary text color.
+	TextMuted     lipgloss.Color // TextMuted is the muted text color.
+	SelectionText lipgloss.Color // SelectionText is the text color for selected items.
 }
 
 // NewState creates a new search state with the given mode and data.
@@ -69,6 +69,7 @@ func NewState(mode Mode, paths []string, index map[string]string) State {
 	return s
 }
 
+// SetQuery updates the search query and re-runs the search.
 func (s *State) SetQuery(query string) {
 	s.query = query
 	s.selected = 0
@@ -85,18 +86,21 @@ func (s *State) SetQuery(query string) {
 	}
 }
 
+// MoveUp moves the selection cursor up one result.
 func (s *State) MoveUp() {
 	if s.selected > 0 {
 		s.selected--
 	}
 }
 
+// MoveDown moves the selection cursor down one result.
 func (s *State) MoveDown() {
 	if s.selected < len(s.results)-1 {
 		s.selected++
 	}
 }
 
+// SetSelected sets the selection cursor to a specific index, clamped to valid range.
 func (s *State) SetSelected(i int) {
 	if i < 0 {
 		i = 0
@@ -107,18 +111,22 @@ func (s *State) SetSelected(i int) {
 	s.selected = i
 }
 
+// SelectedIndex returns the current selection index.
 func (s State) SelectedIndex() int {
 	return s.selected
 }
 
+// ResultCount returns the total number of search results.
 func (s State) ResultCount() int {
 	return len(s.results)
 }
 
+// Query returns the current search query string.
 func (s State) Query() string {
 	return s.query
 }
 
+// SelectedResult returns a pointer to the currently selected result, or nil if out of range.
 func (s State) SelectedResult() *Result {
 	if s.selected >= 0 && s.selected < len(s.results) {
 		return &s.results[s.selected]

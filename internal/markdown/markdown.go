@@ -14,76 +14,76 @@ import (
 type BlockType int
 
 const (
-	BlockParagraph BlockType = iota
-	BlockHeading
-	BlockCodeBlock
-	BlockList
-	BlockBlockquote
-	BlockCallout
-	BlockHorizontalRule
-	BlockEmpty
-	BlockTable
-	BlockEmbed
-	BlockEmbedStart
-	BlockEmbedEnd
+	BlockParagraph     BlockType = iota // BlockParagraph is a regular text paragraph.
+	BlockHeading                       // BlockHeading is a markdown heading (h1-h6).
+	BlockCodeBlock                     // BlockCodeBlock is a fenced code block.
+	BlockList                          // BlockList is a list item.
+	BlockBlockquote                    // BlockBlockquote is a blockquote.
+	BlockCallout                       // BlockCallout is an Obsidian callout.
+	BlockHorizontalRule                // BlockHorizontalRule is a horizontal rule.
+	BlockEmpty                         // BlockEmpty is a blank line.
+	BlockTable                         // BlockTable is a table row.
+	BlockEmbed                         // BlockEmbed is an embedded content reference.
+	BlockEmbedStart                    // BlockEmbedStart marks the start of an embedded block.
+	BlockEmbedEnd                      // BlockEmbedEnd marks the end of an embedded block.
 )
 
 // TableAlignment specifies cell text alignment.
 type TableAlignment int
 
 const (
-	AlignLeft TableAlignment = iota
-	AlignCenter
-	AlignRight
+	AlignLeft   TableAlignment = iota // AlignLeft aligns cell text to the left.
+	AlignCenter                       // AlignCenter centers cell text.
+	AlignRight                        // AlignRight aligns cell text to the right.
 )
 
 // InlineSegment represents a styled span of inline text.
 type InlineSegment struct {
-	Text          string
-	Bold          bool
-	Italic        bool
-	Strikethrough bool
-	Code          bool
-	Highlight     bool
-	IsWikiLink    bool
-	WikiTarget    string
-	WikiDisplay   string
+	Text          string // Text is the literal text content.
+	Bold          bool   // Bold indicates bold styling.
+	Italic        bool   // Italic indicates italic styling.
+	Strikethrough bool   // Strikethrough indicates strikethrough styling.
+	Code          bool   // Code indicates inline code styling.
+	Highlight     bool   // Highlight indicates highlighted text (==highlight==).
+	IsWikiLink    bool   // IsWikiLink indicates this segment is an Obsidian wiki-link.
+	WikiTarget    string // WikiTarget is the link target (without [[ ]]).
+	WikiDisplay   string // WikiDisplay is the display text of the wiki-link.
 }
 
 // MarkdownLine represents a single parsed line of markdown.
 type MarkdownLine struct {
-	BlockType    BlockType
-	HeadingLevel int
-	Segments     []InlineSegment
-	IndentLevel  int
-	CalloutType  string
-	Language     string
-	RawContent   string
-	Checkable    bool
-	Checked      bool
-	TableCells   []string
-	TableAlign   []TableAlignment
-	EmbedTarget  string
-	EmbedHeading string
+	BlockType    BlockType        // BlockType classifies the block element.
+	HeadingLevel int              // HeadingLevel is the heading level (1-6, 0 for non-headings).
+	Segments     []InlineSegment  // Segments are the parsed inline segments.
+	IndentLevel  int              // IndentLevel is the nesting depth for lists and blockquotes.
+	CalloutType  string           // CalloutType is the callout type (note, tip, warning, etc.).
+	Language     string           // Language is the code block language identifier.
+	RawContent   string           // RawContent is the unprocessed text for code blocks.
+	Checkable    bool             // Checkable indicates a task list item ([ ] or [x]).
+	Checked      bool             // Checked indicates a completed task list item ([x]).
+	TableCells   []string         // TableCells are the cell values for table rows.
+	TableAlign   []TableAlignment // TableAlign specifies per-column alignment for tables.
+	EmbedTarget  string           // EmbedTarget is the file path for embedded content.
+	EmbedHeading string           // EmbedHeading is the optional section reference for embeds.
 }
 
 // WikiLink represents an Obsidian [[wiki-link]].
 type WikiLink struct {
-	Target  string
-	Display string
+	Target  string // Target is the linked file path or heading.
+	Display string // Display is the optional display text (after | in the link).
 }
 
 // RendererStyle holds colors for the markdown renderer.
 type RendererStyle struct {
-	Accent          lipgloss.Color
-	AccentSecondary lipgloss.Color
-	AccentTertiary  lipgloss.Color
-	TextSecondary   lipgloss.Color
-	TextDim         lipgloss.Color
-	Success         lipgloss.Color
-	CodeBackground  lipgloss.Color
-	Heading1        lipgloss.Color
-	LineSpacing     string
+	Accent          lipgloss.Color // Accent is the primary accent color.
+	AccentSecondary lipgloss.Color // AccentSecondary is a secondary accent color.
+	AccentTertiary  lipgloss.Color // AccentTertiary is a tertiary accent color.
+	TextSecondary   lipgloss.Color // TextSecondary is the secondary text color.
+	TextDim         lipgloss.Color // TextDim is the dimmed text color.
+	Success         lipgloss.Color // Success is the color for success text.
+	CodeBackground  lipgloss.Color // CodeBackground is the background color for code spans.
+	Heading1        lipgloss.Color // Heading1 is the color for h1 headings.
+	LineSpacing     string         // LineSpacing controls paragraph spacing ("compact", "normal", "relaxed").
 }
 
 var (
@@ -1441,9 +1441,9 @@ func visibleLen(s string) int {
 
 // HeadingInfo represents a heading extracted from markdown.
 type HeadingInfo struct {
-	Level   int
-	Text    string
-	LineIdx int
+	Level   int    // Level is the heading level (1-6).
+	Text    string // Text is the heading text without the # prefix.
+	LineIdx int    // LineIdx is the line index within the parsed markdown lines.
 }
 
 // ExtractHeadings extracts all headings from parsed markdown lines.

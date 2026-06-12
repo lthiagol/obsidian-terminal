@@ -19,7 +19,7 @@ type Command struct {
 }
 
 func (m *Model) registerCommands() []Command {
-	return []Command{
+	cmds := []Command{
 		{
 			Name:        "Fuzzy Search",
 			Description: "Search files by name",
@@ -201,6 +201,21 @@ func (m *Model) registerCommands() []Command {
 			},
 		},
 	}
+
+	if len(m.scanErrors) > 0 {
+		cmds = append(cmds, Command{
+			Name:        "Scan Errors",
+			Description: fmt.Sprintf("View %d scan errors", len(m.scanErrors)),
+			Key:         "",
+			Modes:       nil, // Global
+			Action: func(m *Model) (tea.Model, tea.Cmd) {
+				m.showScanErrors()
+				return *m, nil
+			},
+		})
+	}
+
+	return cmds
 }
 
 func (m *Model) openCommandPalette() {

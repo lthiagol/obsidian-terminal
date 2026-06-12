@@ -1,6 +1,6 @@
 # M46 — Integration Test Suite
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -125,16 +125,34 @@ Create helpers in `testutil_test.go`:
 
 ## Completion Criteria
 
-- [ ] Full rendering pipeline test passes (no panics, no broken ANSI)
-- [ ] Search → open workflow test passes
-- [ ] Tree click → open workflow test passes
-- [ ] Wiki-link follow workflow test passes
-- [ ] Theme switch preserves state test passes
-- [ ] Split resize preserves state test passes
-- [ ] Session save/restore test passes
-- [ ] All integration tests pass
-- [ ] `make test` passes all tests
-- [ ] `make vet` exits 0
+- [x] Full rendering pipeline test passes (no panics, no broken ANSI)
+- [x] Search -> open workflow test passes
+- [x] Tree click -> open workflow test passes
+- [x] Wiki-link follow workflow test passes
+- [x] Theme switch preserves state test passes
+- [x] Split resize preserves state test passes
+- [x] Session save/restore test passes
+- [x] All integration tests pass
+- [x] `make test` passes all tests
+- [x] `make vet` exits 0
+
+## Completed
+
+2026-06-12
+
+Added 7 integration tests in `model_integration_test.go` exercising full end-to-end workflows:
+
+1. **TestRenderingPipeline_FullDocument** — opens index.md, verifies viewer output, checks for truncated ANSI, confirms body content
+2. **TestWorkflow_SearchAndOpen** — presses `/`, types "index", presses Enter, verifies ModeView + activeNote = index.md
+3. **TestWorkflow_TreeClickAndOpen** — navigates tree to first file, presses Enter, verifies mode + activeNote + outlineItems + recentNotes all updated
+4. **TestWorkflow_FollowWikiLink** — opens index.md, presses Tab to select wiki-link, presses Enter, verifies followed to linked note
+5. **TestStatePreservation_ThemeSwitch** — opens note, calls setTheme("dracula"), verifies mode/activeNote preserved, colors changed, viewer still renders
+6. **TestStatePreservation_SplitResize** — opens note, presses Ctrl+Left to shrink tree, verifies mode/activeNote preserved, viewer still renders
+7. **TestSession_SaveAndRestore** — expands directory, navigates to file, saves session, creates new model, verifies directory still expanded
+
+Bonus fixes:
+- Tree resize (ShrinkTree/GrowTree/ResetTree) now works from View mode too (was Browse-only)
+- `ExpandPath` fixed to expand top-level directories (was missing `len(parts)` vs `len(parts)-1`)
 
 ## Estimated Time
 

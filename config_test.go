@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -140,5 +141,184 @@ func TestLoadConfig_CLIOverride(t *testing.T) {
 		if cfg2.VaultPath != "/override/path" {
 			t.Error("override not applied")
 		}
+	}
+}
+
+func TestValidateConfig_Valid(t *testing.T) {
+	cfg := &Config{
+		VaultPath:        t.TempDir(),
+		Theme:            "dark",
+		LineSpacing:      "normal",
+		DailyNotesFormat: "2006-01-02",
+		SkipDirs:         []string{".obsidian", "archive"},
+	}
+	warnings := ValidateConfig(cfg)
+	if len(warnings) > 0 {
+		t.Errorf("expected no warnings, got %v", warnings)
+	}
+	if cfg.Theme != "dark" {
+		t.Errorf("theme should be dark, got %s", cfg.Theme)
+	}
+	if cfg.LineSpacing != "normal" {
+		t.Errorf("line_spacing should be normal, got %s", cfg.LineSpacing)
+	}
+}
+
+func TestValidateConfig_InvalidTheme(t *testing.T) {
+	cfg := &Config{
+		VaultPath:   t.TempDir(),
+		Theme:       "nonexistent",
+		LineSpacing: "compact",
+		SkipDirs:    []string{".obsidian"},
+	}
+	warnings := ValidateConfig(cfg)
+	if len(warnings) != 1 {
+		t.Fatalf("expected 1 warning, got %d: %v", len(warnings), warnings)
+	}
+	if cfg.Theme != "dark" {
+		t.Errorf("expected theme to be auto-fixed to dark, got %s", cfg.Theme)
+	}
+}
+
+func TestValidateConfig_InvalidLineSpacing(t *testing.T) {
+	cfg := &Config{
+		VaultPath:   t.TempDir(),
+		Theme:       "dark",
+		LineSpacing: "extra-wide",
+		SkipDirs:    []string{".obsidian"},
+	}
+	warnings := ValidateConfig(cfg)
+	if len(warnings) != 1 {
+		t.Fatalf("expected 1 warning, got %d: %v", len(warnings), warnings)
+	}
+	if cfg.LineSpacing != "compact" {
+		t.Errorf("expected line_spacing to be auto-fixed to compact, got %s", cfg.LineSpacing)
+	}
+}
+
+func TestValidateConfig_InvalidDateFormat(t *testing.T) {
+	cfg := &Config{
+		VaultPath:        t.TempDir(),
+		Theme:            "dark",
+		LineSpacing:      "compact",
+		DailyNotesFormat: "2006-13-99",
+		SkipDirs:         []string{".obsidian"},
+	}
+	warnings := ValidateConfig(cfg)
+	if len(warnings) != 1 {
+		t.Fatalf("expected 1 warning, got %d: %v", len(warnings), warnings)
+	}
+	if cfg.DailyNotesFormat != "2006-01-02" {
+		t.Errorf("expected daily_notes_format to be auto-fixed to 2006-01-02, got %s", cfg.DailyNotesFormat)
+	}
+}
+
+func TestValidateConfig_InvalidSkipDirs(t *testing.T) {
+	cfg := &Config{
+		VaultPath:   t.TempDir(),
+		Theme:       "dark",
+		LineSpacing: "compact",
+		SkipDirs:    []string{".obsidian", "..", "/absolute/path"},
+	}
+	warnings := ValidateConfig(cfg)
+	if len(warnings) != 2 {
+		t.Fatalf("expected 2 warnings, got %d: %v", len(warnings), warnings)
+	}
+}
+
+func TestValidateConfig_EmptyDefaults(t *testing.T) {
+	cfg := &Config{
+		VaultPath: t.TempDir(),
+	}
+	warnings := ValidateConfig(cfg)
+	if cfg.Theme != "dark" {
+		t.Errorf("expected theme to default to dark, got %s", cfg.Theme)
+	}
+	if cfg.LineSpacing != "compact" {
+		t.Errorf("expected line_spacing to default to compact, got %s", cfg.LineSpacing)
+	}
+	if len(cfg.SkipDirs) == 0 {
+		t.Error("expected skip_dirs to be populated with defaults")
+	}
+	_ = warnings
+}
+
+func TestValidateConfig_InvalidCustomThemeColors(t *testing.T) {
+	cfg := &Config{
+		VaultPath:   t.TempDir(),
+		Theme:       "dark",
+		LineSpacing: "compact",
+		SkipDirs:    []string{".obsidian"},
+		CustomTheme: &CustomTheme{
+			Accent:          "not-a-color",
+			AccentSecondary: "#XYZ",
+			TextPrimary:     "#ff0000",
+		},
+	}
+	warnings := ValidateConfig(cfg)
+	if len(warnings) != 2 {
+		t.Fatalf("expected 2 warnings for bad colors, got %d: %v", len(warnings), warnings)
+	}
+}
+
+func TestValidateConfig_ProfileNoPath(t *testing.T) {
+	cfg := &Config{
+		VaultPath:   t.TempDir(),
+		Theme:       "dark",
+		LineSpacing: "compact",
+		SkipDirs:    []string{".obsidian"},
+		Profiles: map[string]Profile{
+			"work": {Path: ""},
+			"home": {Path: "/some/path"},
+		},
+	}
+	warnings := ValidateConfig(cfg)
+	if len(warnings) != 1 {
+		t.Fatalf("expected 1 warning for empty profile path, got %d: %v", len(warnings), warnings)
+	}
+}
+
+func TestValidateConfig_ModelShowsToast(t *testing.T) {
+	cfg := &Config{
+		VaultPath:        testVaultPath(t),
+		Theme:            "nonexistent",
+		LineSpacing:      "bad-value",
+		DailyNotesFormat: "not-a-format",
+		SkipDirs:         []string{".."},
+	}
+	m := NewModel(cfg)
+	if m.err != nil {
+		t.Fatalf("NewModel should not fail on invalid config: %v", m.err)
+	}
+	if len(m.toasts) < 3 {
+		t.Errorf("expected at least 3 toasts for invalid theme, spacing, and format, got %d: %v",
+			len(m.toasts), m.toasts)
+	}
+}
+
+func TestValidateConfig_CustomThemeToast(t *testing.T) {
+	cfg := &Config{
+		VaultPath:   testVaultPath(t),
+		Theme:       "dark",
+		LineSpacing: "compact",
+		SkipDirs:    []string{".obsidian"},
+		CustomTheme: &CustomTheme{
+			Accent:     "#badhex",
+			Background: "#00ff00",
+		},
+	}
+	m := NewModel(cfg)
+	if m.err != nil {
+		t.Fatalf("NewModel: %v", m.err)
+	}
+	found := false
+	for _, toast := range m.toasts {
+		if strings.Contains(toast.Message, "accent") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("expected toast warning about invalid custom theme accent color")
 	}
 }

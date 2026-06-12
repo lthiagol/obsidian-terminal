@@ -14,28 +14,28 @@ import (
 
 // VaultIndexes holds all indexes built during vault scanning.
 type VaultIndexes struct {
-	Search    map[string]string
-	Backlinks map[string][]string
-	Tags      map[string][]string
+	Search    map[string]string   // Search maps file paths to their searchable content.
+	Backlinks map[string][]string // Backlinks maps normalized wiki-link targets to referring files.
+	Tags      map[string][]string // Tags maps tag names to files containing that tag.
 }
 
 // VaultEntry represents a file or directory in the vault tree.
 type VaultEntry struct {
-	Name      string
-	Path      string
-	IsDir     bool
-	IsSymlink bool
-	Children  []*VaultEntry
+	Name      string        // Name is the base name of the file or directory.
+	Path      string        // Path is the relative path from the vault root.
+	IsDir     bool          // IsDir indicates whether this entry is a directory.
+	IsSymlink bool          // IsSymlink indicates whether this entry is a symlink.
+	Children  []*VaultEntry // Children contains nested entries (populated for directories).
 }
 
 // VaultNote represents a parsed markdown note with frontmatter.
 type VaultNote struct {
-	Path    string
-	Title   string
-	Tags    []string
-	Aliases []string
-	Body    string
-	RawBody string
+	Path    string   // Path is the relative path of the note from the vault root.
+	Title   string   // Title is the display title (from frontmatter or filename).
+	Tags    []string // Tags are the tags extracted from frontmatter.
+	Aliases []string // Aliases are alternative names from frontmatter.
+	Body    string   // Body is the stripped markdown content (without frontmatter).
+	RawBody string   // RawBody is the full raw content including frontmatter.
 }
 
 type frontmatterData struct {

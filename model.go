@@ -19,6 +19,22 @@ type TickMsg struct{}
 // Mode represents the current TUI mode.
 type Mode int
 
+// VaultState tracks the health of the vault connection.
+type VaultState int
+
+const (
+	VaultStateOK      VaultState = iota // VaultStateOK indicates the vault is fully accessible.
+	VaultStatePartial                   // VaultStatePartial indicates some files/dirs failed to scan.
+	VaultStateBroken                    // VaultStateBroken indicates the vault is inaccessible.
+)
+
+func vaultStateFrom(scanErrorCount int) VaultState {
+	if scanErrorCount > 0 {
+		return VaultStatePartial
+	}
+	return VaultStateOK
+}
+
 // PinnedNote represents a pinned note with saved scroll position.
 type PinnedNote struct {
 	Path    string
@@ -93,8 +109,10 @@ type Model struct {
 	quitting bool
 
 	err        error
-	scanErrors []string
-	palette    Palette
+	scanErrors        []string
+	scanErrorsVisible bool
+	vaultState        VaultState
+	palette           Palette
 
 	helpScroll int
 
@@ -134,34 +152,14 @@ type Model struct {
 func NewModel(cfg *Config) Model {
 	keys := DefaultKeys()
 
+	validationWarnings := ValidateConfig(cfg)
+
 	skipDirs := cfg.SkipDirs
-	if len(skipDirs) == 0 {
-		skipDirs = DefaultConfig().SkipDirs
-	}
 
-	themeWarning := ""
-	themeName := cfg.Theme
-	if themeName == "" {
-		themeName = "dark"
-	}
-	palette, err := lookupPalette(themeName)
-	if err != nil {
-		palette = newDarkPalette()
-		themeWarning = "Unknown theme " + themeName + " — using dark"
-	}
-
-	// Apply custom theme overrides if present
+	palette, _ := lookupPalette(cfg.Theme)
 	if cfg.CustomTheme != nil {
-		customPalette, customErr := paletteFromCustom(cfg.CustomTheme, palette)
-		if customErr != nil {
-			if themeWarning != "" {
-				themeWarning += "; "
-			}
-			themeWarning += customErr.Error()
-		}
-		palette = customPalette
+		palette, _ = paletteFromCustom(cfg.CustomTheme, palette)
 	}
-
 	activatePalette(palette)
 
 	// If no vault path but profiles exist, enter picker mode
@@ -174,25 +172,33 @@ func NewModel(cfg *Config) Model {
 			palette:       palette,
 			profilePicker: NewProfilePicker(cfg.Profiles),
 		}
-		if themeWarning != "" {
-			m.addToast(themeWarning, ToastWarning)
+		if len(validationWarnings) > 0 {
+			for _, w := range validationWarnings {
+				m.addToast(w, ToastWarning)
+			}
 		}
 		return m
 	}
 
 	info, err := os.Stat(cfg.VaultPath)
 	if err != nil {
+		suggestion := ""
+		if os.IsNotExist(err) {
+			suggestion = " — directory does not exist, create it first"
+		} else {
+			suggestion = " — check file permissions"
+		}
 		return Model{
 			config: cfg,
 			keys:   keys,
-			err:    fmt.Errorf("vault path not accessible: %w", err),
+			err:    fmt.Errorf("vault path %q is not accessible%s: %w", cfg.VaultPath, suggestion, err),
 		}
 	}
 	if !info.IsDir() {
 		return Model{
 			config: cfg,
 			keys:   keys,
-			err:    fmt.Errorf("vault path is not a directory: %s", cfg.VaultPath),
+			err:    fmt.Errorf("vault path %q is not a directory", cfg.VaultPath),
 		}
 	}
 
@@ -221,12 +227,15 @@ func NewModel(cfg *Config) Model {
 		viewer:          NewViewer(markdownStyleFrom(palette, cfg.LineSpacing)),
 		searchStyle:     searchStyleFrom(palette),
 		scanErrors:      scanErrors,
+		vaultState:      vaultStateFrom(len(scanErrors)),
 		palette:         palette,
 		activePinnedIdx: -1,
 		profilePicker:   NewProfilePicker(cfg.Profiles),
 	}
-	if themeWarning != "" {
-		m.addToast(themeWarning, ToastWarning)
+	if len(validationWarnings) > 0 {
+		for _, w := range validationWarnings {
+			m.addToast(w, ToastWarning)
+		}
 	}
 	restoreSession(&m)
 	return m
@@ -330,7 +339,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		if (m.mode == ModeBrowse || m.mode == ModeView) && !m.commandPaletteVisible && !m.recentVisible && !m.outlineVisible && (MatchRune(msg, m.keys.QuitRune) || MatchRune(msg, 'Q')) {
+		if (m.mode == ModeBrowse || m.mode == ModeView) && !m.commandPaletteVisible && !m.recentVisible && !m.outlineVisible && !m.scanErrorsVisible && (MatchRune(msg, m.keys.QuitRune) || MatchRune(msg, 'Q')) {
 			m.quitting = true
 			saveSession(m)
 			return m, tea.Quit
@@ -346,6 +355,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if m.outlineVisible {
 			return m.handleOutlineKey(msg)
+		}
+
+		if m.scanErrorsVisible {
+			if msg.Type == tea.KeyEsc || MatchRune(msg, 'q') || MatchRune(msg, m.keys.Help) {
+				m.scanErrorsVisible = false
+				return m, nil
+			}
+			return m, nil
+		}
+
+		// Retry rescan when vault is broken
+		if m.vaultState == VaultStateBroken && MatchRune(msg, 'r') {
+			m.rescanVault()
+			return m, nil
 		}
 
 		switch m.mode {
@@ -395,6 +418,10 @@ func (m Model) View() string {
 		rightPanel = m.renderCommandPalette()
 	} else if m.recentVisible {
 		rightPanel = m.renderRecents()
+	} else if m.scanErrorsVisible {
+		rightPanel = m.renderScanErrors()
+	} else if m.vaultState == VaultStateBroken && m.mode != ModeHelp && m.mode != ModeProfilePicker {
+		rightPanel = m.renderBrokenVaultScreen()
 	} else {
 		switch m.mode {
 		case ModeSearch:
@@ -477,7 +504,16 @@ func (m *Model) checkVaultChanges() {
 
 	info, err := os.Stat(m.config.VaultPath)
 	if err != nil {
-		m.addToast("Could not check vault: "+err.Error(), ToastWarning)
+		if m.vaultState != VaultStateBroken {
+			m.vaultState = VaultStateBroken
+			m.addToast("Vault inaccessible: "+err.Error(), ToastError)
+		}
+		return
+	}
+
+	if m.vaultState == VaultStateBroken {
+		m.addToast("Vault is accessible again — rescanning", ToastInfo)
+		m.rescanVault()
 		return
 	}
 
@@ -493,15 +529,20 @@ func (m *Model) rescanVault() {
 
 	info, err := os.Stat(m.config.VaultPath)
 	if err != nil {
+		m.vaultState = VaultStateBroken
+		m.addToast("Cannot rescan vault: "+err.Error(), ToastError)
 		return
 	}
 	m.lastRootModTime = info.ModTime()
 
 	tree, indexes, scanErrors, err := ScanVault(m.config.VaultPath, m.config.SkipDirs)
 	if err != nil {
+		m.vaultState = VaultStateBroken
+		m.addToast("Vault scan failed: "+err.Error(), ToastError)
 		return
 	}
 	m.scanErrors = scanErrors
+	m.vaultState = vaultStateFrom(len(scanErrors))
 
 	oldActivePath := ""
 	if m.activeNote != nil {
@@ -850,4 +891,103 @@ func (m Model) renderRecents() string {
 		}
 	}
 	return sb.String()
+}
+
+func (m Model) renderBrokenVaultScreen() string {
+	width := m.width - m.treeWidth - 4
+	if width < 30 {
+		width = 30
+	}
+	padH := 4
+	textWidth := width - padH*2
+	if textWidth < 1 {
+		textWidth = 1
+	}
+
+	title := lipgloss.NewStyle().Bold(true).Foreground(Error).Render("Vault is inaccessible")
+	msg := "The vault directory could not be read. It may have been moved, deleted, or permissions may have changed."
+	wrapped := wordWrap(msg, textWidth)
+
+	recovery := []string{
+		"r  Retry rescan",
+		"P  Switch profile",
+		"q  Quit",
+	}
+	recoveryText := lipgloss.NewStyle().Foreground(TextSecondary).Render(strings.Join(recovery, "  │  "))
+
+	content := lipgloss.JoinVertical(lipgloss.Left,
+		title,
+		"",
+		wrapped,
+		"",
+		recoveryText,
+	)
+
+	box := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(Error).
+		Padding(padH/2, padH).
+		Width(width).
+		Render(content)
+
+	return lipgloss.NewStyle().
+		Height(m.height - 1).
+		Align(lipgloss.Center, lipgloss.Center).
+		Render(box)
+}
+
+func (m Model) renderScanErrors() string {
+	width := m.width - m.treeWidth - 6
+	if width < 20 {
+		width = 20
+	}
+
+	var sb strings.Builder
+	title := lipgloss.NewStyle().Bold(true).Foreground(Warning).Render(
+		fmt.Sprintf("Scan Errors (%d)", len(m.scanErrors)))
+	sb.WriteString(title)
+	sb.WriteString("\n")
+	sb.WriteString(lipgloss.NewStyle().Foreground(TextDim).Render(strings.Repeat("─", width)))
+	sb.WriteString("\n\n")
+
+	for _, err := range m.scanErrors {
+		sb.WriteString(lipgloss.NewStyle().Foreground(TextSecondary).Render(" • " + err))
+		sb.WriteString("\n")
+	}
+
+	sb.WriteString("\n")
+	hint := lipgloss.NewStyle().Foreground(TextDim).Render("Ctrl+R to rescan  •  Esc to close")
+	sb.WriteString(hint)
+
+	return sb.String()
+}
+
+func (m *Model) showScanErrors() {
+	m.scanErrorsVisible = true
+}
+
+func wordWrap(text string, width int) string {
+	if width < 1 {
+		return text
+	}
+	words := strings.Fields(text)
+	if len(words) == 0 {
+		return ""
+	}
+	var lines []string
+	current := ""
+	for _, word := range words {
+		if current == "" {
+			current = word
+		} else if len(current)+1+len(word) <= width {
+			current += " " + word
+		} else {
+			lines = append(lines, current)
+			current = word
+		}
+	}
+	if current != "" {
+		lines = append(lines, current)
+	}
+	return strings.Join(lines, "\n")
 }

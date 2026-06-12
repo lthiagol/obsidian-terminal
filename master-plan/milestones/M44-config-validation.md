@@ -1,6 +1,6 @@
 # M44 — Config Validation
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
@@ -63,12 +63,30 @@ Example: theme: dark
 
 ## Completion Criteria
 
-- [ ] All config values are validated
-- [ ] Invalid values produce clear error messages with valid options
-- [ ] Missing required values (vault_path) produce helpful errors
-- [ ] Validation errors don't crash the app (show toast or error screen)
-- [ ] `make test` passes all tests (add validation tests)
-- [ ] `make vet` exits 0
+- [x] All config values are validated
+- [x] Invalid values produce clear error messages with valid options
+- [x] Missing required values (vault_path) produce helpful errors
+- [x] Validation errors don't crash the app (show toast or error screen)
+- [x] `make test` passes all tests (add validation tests)
+- [x] `make vet` exits 0
+
+## Completed
+
+2026-06-12
+
+Added `ValidateConfig(cfg *Config) []string` in config.go that validates and auto-fixes:
+- Theme (auto-fixes invalid to "dark", shows valid names)
+- Line spacing (auto-fixes invalid to "compact", shows valid values)
+- Daily notes format (round-trip validates, auto-fixes to "2006-01-02")
+- Skip dirs (warns about invalid entries with path separators)
+- Custom theme colors (warns about invalid hex colors per-field)
+- Profile paths (warns about empty paths)
+
+`ValidLineSpacing` exported for discoverability. `ValidThemeNames()` already existed.
+
+Wired into `NewModel`: validation runs early, warnings are shown as toasts (non-blocking). Vault path errors in `NewModel` now include actionable suggestions ("directory does not exist, create it first" / "check file permissions").
+
+19 new tests covering valid config, invalid theme, invalid spacing, invalid date format, invalid skip dirs, custom theme colors, empty profiles, and end-to-end model toast display.
 
 ## Estimated Time
 

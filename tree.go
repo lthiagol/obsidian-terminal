@@ -353,7 +353,7 @@ func (ft FileTree) ExpandedPaths() []string {
 // If called with "notes/meeting.md", it expands "notes" if it exists and is collapsed.
 func (ft *FileTree) ExpandPath(path string) {
 	parts := strings.Split(path, string(filepath.Separator))
-	for i := 0; i < len(parts)-1; i++ {
+	for i := 0; i < len(parts); i++ {
 		dirPath := strings.Join(parts[:i+1], string(filepath.Separator))
 		for j := range ft.items {
 			if ft.items[j].entry.IsDir && ft.items[j].entry.Path == dirPath && !ft.items[j].expanded {
