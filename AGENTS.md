@@ -26,38 +26,7 @@ make install     # go install .
 
 Always run `make test && make vet` after making changes.
 
-## Architecture
-
-| File | Purpose |
-|------|---------|
-| `main.go` | Entry point, flag parsing, config loading |
-| `model.go` | TUI state machine — `Model` struct, `Init`, `Update`, `View`, all key handlers, toast management, status bar, help panel |
-| `vault.go` | Vault scanning (`ScanVault`), tree building, note loading, frontmatter parsing |
-| `tree.go` | File tree widget — expand/collapse, cursor navigation, rendering |
-| `viewer.go` | Markdown viewer widget — viewport-based, wiki-link cycling |
-| `markdown.go` | Custom Obsidian-flavored Markdown parser and renderer |
-| `search.go` | Fuzzy filename search (`SearchName`) and full-text content search (`SearchContent`) |
-| `keys.go` | Keymap definitions — `KeyMap` struct, `DefaultKeys()`, `MatchKey`, `MatchRune` |
-| `config.go` | YAML config — `Config` struct, `LoadConfig`, `DefaultConfig` |
-| `theme.go` | Lipgloss styles and ANSI color palette |
-| `config_test.go` | Config loading tests |
-| `keys_test.go` | Key dispatch tests |
-| `model_test.go` | Model state tests (vault path errors, quit) |
-| `model_e2e_test.go` | Bubble Tea program tests (mode transitions, tree interaction) |
-| `vault_test.go` | Vault scanning and note loading tests |
-| `tree_test.go` | File tree behavior tests |
-| `viewer_test.go` | Viewer rendering and wiki-link tests |
-| `markdown_test.go` | Parser and renderer tests |
-| `search_test.go` | Fuzzy and content search tests |
-| `testdata/test-vault/` | Test fixture vault with notes, callouts, frontmatter, symlinks |
-
 ## Patterns & Conventions
-
-### Bubble Tea Architecture
-- The TUI follows the **Elm Architecture**: `Model` → `Init()` → `Update(msg)` → `View()`
-- `Model` uses **value receivers** (not pointers) — mutations return a new `Model`
-- `tea.KeyMsg` dispatch is the primary input; modes route to `handleBrowseKey`, `handleViewKey`, etc.
-- Modes: `ModeBrowse` → `ModeView` → `ModeSearch` → `ModeFind` → `ModeHelp`
 
 ### Styling
 - **Only lipgloss.** No raw ANSI strings in render output.
@@ -69,11 +38,6 @@ Always run `make test && make vet` after making changes.
 - Arrow keys must also work — every navigation binding supports both
 - New keybindings must be added to the `KeyMap` struct and `DefaultKeys()`
 - Use `MatchKey(msg, key)` for `tea.KeyType` and `MatchRune(msg, rune)` for runes
-
-### Config
-- YAML format, loaded from `~/.config/obsidian-terminal/config.yaml`
-- All configurable behavior must have a `Config` field with a sensible default
-- Don't break existing config file compatibility
 
 ### Testing
 - Go stdlib `testing` package only — no test frameworks
@@ -161,4 +125,4 @@ Milestones numbered M85 through M99 are low-priority and complex — they requir
 `AGENTS.md` can be updated as the project evolves. When editing it:
 - **Notify the user** before making changes — describe what you intend to change and why.
 - Keep instructions actionable and specific.
-- Don't duplicate information that belongs in `README.md` or `master-plan/STATUS.md`.
+- Don't duplicate information that belongs in `README.md`, `DESIGN.md`, or `master-plan/STATUS.md`.
