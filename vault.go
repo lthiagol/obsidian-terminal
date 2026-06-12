@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/lthiagol/obsidian-terminal/internal/markdown"
 )
 
 // VaultIndexes holds all indexes built during vault scanning.
@@ -367,8 +369,8 @@ func extractSection(content, heading string) string {
 
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		if isMarkdownHeading(trimmed) {
-			level := countHeadingLevel(trimmed)
+		if markdown.IsHeading(trimmed) {
+			level := markdown.HeadingLevel(trimmed)
 			text := strings.TrimSpace(trimmed[level:])
 			if strings.ToLower(text) == strings.ToLower(heading) {
 				headingLevel = level
@@ -385,8 +387,8 @@ func extractSection(content, heading string) string {
 	var result []string
 	for i := startIdx; i < len(lines); i++ {
 		trimmed := strings.TrimSpace(lines[i])
-		if i > startIdx && isMarkdownHeading(trimmed) {
-			level := countHeadingLevel(trimmed)
+		if i > startIdx && markdown.IsHeading(trimmed) {
+			level := markdown.HeadingLevel(trimmed)
 			if level <= headingLevel {
 				break
 			}
@@ -397,31 +399,5 @@ func extractSection(content, heading string) string {
 	return strings.Join(result, "\n")
 }
 
-func isMarkdownHeading(line string) bool {
-	if len(line) == 0 || line[0] != '#' {
-		return false
-	}
-	level := 0
-	for _, c := range line {
-		if c == '#' {
-			level++
-		} else if c == ' ' && level > 0 {
-			return level <= 6
-		} else {
-			return false
-		}
-	}
-	return false
-}
-
-func countHeadingLevel(line string) int {
-	level := 0
-	for _, c := range line {
-		if c == '#' {
-			level++
-		} else {
-			break
-		}
-	}
-	return level
-}
+// isMarkdownHeading and countHeadingLevel were removed.
+// Use markdown.IsHeading and markdown.HeadingLevel instead.

@@ -10,6 +10,8 @@ import (
 // ToastType classifies the severity of a toast notification.
 type ToastType int
 
+const toastTTL = 3 * time.Second
+
 const (
 	ToastInfo ToastType = iota
 	ToastSuccess
@@ -29,7 +31,7 @@ func (m *Model) addToast(message string, t ToastType) {
 	m.toasts = append(m.toasts, Toast{
 		Message: message,
 		Type:    t,
-		TTL:     3 * time.Second,
+		TTL:     toastTTL,
 		Created: time.Now(),
 	})
 }

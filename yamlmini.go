@@ -32,6 +32,7 @@ func scanYAML(data []byte, fn func(key, value string, items []string)) {
 
 		key := strings.TrimSpace(trimmed[:colonIdx])
 		rest := strings.TrimSpace(trimmed[colonIdx+1:])
+		keyIndent := len(line) - len(strings.TrimLeft(line, " \t"))
 
 		rest = stripInlineComment(rest)
 
@@ -48,7 +49,8 @@ func scanYAML(data []byte, fn func(key, value string, items []string)) {
 				if !strings.HasPrefix(itemTrimmed, "- ") && itemTrimmed != "-" {
 					break
 				}
-				if len(itemLine) > 0 && (itemLine[0] != ' ' && itemLine[0] != '\t') {
+				itemIndent := len(itemLine) - len(strings.TrimLeft(itemLine, " \t"))
+				if itemIndent <= keyIndent {
 					break
 				}
 				val := strings.TrimSpace(itemTrimmed[1:])

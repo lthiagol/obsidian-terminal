@@ -6,6 +6,11 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+const (
+	doubleClickWindow = 500 * time.Millisecond
+	mouseScrollStep   = 3
+)
+
 type clickState struct {
 	lastTime time.Time
 	lastX    int
@@ -202,7 +207,7 @@ func (m *Model) isDoubleClick(x, y int) bool {
 	elapsed := time.Since(m.click.lastTime)
 	dx := abs(x - m.click.lastX)
 	dy := abs(y - m.click.lastY)
-	return elapsed <= 500*time.Millisecond && dx <= 1 && dy <= 1
+	return elapsed <= doubleClickWindow && dx <= 1 && dy <= 1
 }
 
 func (m *Model) recordClick(x, y int) {

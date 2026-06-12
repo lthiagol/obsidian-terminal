@@ -13,6 +13,12 @@ import (
 type Mode int
 
 const (
+	maxSearchResults       = 50
+	maxContentResults      = 100
+	contentResultContextLen = 80
+)
+
+const (
 	Name Mode = iota
 	Content
 )
@@ -211,8 +217,8 @@ func FuzzySearch(query string, paths, pathsLower []string) []Result {
 		sort.Slice(results, func(i, j int) bool {
 			return pathsLower[i] < pathsLower[j]
 		})
-		if len(results) > 50 {
-			results = results[:50]
+		if len(results) > maxSearchResults {
+			results = results[:maxSearchResults]
 		}
 		return results
 	}
@@ -229,8 +235,8 @@ func FuzzySearch(query string, paths, pathsLower []string) []Result {
 		return results[i].Score > results[j].Score
 	})
 
-	if len(results) > 50 {
-		results = results[:50]
+	if len(results) > maxSearchResults {
+		results = results[:maxSearchResults]
 	}
 	return results
 }
@@ -283,15 +289,15 @@ func ContentSearch(query string, index map[string]string) []Result {
 
 			if strings.Contains(strings.ToLower(line), queryLower) {
 				trimmed := strings.TrimSpace(line)
-				if len(trimmed) > 80 {
-					trimmed = trimmed[:80] + "..."
+				if len(trimmed) > contentResultContextLen {
+					trimmed = trimmed[:contentResultContextLen] + "..."
 				}
 				results = append(results, Result{
 					Path:    path,
 					Context: trimmed,
 					LineNum: lineNum,
 				})
-				if len(results) >= 100 {
+				if len(results) >= maxContentResults {
 					return results
 				}
 			}

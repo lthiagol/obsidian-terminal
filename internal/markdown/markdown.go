@@ -180,8 +180,8 @@ func ParseMarkdown(content string) []MarkdownLine {
 			continue
 		}
 
-		if isHeading(line) {
-			level := headingLevel(line)
+		if IsHeading(line) {
+			level := HeadingLevel(line)
 			text := strings.TrimSpace(line[level:])
 			text = strings.TrimSuffix(text, " #")
 			segments := parseInline(text)
@@ -317,7 +317,8 @@ func codeFenceLanguage(line string) string {
 	return strings.TrimSpace(t)
 }
 
-func isHeading(line string) bool {
+// IsHeading reports whether line looks like a markdown heading.
+func IsHeading(line string) bool {
 	if len(line) == 0 || line[0] != '#' {
 		return false
 	}
@@ -334,7 +335,8 @@ func isHeading(line string) bool {
 	return false
 }
 
-func headingLevel(line string) int {
+// HeadingLevel returns the heading level (number of leading # chars).
+func HeadingLevel(line string) int {
 	level := 0
 	for _, c := range line {
 		if c == '#' {
