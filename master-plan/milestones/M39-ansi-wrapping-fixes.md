@@ -8,7 +8,7 @@ Fix ANSI style bleed when soft-wrapping styled lines. Fix the scroll estimation 
 
 ## Issues
 
-### C3: ANSI style bleed on soft-wrap boundaries (`viewport.go:55-102`)
+### C7: ANSI style bleed on soft-wrap boundaries (`viewport.go:55-102`)
 
 When `softWrap` splits a styled line at a wrap boundary, it does not close active ANSI style sequences on the first line or re-open them on the continuation line. A bold span starting on line 1 of a paragraph and continuing to line 2 loses its styling on line 2.
 
@@ -22,11 +22,13 @@ current.Reset()
 current.WriteString(reopenStyles(activeStyles)) // re-open on next line
 ```
 
-### L8: Scroll estimation drifts for styled text (`model.go:717-748`)
+### L8: Scroll estimation drifts for multi-width characters (`model.go:717-748`)
 
-`estimateYOffset` approximates rendered heading positions by dividing raw text length by viewport width. This ignores ANSI escape sequences in the rendered output (from wiki-links, bold, italic, etc.). Each styled character adds ~15-25 bytes of ANSI codes, inflating the rendered line length and causing the estimate to undershoot. On a note with many wiki-links, the outline can scroll to dozens of lines above the actual heading.
+`estimateYOffset` approximates rendered heading positions by dividing raw text length by viewport width. This uses `len(text)` which counts bytes/runes, not display width. For text containing multi-width characters (CJK characters, emoji, box-drawing characters), the estimate is inaccurate because these characters occupy 2 terminal columns but count as 1 rune.
 
-**Fix:** Use `visibleLen()` (already implemented in `markdown.go`) to strip ANSI before measuring paragraph width. For other block types (code blocks, blockquotes), use the actual rendered line count rather than estimating from raw text length.
+**Note:** The original diagnosis mentioned ANSI escape sequences, but `RenderSegmentsPlain` does not produce ANSI codes. The actual issue is multi-width character handling.
+
+**Fix:** Use a proper display width calculation that accounts for multi-width characters. For paragraphs, use the actual rendered line count from the viewport rather than estimating from raw text length.
 
 ### H5: Viewport is exposed through MarkdownViewer
 
@@ -38,18 +40,22 @@ current.WriteString(reopenStyles(activeStyles)) // re-open on next line
 
 | File | Changes |
 |------|---------|
-| `viewport.go` | C3: add `extractOpenStyles()`, `closeStyles()`, `reopenStyles()`; use in softWrap |
-| `model.go` | L8: fix `estimateYOffset` to strip ANSI; H5: use `m.viewer.Width()` |
+| `viewport.go` | C7: add `extractOpenStyles()`, `closeStyles()`, `reopenStyles()`; use in softWrap |
+| `model.go` | L8: fix `estimateYOffset` to use display width; H5: use `m.viewer.Width()` |
 | `viewer.go` | H5: add `Width()` method |
-| `viewport_test.go` | C3: test style preservation across wrap boundaries |
-| `outline_test.go` | L8: test scroll estimation accuracy with styled content |
+| `viewport_test.go` | C7: test style preservation across wrap boundaries |
+| `outline_test.go` | L8: test scroll estimation accuracy with multi-width content |
 
 ## Completion Criteria
 
 - [ ] Styled text that spans a wrap boundary retains its styling on continuation lines
 - [ ] No visual style bleed (e.g., bold continuing where it shouldn't)
 - [ ] Outline navigation scrolls to the correct heading position, within ±2 lines
-- [ ] `estimateYOffset` uses visible length for paragraph width estimation
+- [ ] `estimateYOffset` uses display width (accounting for multi-width chars) for paragraph width estimation
 - [ ] Viewport is not accessed directly from outside `viewer.go`
 - [ ] `make test` passes all tests
 - [ ] `make vet` exits 0
+
+## Estimated Time
+
+1 day

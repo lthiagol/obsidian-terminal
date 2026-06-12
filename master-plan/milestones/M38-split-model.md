@@ -1,10 +1,10 @@
-# M38 — Split model.go and Eliminate Duplication
+# M38 — Split model.go and Consolidate Note Opening
 
 **Status:** ⏳ pending
 
 ## Goal
 
-Reduce `model.go` from 868 lines to under 250 by extracting subsystems into dedicated files. Eliminate the 5 duplicated "open note" patterns by creating a single `transitionToNote` method.
+Reduce `model.go` from 868 lines to under 250 by extracting subsystems into dedicated files. Create a single `transitionToNote` method that handles all side effects when opening a note, replacing 6 duplicated code paths.
 
 ## Issues
 
@@ -12,31 +12,28 @@ Reduce `model.go` from 868 lines to under 250 by extracting subsystems into dedi
 
 The file contains: Model struct, Init/Update/View, mode-change helpers, vault management, pin management, outline management, daily notes, recent notes, command palette, profile picker. Most of these should be standalone files.
 
-### H2: "Open note" logic duplicated 5 times
+### H2: "Open note" logic duplicated 6 times
 
-The same pattern (load note → set activeNote → set mode → set viewer content → build backlinks → build outline → add recent) appears in `handlers.go:236`, `model.go:597`, `mouse.go:123`, `mouse.go:143`, `model.go:767`. Each variant has different subsets of side effects.
+The same pattern (load note → set activeNote → set mode → set viewer content) appears in 6 locations, but with inconsistent side effects:
+
+| Location | Function | Sets embed resolver? | buildOutline? | addRecentNote? | backlinkPanel? |
+|----------|----------|---------------------|---------------|----------------|----------------|
+| `handlers.go:236` | `openNote()` | ✅ | ✅ | ✅ | ✅ |
+| `model.go:580` | `openPinnedNote()` | ❌ | ❌ | ❌ | ❌ |
+| `model.go:756` | `openDailyNote()` | ❌ | ✅ | ✅ | ❌ |
+| `model.go:805` | `openRecentNote()` | ❌ | ❌ | ❌ | ❌ |
+| `mouse.go:131` | tree click (inline) | ❌ | ❌ | ❌ | ❌ |
+| `mouse.go:143` | `openSearchResult()` | ❌ | ❌ | ❌ | ❌ |
+
+**Impact:** Clicking a file in the tree doesn't update the outline, backlinks, or recents. Opening a pinned note doesn't add it to recents. The behavior is inconsistent and buggy.
 
 ### H3: View() method is 83 lines with 6 levels of nesting
 
 The View method branches on mode, then sub-mode (outline/backlink/recent/profile picker), building inline styles and recalculating dimensions. The layout logic should be extracted.
 
-### M10: applyProfile broken (value receiver)
-
-`applyProfile` mutates config/palette/style fields on a value-receiver copy. They're discarded. Fix by using pointer receiver.
-
 ## Design
 
-### New file structure
-
-| File | Extracted from model.go |
-|------|------------------------|
-| `pin_handler.go` | Pin toggle, cycle, validate |
-| `outline_render.go` | buildOutline, renderOutline |
-| `daily_handler.go` | buildDailyNotePath, openDailyNote |
-| `recent_handler.go` | addRecentNote, toggleRecents, openRecentNote, renderRecents |
-| `profile_handler.go` | applyProfile (fixed), profile switch handling |
-
-### Single note transition
+### Part 1: Consolidate note opening
 
 Create one method that opens a note and handles ALL side effects:
 
@@ -64,27 +61,43 @@ func (m *Model) transitionToNote(path string) {
 }
 ```
 
-Replace all 5 call sites with `m.transitionToNote(path)`.
+Replace all 6 call sites with `m.transitionToNote(path)`.
+
+### Part 2: Extract subsystems
+
+| File | Extracted from model.go |
+|------|------------------------|
+| `pin_handler.go` | Pin toggle, cycle, validate |
+| `outline_render.go` | buildOutline, renderOutline |
+| `daily_handler.go` | buildDailyNotePath, openDailyNote |
+| `recent_handler.go` | addRecentNote, toggleRecents, openRecentNote, renderRecents |
+
+Note: `applyProfile` and profile switch handling are already fixed in M37 and can remain in `handlers.go`.
 
 ## Files to modify
 
 | File | Changes |
 |------|---------|
-| `model.go` | Remove extracted code, keep only Model struct + Init/Update/View + search/index fields |
+| `handlers.go` | Add `transitionToNote` method; replace `openNote` body with call to it |
+| `model.go` | Replace `openPinnedNote`, `openDailyNote`, `openRecentNote` bodies with calls to `transitionToNote`; extract pin/outline/daily/recent code to new files |
+| `mouse.go` | Replace inline note opening and `openSearchResult` with calls to `transitionToNote` |
 | `pin_handler.go` | **New** — pin toggle/cycle/validate from model.go |
 | `outline_render.go` | **New** — outline rendering from model.go |
 | `daily_handler.go` | **New** — daily note logic from model.go |
 | `recent_handler.go` | **New** — recent notes logic from model.go |
-| `profile_handler.go` | **New** — applyProfile + profile switch from handlers.go |
-| `handlers.go` | Replace openNote with transitionToNote call; remove applyProfile |
-| `mouse.go` | Replace openTreeItem/openSearchResult with transitionToNote call |
 
 ## Completion Criteria
 
+- [ ] All 6 open-note code paths use the single `transitionToNote` method
+- [ ] Clicking a file in the tree updates outline, backlinks, and recents
+- [ ] Opening a pinned note adds it to recents
+- [ ] All note-opening paths set the embed resolver consistently
 - [ ] model.go is under 250 lines
-- [ ] All 5 open-note code paths use the single `transitionToNote` method
-- [ ] applyProfile uses pointer receiver and works correctly
 - [ ] Extracted files have clear, single responsibilities
 - [ ] All existing tests pass (adjust for new file locations)
 - [ ] `make test` passes all tests
 - [ ] `make vet` exits 0
+
+## Estimated Time
+
+2-3 days

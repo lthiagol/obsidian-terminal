@@ -103,18 +103,38 @@
 | M34: Horizontal Scroll for Viewer | ⏳ deferred | 0 | — | — |
 | M35: Resizable Tree/Viewer Split | ✅ done | 5 | 2026-06-11 | 2026-06-11 |
 
-### Phase 7: Code Quality & Bugfixes
+### Phase 7: Critical Bug Fixes (Priority: 🔴 Immediate)
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M36: Fix Critical Bugs | ⏳ pending | 0 | — | — |
-| M37: Refactor Theme System | ⏳ pending | 0 | — | — |
-| M38: Split model.go | ⏳ pending | 0 | — | — |
-| M39: ANSI Wrapping & Scroll Fixes | ⏳ pending | 0 | — | — |
-| M40: Config & Parser Hardening | ⏳ pending | 0 | — | — |
-| M41: Dead Code Cleanup & Papercuts | ⏳ pending | 0 | — | — |
+| M36: Quick Bug Fixes | ⏳ pending | 0 | — | — |
+| M37: Theme System Refactor | ⏳ pending | 0 | — | — |
 
-### Phase 8: Future (Low Priority)
+### Phase 8: Architecture Improvements (Priority: 🟡 High)
+
+| Milestone | Status | Tests | Started | Completed |
+|-----------|--------|-------|---------|-----------|
+| M38: Split model.go + Consolidate Note Opening | ⏳ pending | 0 | — | — |
+| M39: ANSI Wrapping & Scroll Fixes | ⏳ pending | 0 | — | — |
+
+### Phase 9: Code Quality (Priority: 🟢 Medium)
+
+| Milestone | Status | Tests | Started | Completed |
+|-----------|--------|-------|---------|-----------|
+| M40: Config & Parser Hardening | ⏳ pending | 0 | — | — |
+| M41: Dead Code, Unused Exports & Hardcoded Colors | ⏳ pending | 0 | — | — |
+| M42: Godoc Comments | ⏳ pending | 0 | — | — |
+| M43: Performance & UX Papercuts | ⏳ pending | 0 | — | — |
+
+### Phase 10: Robustness (Priority: 🔵 Future)
+
+| Milestone | Status | Tests | Started | Completed |
+|-----------|--------|-------|---------|-----------|
+| M44: Config Validation | ⏳ pending | 0 | — | — |
+| M45: Graceful Degradation | ⏳ pending | 0 | — | — |
+| M46: Integration Test Suite | ⏳ pending | 0 | — | — |
+
+### Phase 11: Future (Low Priority)
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
@@ -175,15 +195,32 @@ future reference but M35 (Resizable Split) is the priority. Giving the
 viewer more width naturally solves the same problems (long tables, wide
 content) without ANSI-aware horizontal clipping complexity.
 
-### Batch 7: Code Quality (recommended order, M36 first)
-20. **M36** — Fix Critical Bugs (do first)
-21. **M37** — Refactor Theme System
-22. **M38** — Split model.go
-23. **M39** — ANSI Wrapping Fixes
-24. **M40** — Config & Parser Hardening
-25. **M41** — Dead Code Cleanup & Papercuts
+### Batch 7: Critical Bug Fixes (Priority: 🔴 Immediate)
+20. **M36** — Quick Bug Fixes (C3 quit, C4 palette, C5 SetSize, mouse side effects, nil vault checks)
+21. **M37** — Theme System Refactor (C1 globals → model, C6 applyProfile, H4 data-driven themes)
 
-**Rationale:** M36 fixes the most impactful bugs (theme races, accidental quit, broken profile switching) and should be done first. M37-M41 are quality improvements that can be done in any order after M36. They are independent — M37 touches theme system, M38 touches model.go structure, M39 touches viewport, M40 touches YAML parser, M41 is cosmetic.
+**Rationale:** M36 fixes the most impactful bugs that affect daily use. M37 is a major refactor that must be done before other milestones that depend on stable theme state.
+
+### Batch 8: Architecture Improvements (Priority: 🟡 High)
+22. **M38** — Split model.go + Consolidate Note Opening (H1 868 lines, H2 6 duplicates, H3 View complexity)
+23. **M39** — ANSI Wrapping & Scroll Fixes (C7 style bleed, L8 multi-width chars, H5 viewport leak)
+
+**Rationale:** M38 reduces model.go complexity and fixes inconsistent note-opening behavior. M39 fixes visual corruption and scroll accuracy.
+
+### Batch 9: Code Quality (Priority: 🟢 Medium)
+24. **M40** — Config & Parser Hardening (C9 YAML indent, C10 duplicate parsers, M2 magic numbers)
+25. **M41** — Dead Code, Unused Exports & Hardcoded Colors (M4 dead code, L1 hardcoded colors)
+26. **M42** — Godoc Comments (M6 missing documentation)
+27. **M43** — Performance & UX Papercuts (L3 KeyMap alloc, L4 cursor reset, L2 receiver docs)
+
+**Rationale:** M40-M43 are quality improvements that can be done in any order. They are independent and don't block each other.
+
+### Batch 10: Robustness (Priority: 🔵 Future)
+28. **M44** — Config Validation (missing validation, unhelpful errors)
+29. **M45** — Graceful Degradation (vault inaccessible, partial scan failures)
+30. **M46** — Integration Test Suite (missing end-to-end tests)
+
+**Rationale:** M44-M46 improve robustness and test coverage. They can be done in any order but are lower priority than bug fixes and architecture improvements.
 
 ## Milestone Dependencies
 
@@ -193,6 +230,18 @@ M16b (YAML) → M27 (Frontmatter Display)
 M18.5 (Vault Index System)
   ├── M19 (Backlinks) — uses backlink index
   └── M20 (Tags) — uses tag index
+
+M36 (Quick Bug Fixes)
+  ↓
+M37 (Theme Refactor) — required before M39 (ANSI fixes depend on stable theme)
+  ↓
+M38 (Split model.go + Consolidate Note Opening) — reduces duplication, makes M39 easier
+  ↓
+M39 (ANSI Wrapping) — can start after M37
+  ↓
+M40-M43 (Code Quality) — independent, can be parallel
+  ↓
+M44-M46 (Robustness) — future
 ```
 
 ## Keybinding Conflicts Resolved
