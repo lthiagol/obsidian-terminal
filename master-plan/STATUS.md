@@ -107,24 +107,24 @@
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M36: Quick Bug Fixes | ⏳ pending | 0 | — | — |
-| M37: Theme System Refactor | ⏳ pending | 0 | — | — |
+| M36: Quick Bug Fixes | ✅ done | 5 | 2026-06-11 | 2026-06-11 |
+| M37: Theme System Refactor | ✅ done | — | 2026-06-11 | 2026-06-11 |
 
 ### Phase 8: Architecture Improvements (Priority: 🟡 High)
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M38: Split model.go + Consolidate Note Opening | ⏳ pending | 0 | — | — |
-| M39: ANSI Wrapping & Scroll Fixes | ⏳ pending | 0 | — | — |
+| M38: Split model.go + Consolidate Note Opening | ✅ done | — | 2026-06-11 | 2026-06-11 |
+| M39: ANSI Wrapping & Scroll Fixes | ✅ done | — | 2026-06-11 | 2026-06-11 |
 
 ### Phase 9: Code Quality (Priority: 🟢 Medium)
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M40: Config & Parser Hardening | ⏳ pending | 0 | — | — |
-| M41: Dead Code, Unused Exports & Hardcoded Colors | ⏳ pending | 0 | — | — |
+| M40: Config & Parser Hardening | ✅ done | — | 2026-06-11 | 2026-06-11 |
+| M41: Dead Code, Unused Exports & Hardcoded Colors | ✅ done | — | 2026-06-11 | 2026-06-11 |
 | M42: Godoc Comments | ⏳ pending | 0 | — | — |
-| M43: Performance & UX Papercuts | ⏳ pending | 0 | — | — |
+| M43: Performance & UX Papercuts | ✅ done | — | 2026-06-11 | 2026-06-11 |
 
 ### Phase 10: Robustness (Priority: 🔵 Future)
 
