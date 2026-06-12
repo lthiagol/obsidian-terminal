@@ -1,10 +1,14 @@
-# M33 — UX Refinements: Scroll, Spacing, Session
+# M33 — UX Refinements: Ellipsis, Spacing, Session
 
-**Status:** ⏳ pending
+**Status:** ✅ done
 
 ## Goal
 
-Three high-impact UX improvements: horizontal scroll so long content isn't cut off, configurable line spacing for reading comfort, and session persistence so tree state survives restarts.
+Three high-impact UX improvements: tree ellipsis for truncated filenames, configurable line spacing for reading comfort, and session persistence so tree state survives restarts.
+
+## Notes
+
+Horizontal scroll (originally part of M33) is deferred to **M34** — requires ANSI-aware line clipping, XOffset state, keybindings, and a status bar indicator. The complexity warrants its own milestone.
 
 ## Problem
 

@@ -96,10 +96,11 @@
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
 | M29: Command Palette | ✅ done | 6 | 2026-06-11 | 2026-06-11 |
-| M30: Table Rendering Fix | ⏳ pending | 0 | — | — |
-| M31: Inline Formatting Parser Fix | ⏳ pending | 0 | — | — |
-| M32: Modern Terminal Polish | ⏳ pending | 0 | — | — |
-| M33: UX Refinements (Scroll, Spacing, Session) | ⏳ pending | 0 | — | — |
+| M30: Table Rendering Fix | ✅ done | 4 | 2026-06-11 | 2026-06-11 |
+| M31: Inline Formatting Parser Fix | ✅ done | 4 | 2026-06-11 | 2026-06-11 |
+| M32: Modern Terminal Polish | ✅ done | 4 | 2026-06-11 | 2026-06-11 |
+| M33: UX Refinements (Scroll, Spacing, Session) | ✅ done | 3 | 2026-06-11 | 2026-06-11 |
+| M34: Horizontal Scroll for Viewer | ⏳ pending | 0 | — | — |
 
 ### Phase 7: Future (Low Priority)
 
@@ -109,7 +110,7 @@
 | M98: Image Preview | ⏳ pending | 0 | — | — |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
 
-**Total Tests:** 98
+**Total Tests:** 109
 
 ## Execution Order
 
@@ -153,8 +154,12 @@ Milestones are organized into execution batches. Within each batch, milestones c
 15. **M30** — Table Rendering Fix
 16. **M31** — Inline Formatting Parser Fix
 17. **M32** — Modern Terminal Polish
+18. **M33** — UX Refinements (Tree ellipsis, Line spacing, Session)
+19. **M34** — Horizontal Scroll for Viewer
 
-**Rationale:** M29 covers the command palette. M30 fixes table rendering. M31 fixes parser bugs that leak raw markup. M32 adds undercurl and synchronized output. All are independent and can be done in any order.
+**Rationale:** M29-M33 are independent UX polish items completed in sequence.
+M34 is deferred — requires ANSI-aware line clipping, XOffset state,
+keybindings, and status bar indicators. Complex single feature.
 
 ### Batch 7: Future (individual, low priority)
 - **M97** — Export to PDF/HTML
