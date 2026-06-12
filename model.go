@@ -226,6 +226,7 @@ func NewModel(cfg *Config) Model {
 	if themeWarning != "" {
 		m.addToast(themeWarning, ToastWarning)
 	}
+	restoreSession(&m)
 	return m
 }
 
@@ -279,12 +280,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		if m.quitting {
+			saveSession(m)
 			return m, tea.Quit
 		}
 
 		switch msg.Type {
 		case tea.KeyCtrlC:
 			m.quitting = true
+			saveSession(m)
 			return m, tea.Quit
 		case tea.KeyCtrlR:
 			m.rescanVault()
@@ -302,6 +305,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if MatchRune(msg, m.keys.QuitRune) || MatchRune(msg, 'Q') {
 			m.quitting = true
+			saveSession(m)
 			return m, tea.Quit
 		}
 

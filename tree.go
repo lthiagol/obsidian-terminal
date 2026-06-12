@@ -329,6 +329,34 @@ func (ft FileTree) ItemCount() int {
 	return len(ft.items)
 }
 
+// ExpandedPaths returns relative paths of all expanded directories.
+func (ft FileTree) ExpandedPaths() []string {
+	var paths []string
+	for _, item := range ft.items {
+		if item.entry.IsDir && item.expanded {
+			paths = append(paths, item.entry.Path)
+		}
+	}
+	return paths
+}
+
+// ExpandPath expands all ancestor directories for the given relative path.
+// If called with "notes/meeting.md", it expands "notes" if it exists and is collapsed.
+func (ft *FileTree) ExpandPath(path string) {
+	parts := strings.Split(path, string(filepath.Separator))
+	for i := 0; i < len(parts)-1; i++ {
+		dirPath := strings.Join(parts[:i+1], string(filepath.Separator))
+		for j := range ft.items {
+			if ft.items[j].entry.IsDir && ft.items[j].entry.Path == dirPath && !ft.items[j].expanded {
+				// Navigate to it and expand
+				ft.cursor = j
+				ft.expand()
+				break
+			}
+		}
+	}
+}
+
 const depthIncrement = 1
 
 func maxEntryDepth(entry *VaultEntry) int {
