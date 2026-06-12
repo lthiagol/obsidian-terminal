@@ -613,6 +613,70 @@ func TestVisibleLen_ComplexANSI(t *testing.T) {
 	}
 }
 
+func TestParseMarkdown_LoneBacktick(t *testing.T) {
+	// Should not crash (infinite recursion guard)
+	input := "text ` more text\n"
+	lines := ParseMarkdown(input)
+	if len(lines) == 0 {
+		t.Fatal("expected at least one line")
+	}
+}
+
+func TestParseMarkdown_BacktrackTripleAsterisk(t *testing.T) {
+	// ***text** should be: * + bold(text)
+	input := "***text**\n"
+	lines := ParseMarkdown(input)
+	if len(lines) == 0 {
+		t.Fatal("expected at least one line")
+	}
+	found := false
+	for _, seg := range lines[0].Segments {
+		if seg.Bold && seg.Text == "text" {
+			found = true
+		}
+	}
+	if !found {
+		t.Log("segments:", len(lines[0].Segments), lines[0].Segments)
+		t.Error("***text** should produce Bold(text)")
+	}
+}
+
+func TestParseMarkdown_BacktrackDoubleAsterisk(t *testing.T) {
+	// **text* more should be: * + text + " more"
+	// (with no matching italic because the * has no content after it)
+	input := "**text* more\n"
+	lines := ParseMarkdown(input)
+	if len(lines) == 0 {
+		t.Fatal("expected at least one line")
+	}
+	// Should produce some text content without crashing
+	for _, seg := range lines[0].Segments {
+		if strings.Contains(seg.Text, "more") {
+			return
+		}
+	}
+	t.Log("segments:", lines[0].Segments)
+	t.Error("should contain 'more' in output")
+}
+
+func TestParseMarkdown_DoubleBacktick(t *testing.T) {
+	input := "``code with ` backtick``\n"
+	lines := ParseMarkdown(input)
+	if len(lines) == 0 {
+		t.Fatal("expected at least one line")
+	}
+	found := false
+	for _, seg := range lines[0].Segments {
+		if seg.Code && strings.Contains(seg.Text, "backtick") {
+			found = true
+		}
+	}
+	if !found {
+		t.Log("segments:", lines[0].Segments)
+		t.Error("double-backtick should produce Code segment")
+	}
+}
+
 func testRendererStyle() RendererStyle {
 	return RendererStyle{
 		Accent:          "#a78bfa",

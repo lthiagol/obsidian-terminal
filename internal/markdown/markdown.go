@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -471,6 +472,29 @@ func parseSegments(text string, segments *[]InlineSegment) {
 		}
 	}
 
+	if strings.HasPrefix(text, "``") {
+		end := strings.Index(text[2:], "``")
+		if end >= 0 {
+			inner := text[2 : 2+end]
+			*segments = append(*segments, InlineSegment{Text: inner, Code: true})
+			parseSegments(text[2+end+2:], segments)
+			return
+		}
+	}
+
+	if strings.HasPrefix(text, "`") {
+		end := strings.Index(text[1:], "`")
+		if end >= 0 {
+			inner := text[1 : 1+end]
+			*segments = append(*segments, InlineSegment{
+				Text: inner,
+				Code: true,
+			})
+			parseSegments(text[1+end+1:], segments)
+			return
+		}
+	}
+
 	if strings.HasPrefix(text, "***") || strings.HasPrefix(text, "___") {
 		marker := text[:3]
 		end := strings.Index(text[3:], marker)
@@ -484,6 +508,10 @@ func parseSegments(text string, segments *[]InlineSegment) {
 			parseSegments(text[3+end+3:], segments)
 			return
 		}
+		// *** not found — backtrack: consume first * as literal, try ** from offset 1
+		*segments = append(*segments, InlineSegment{Text: text[:1]})
+		parseSegments(text[1:], segments)
+		return
 	}
 
 	if strings.HasPrefix(text, "**") || strings.HasPrefix(text, "__") {
@@ -498,6 +526,10 @@ func parseSegments(text string, segments *[]InlineSegment) {
 			parseSegments(text[2+end+2:], segments)
 			return
 		}
+		// ** not found — backtrack: consume first * as literal, try * from offset 1
+		*segments = append(*segments, InlineSegment{Text: text[:1]})
+		parseSegments(text[1:], segments)
+		return
 	}
 
 	if strings.HasPrefix(text, "*") || strings.HasPrefix(text, "_") {
@@ -509,19 +541,6 @@ func parseSegments(text string, segments *[]InlineSegment) {
 			*segments = append(*segments, InlineSegment{
 				Text:   inner,
 				Italic: true,
-			})
-			parseSegments(text[1+end+1:], segments)
-			return
-		}
-	}
-
-	if strings.HasPrefix(text, "`") {
-		end := strings.Index(text[1:], "`")
-		if end >= 0 {
-			inner := text[1 : 1+end]
-			*segments = append(*segments, InlineSegment{
-				Text: inner,
-				Code: true,
 			})
 			parseSegments(text[1+end+1:], segments)
 			return
@@ -557,6 +576,13 @@ func parseSegments(text string, segments *[]InlineSegment) {
 	next := findNextSpecial(text)
 	if next == -1 {
 		*segments = append(*segments, InlineSegment{Text: text})
+		return
+	}
+	if next == 0 {
+		// Unmatched special char at start — consume as literal text
+		r, size := utf8.DecodeRuneInString(text)
+		*segments = append(*segments, InlineSegment{Text: string(r)})
+		parseSegments(text[size:], segments)
 		return
 	}
 	if next > 0 {
