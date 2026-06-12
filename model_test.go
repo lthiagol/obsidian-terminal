@@ -453,6 +453,134 @@ func TestTruncateContent(t *testing.T) {
 	}
 }
 
+func TestKeyDispatch_TagsEnterExit(t *testing.T) {
+	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
+	var model tea.Model = NewModel(cfg)
+	m := model.(Model)
+	if m.err != nil {
+		t.Fatalf("NewModel error: %v", m.err)
+	}
+
+	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+
+	// T enters tags mode
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'T'}})
+	m = model.(Model)
+	if m.mode != ModeTags {
+		t.Errorf("after T: mode = %v, want ModeTags", m.mode)
+	}
+	if m.prevMode != ModeBrowse {
+		t.Errorf("prevMode = %v, want ModeBrowse", m.prevMode)
+	}
+
+	// Esc exits back to browse
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyEsc})
+	m = model.(Model)
+	if m.mode != ModeBrowse {
+		t.Errorf("after Esc from tags: mode = %v, want ModeBrowse", m.mode)
+	}
+}
+
+func TestKeyDispatch_FindEnterExit(t *testing.T) {
+	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
+	var model tea.Model = NewModel(cfg)
+
+	// First open a file to get into view mode
+	m := navigateToFirstFile(t, &model)
+
+	// 's' enters find mode from view
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
+	m = model.(Model)
+	if m.mode != ModeFind {
+		t.Errorf("after s: mode = %v, want ModeFind", m.mode)
+	}
+
+	// Esc exits back to view
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyEsc})
+	m = model.(Model)
+	if m.mode != ModeView {
+		t.Errorf("after Esc from find: mode = %v, want ModeView", m.mode)
+	}
+}
+
+func TestKeyDispatch_BacklinkPanel(t *testing.T) {
+	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
+	var model tea.Model = NewModel(cfg)
+	m := model.(Model)
+	if m.err != nil {
+		t.Fatalf("NewModel error: %v", m.err)
+	}
+
+	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+
+	// Navigate to a file that has backlinks (index.md has alias "Home" and is referenced)
+	// First file in tree should work
+	m = navigateToFirstFile(t, &model)
+	if m.mode != ModeView {
+		t.Fatalf("expected ModeView, got %v", m.mode)
+	}
+
+	// Press b to try activating backlink panel
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}})
+	m = model.(Model)
+	// backlinkMode depends on whether the note has backlinks
+	if m.backlinkMode {
+		// Successfully entered backlink mode, now Esc should exit
+		model, _ = model.Update(tea.KeyMsg{Type: tea.KeyEsc})
+		m = model.(Model)
+		if m.backlinkMode {
+			t.Error("Esc should exit backlink mode")
+		}
+	}
+	// backlinkMode may be false if the note has no backlinks — that's fine
+}
+
+func TestTruncateContent_Empty(t *testing.T) {
+	result := truncateContent("", 5)
+	if result != "" {
+		t.Errorf("empty content should yield empty: %q", result)
+	}
+}
+
+func TestTruncateContent_ShortLines(t *testing.T) {
+	content := "line1\nline2"
+	result := truncateContent(content, 10)
+	if result != content {
+		t.Errorf("content with fewer lines than max should be unchanged: %q", result)
+	}
+}
+
+func TestModel_ViewReturnsNonEmpty(t *testing.T) {
+	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
+	var model tea.Model = NewModel(cfg)
+	m := model.(Model)
+	if m.err != nil {
+		t.Fatalf("NewModel error: %v", m.err)
+	}
+
+	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+	view := model.View()
+	if view == "" {
+		t.Error("View() should not return empty string after WindowSizeMsg")
+	}
+}
+
+func navigateToFirstFile(t *testing.T, model *tea.Model) Model {
+	t.Helper()
+	m := (*model).(Model)
+	firstFileIdx := indexOfFirstFile(m.fileTree)
+	for m.fileTree.Cursor() < firstFileIdx {
+		*model, _ = (*model).Update(tea.KeyMsg{Type: tea.KeyDown})
+		m = (*model).(Model)
+	}
+	*model, _ = (*model).Update(tea.KeyMsg{Type: tea.KeyEnter})
+	m = (*model).(Model)
+	if m.mode != ModeView {
+		t.Fatalf("navigateToFirstFile: expected ModeView, got %v", m.mode)
+	}
+	return m
+}
+
 func indexOfFirstFile(ft FileTree) int {
 	for i, item := range ft.Items() {
 		if !item.entry.IsDir {

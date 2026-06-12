@@ -186,3 +186,158 @@ func TestTree_SymlinkShownInTree(t *testing.T) {
 		t.Error("expected readme-symlink.md to appear in tree")
 	}
 }
+
+func TestTree_ApplyPathFilter(t *testing.T) {
+	skipDirs := DefaultConfig().SkipDirs
+	tree, _, _, err := ScanVault(testVaultPath(t), skipDirs)
+	if err != nil {
+		t.Fatalf("ScanVault failed: %v", err)
+	}
+
+	ft := NewFileTree(tree)
+
+	// Filter to only show a specific file
+	filter := map[string]bool{
+		"readme.md": true,
+	}
+	ft.ApplyPathFilter(filter)
+
+	if ft.ItemCount() == 0 {
+		t.Fatal("expected at least 1 filtered item")
+	}
+
+	for _, item := range ft.Items() {
+		if !item.entry.IsDir {
+			if !filter[item.entry.Path] {
+				t.Errorf("unfiltered file: %s", item.entry.Path)
+			}
+		}
+	}
+
+	if ft.Cursor() != 0 {
+		t.Errorf("cursor should reset to 0 after filter, got %d", ft.Cursor())
+	}
+}
+
+func TestTree_ApplyPathFilter_Empty(t *testing.T) {
+	skipDirs := DefaultConfig().SkipDirs
+	tree, _, _, err := ScanVault(testVaultPath(t), skipDirs)
+	if err != nil {
+		t.Fatalf("ScanVault failed: %v", err)
+	}
+
+	ft := NewFileTree(tree)
+	filter := map[string]bool{} // empty filter
+	ft.ApplyPathFilter(filter)
+
+	if ft.ItemCount() != 0 {
+		t.Errorf("empty filter should result in zero items, got %d", ft.ItemCount())
+	}
+}
+
+func TestTree_ResetFilter(t *testing.T) {
+	skipDirs := DefaultConfig().SkipDirs
+	tree, _, _, err := ScanVault(testVaultPath(t), skipDirs)
+	if err != nil {
+		t.Fatalf("ScanVault failed: %v", err)
+	}
+
+	ft := NewFileTree(tree)
+	origCount := ft.ItemCount()
+
+	// Apply a narrow filter
+	filter := map[string]bool{"readme.md": true}
+	ft.ApplyPathFilter(filter)
+
+	filteredCount := ft.ItemCount()
+	if filteredCount >= origCount {
+		t.Fatalf("filter should reduce items: %d >= %d", filteredCount, origCount)
+	}
+
+	// Reset back to full tree
+	ft.ResetFilter(tree)
+
+	if ft.ItemCount() != origCount {
+		t.Errorf("ResetFilter should restore original count: got %d, want %d", ft.ItemCount(), origCount)
+	}
+	if ft.Cursor() != 0 {
+		t.Errorf("cursor should reset to 0 after ResetFilter, got %d", ft.Cursor())
+	}
+}
+
+func TestTree_TopBottomJumps(t *testing.T) {
+	skipDirs := DefaultConfig().SkipDirs
+	tree, _, _, err := ScanVault(testVaultPath(t), skipDirs)
+	if err != nil {
+		t.Fatalf("ScanVault failed: %v", err)
+	}
+
+	ft := NewFileTree(tree)
+	if ft.ItemCount() < 3 {
+		t.Skip("need at least 3 items")
+	}
+
+	// g jumps to top
+	ft.MoveToY(ft.ItemCount() - 1) // go to bottom
+	ft, _ = ft.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'g'}})
+	if ft.Cursor() != 0 {
+		t.Errorf("g should jump to top, cursor = %d", ft.Cursor())
+	}
+
+	// G jumps to bottom
+	ft, _ = ft.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'G'}})
+	if ft.Cursor() != ft.ItemCount()-1 {
+		t.Errorf("G should jump to bottom, cursor = %d (want %d)", ft.Cursor(), ft.ItemCount()-1)
+	}
+}
+
+func TestTree_EnterOnExpandedDir(t *testing.T) {
+	skipDirs := DefaultConfig().SkipDirs
+	tree, _, _, err := ScanVault(testVaultPath(t), skipDirs)
+	if err != nil {
+		t.Fatalf("ScanVault failed: %v", err)
+	}
+
+	ft := NewFileTree(tree)
+
+	// Find a directory
+	dirIdx := -1
+	for i, item := range ft.Items() {
+		if item.entry.IsDir {
+			dirIdx = i
+			break
+		}
+	}
+	if dirIdx < 0 {
+		t.Skip("no directories")
+	}
+
+	// Expand
+	ft.MoveToY(dirIdx)
+	ft, _ = ft.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'l'}})
+	beforeCount := ft.ItemCount()
+
+	// Enter on expanded directory should collapse
+	ft, _ = ft.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	if ft.Items()[dirIdx].expanded {
+		t.Error("Enter on expanded dir should collapse it")
+	}
+	if ft.ItemCount() >= beforeCount {
+		t.Error("item count should decrease after Enter collapses")
+	}
+}
+
+func TestNewFileTree_EmptyVault(t *testing.T) {
+	root := &VaultEntry{
+		Name:     ".",
+		Path:     "",
+		IsDir:    true,
+		Children: nil,
+	}
+	ft := NewFileTree(root)
+	if ft.ItemCount() != 0 {
+		t.Errorf("empty vault should have 0 items, got %d", ft.ItemCount())
+	}
+	// View should not panic
+	_ = ft.View()
+}

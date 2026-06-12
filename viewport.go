@@ -1,6 +1,9 @@
 package main
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 type viewport struct {
 	Width   int
@@ -42,25 +45,59 @@ func (v viewport) View() string {
 	return strings.Join(v.lines[v.YOffset:end], "\n")
 }
 
+var ansiRe = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+
+func visibleLength(s string) int {
+	clean := ansiRe.ReplaceAllString(s, "")
+	return len([]rune(clean))
+}
+
 func softWrap(line string, width int) []string {
 	if width <= 0 {
 		return []string{line}
 	}
 
-	runes := []rune(line)
-	if len(runes) <= width {
+	if visibleLength(line) <= width {
 		return []string{line}
 	}
 
+	// Visible content exceeds width — ANSI-aware hard wrapping.
+	// Walk runes, skip ANSI sequences, split at visible-width boundaries.
 	var lines []string
-	for len(runes) > 0 {
-		if len(runes) <= width {
-			lines = append(lines, string(runes))
-			break
+	runes := []rune(line)
+	var current strings.Builder
+	vis := 0
+
+	for i := 0; i < len(runes); {
+		if runes[i] == '\x1b' && i+1 < len(runes) && runes[i+1] == '[' {
+			current.WriteRune(runes[i])
+			i++
+			for i < len(runes) && runes[i] != 'm' {
+				current.WriteRune(runes[i])
+				i++
+			}
+			if i < len(runes) {
+				current.WriteRune(runes[i])
+				i++
+			}
+			continue
 		}
-		lines = append(lines, string(runes[:width]))
-		runes = runes[width:]
+
+		current.WriteRune(runes[i])
+		vis++
+		i++
+
+		if vis >= width {
+			lines = append(lines, current.String())
+			current.Reset()
+			vis = 0
+		}
 	}
+
+	if current.Len() > 0 {
+		lines = append(lines, current.String())
+	}
+
 	return lines
 }
 

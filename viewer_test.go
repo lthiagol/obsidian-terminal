@@ -156,6 +156,73 @@ func TestSetSize_NegativeDimensions(t *testing.T) {
 	}
 }
 
+func TestViewer_RenderPipeline_NoBrokenANSI(t *testing.T) {
+	v := NewViewer(markdownStyleFrom(newDarkPalette()))
+
+	// Mix of formatting that produces ANSI-heavy output
+	md := "# Title\n\n**Bold** and *italic* and `code` and ~~strikethrough~~ and ==highlight==.\n\n" +
+		"See [[notes/meeting]].\n\n" +
+		"```go\nfmt.Println(\"hello\")\n```\n\n" +
+		"> [!note] A callout\n\n" +
+		"- list item one\n- list item two\n"
+
+	v.SetContent(md, 80)
+	output := v.View()
+
+	// Every \033[ must have a matching m within reasonable distance
+	lines := strings.Split(output, "\n")
+	for i, line := range lines {
+		opens := strings.Count(line, "\033[")
+		closes := strings.Count(line, "m")
+		if opens > 0 && opens != closes {
+			t.Errorf("line %d has %d ANSI starts but %d 'm' closers (possible broken escape): %q",
+				i, opens, closes, line)
+		}
+	}
+
+	// Should contain rendered content
+	if !strings.Contains(output, "Bold") {
+		t.Error("output should contain 'Bold'")
+	}
+	if !strings.Contains(output, "note") {
+		t.Error("output should contain callout type 'note'")
+	}
+	if !strings.Contains(output, "fmt.Println") {
+		t.Error("output should contain code block content")
+	}
+}
+
+func TestViewer_RenderPipeline_Tables(t *testing.T) {
+	v := NewViewer(markdownStyleFrom(newDarkPalette()))
+
+	md := "| Name  | Value |\n" +
+		"|-------|-------|\n" +
+		"| foo   | 42    |\n" +
+		"| bar   | 99    |\n"
+
+	v.SetContent(md, 80)
+	output := v.View()
+
+	// Check table borders are intact
+	if !strings.Contains(output, "┌") || !strings.Contains(output, "┐") {
+		t.Error("table top border missing")
+	}
+	if !strings.Contains(output, "└") || !strings.Contains(output, "┘") {
+		t.Error("table bottom border missing")
+	}
+
+	// No broken ANSI
+	lines := strings.Split(output, "\n")
+	for i, line := range lines {
+		opens := strings.Count(line, "\033[")
+		closes := strings.Count(line, "m")
+		if opens > 0 && opens != closes {
+			t.Errorf("table line %d has broken ANSI: %d starts, %d 'm': %q",
+				i, opens, closes, line)
+		}
+	}
+}
+
 func TestViewer_SetSize(t *testing.T) {
 	v := NewViewer(markdownStyleFrom(newDarkPalette()))
 	v.SetContent("# Test\n\nHello.", 80)

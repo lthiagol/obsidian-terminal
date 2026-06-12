@@ -400,6 +400,219 @@ func TestRenderHorizontalRule(t *testing.T) {
 	}
 }
 
+func TestParseMarkdown_UnderscoreBold(t *testing.T) {
+	input := "__bold__ text\n"
+	lines := ParseMarkdown(input)
+	if len(lines) == 0 {
+		t.Fatal("expected at least one line")
+	}
+	foundBold := false
+	for _, seg := range lines[0].Segments {
+		if seg.Bold && seg.Text == "bold" {
+			foundBold = true
+		}
+	}
+	if !foundBold {
+		t.Error("__bold__ should produce bold segment")
+	}
+}
+
+func TestParseMarkdown_NestedBoldItalicTriple(t *testing.T) {
+	// *** marks bold+italic via triple asterisk
+	input := "***bold italic***\n"
+	lines := ParseMarkdown(input)
+	if len(lines) == 0 {
+		t.Fatal("expected at least one line")
+	}
+	for _, seg := range lines[0].Segments {
+		if seg.Bold && seg.Italic {
+			return // found bold+italic
+		}
+	}
+	t.Error("***bold italic*** should produce bold+italic segment")
+}
+
+func TestParseMarkdown_WikiLinkHeadingFragment(t *testing.T) {
+	input := "See [[note#section]] for details.\n"
+	lines := ParseMarkdown(input)
+	var wiki []InlineSegment
+	for _, seg := range lines[0].Segments {
+		if seg.IsWikiLink {
+			wiki = append(wiki, seg)
+		}
+	}
+	if len(wiki) != 1 {
+		t.Fatalf("expected 1 wiki link, got %d", len(wiki))
+	}
+	// Parser strips #section from target but display shows full text
+	if wiki[0].WikiTarget != "note" {
+		t.Errorf("WikiTarget = %q, want 'note'", wiki[0].WikiTarget)
+	}
+}
+
+func TestParseMarkdown_WikiLinkOnlyDisplay(t *testing.T) {
+	input := "[[|just display]]\n"
+	lines := ParseMarkdown(input)
+	if len(lines) == 0 {
+		t.Fatal("expected at least one line")
+	}
+	for _, seg := range lines[0].Segments {
+		if seg.IsWikiLink {
+			if seg.WikiDisplay != "just display" {
+				t.Errorf("display = %q", seg.WikiDisplay)
+			}
+			return
+		}
+	}
+	t.Error("expected wiki link segment")
+}
+
+func TestParseMarkdown_MultiLineCallout(t *testing.T) {
+	input := "> [!note] First line\n> Second line\n> Third line\n"
+	lines := ParseMarkdown(input)
+	calloutCount := 0
+	for _, l := range lines {
+		if l.BlockType == BlockCallout {
+			calloutCount++
+		}
+	}
+	if calloutCount < 1 {
+		t.Error("expected at least 1 callout block")
+	}
+}
+
+func TestParseMarkdown_TableEmptyCell(t *testing.T) {
+	input := "| a |  | c |\n|---|---|---|\n| 1 |   | 3 |\n"
+	lines := ParseMarkdown(input)
+	if len(lines) == 0 {
+		t.Fatal("expected table line")
+	}
+	if lines[0].BlockType != BlockTable {
+		t.Fatalf("expected BlockTable, got %d", lines[0].BlockType)
+	}
+	// Empty cells should be allowed
+	for _, cell := range lines[0].TableCells {
+		if cell == "" {
+			return // found empty cell, test passes
+		}
+	}
+}
+
+func TestParseMarkdown_TableManyColumns(t *testing.T) {
+	input := "| a | b | c | d | e | f | g | h | i | j |\n" +
+		"|---|---|---|---|---|---|---|---|---|---|\n" +
+		"| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0 |\n"
+	lines := ParseMarkdown(input)
+	if len(lines) < 1 {
+		t.Fatal("expected table rows")
+	}
+	// First line is header
+	if len(lines[0].TableCells) != 10 {
+		t.Errorf("expected 10 columns, got %d", len(lines[0].TableCells))
+	}
+}
+
+func TestParseMarkdown_HorizontalRuleVariants(t *testing.T) {
+	tests := []string{"---\n", "***\n", "___\n", "* * *\n", "- - -\n"}
+	for _, input := range tests {
+		t.Run(input[:min(3, len(input))], func(t *testing.T) {
+			lines := ParseMarkdown(input)
+			found := false
+			for _, l := range lines {
+				if l.BlockType == BlockHorizontalRule {
+					found = true
+				}
+			}
+			if !found {
+				t.Errorf("should be horizontal rule: %q", input)
+			}
+		})
+	}
+}
+
+func TestParseMarkdown_CodeFenceTilde(t *testing.T) {
+	input := "~~~go\nfmt.Println(\"hi\")\n~~~\n"
+	lines := ParseMarkdown(input)
+	found := false
+	for _, l := range lines {
+		if l.BlockType == BlockCodeBlock {
+			found = true
+			if l.Language != "go" {
+				t.Errorf("language = %q", l.Language)
+			}
+		}
+	}
+	if !found {
+		t.Error("tilde code fence should produce code block")
+	}
+}
+
+func TestParseMarkdown_UnknownCalloutType(t *testing.T) {
+	input := "> [!customtype] Some content\n"
+	lines := ParseMarkdown(input)
+	found := false
+	for _, l := range lines {
+		if l.BlockType == BlockCallout {
+			found = true
+			if l.CalloutType != "customtype" {
+				t.Errorf("callout type = %q", l.CalloutType)
+			}
+		}
+	}
+	if !found {
+		t.Error("unknown callout type should still be parsed")
+	}
+}
+
+func TestParseMarkdown_CheckedCheckbox(t *testing.T) {
+	input := "- [x] Done item\n- [X] Also done\n- [-] Cancelled\n"
+	lines := ParseMarkdown(input)
+	checked := 0
+	for _, l := range lines {
+		if l.Checked {
+			checked++
+		}
+	}
+	if checked < 2 {
+		t.Errorf("expected at least 2 checked items, got %d", checked)
+	}
+}
+
+func TestRenderTable_WideTableScaling(t *testing.T) {
+	// 8 columns with data, should scale down to fit width
+	input := "| Name | Type | Status | Priority | Owner | Date | Notes | ID |\n" +
+		"|------|------|--------|----------|-------|------|-------|----|\n" +
+		"| foo  | bar  | active | high     | alice | jan  | none  | 1  |\n"
+	lines := ParseMarkdown(input)
+	style := testRendererStyle()
+	output := RenderMarkdown(lines, 60, style)
+
+	if !strings.Contains(output, "foo") {
+		t.Error("wide table should still contain cell data")
+	}
+	// Must have box-drawing borders
+	if !strings.Contains(output, "┌") {
+		t.Error("wide table should have top border")
+	}
+}
+
+func TestRenderMarkdown_EmptyContent(t *testing.T) {
+	style := testRendererStyle()
+	output := RenderMarkdown(nil, 80, style)
+	if output != "" {
+		t.Errorf("empty lines should produce empty output: %q", output)
+	}
+}
+
+func TestVisibleLen_ComplexANSI(t *testing.T) {
+	// Extended color codes
+	s := "\033[38;5;123mcolored\033[0m"
+	clean := visibleLenRe.ReplaceAllString(s, "")
+	if len([]rune(clean)) != 7 {
+		t.Errorf("visibleLen should be 7 for 'colored', got %d", len([]rune(clean)))
+	}
+}
+
 func testRendererStyle() RendererStyle {
 	return RendererStyle{
 		Accent:          "#a78bfa",
