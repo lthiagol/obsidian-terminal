@@ -13,6 +13,22 @@ type clickState struct {
 }
 
 func (m Model) handleMouse(msg tea.MouseMsg) (tea.Model, tea.Cmd) {
+	splitZone := m.treeWidth
+	// Detect drag on split boundary
+	if m.dragSplit {
+		if msg.Action == tea.MouseActionRelease {
+			m.dragSplit = false
+			return m, nil
+		}
+		if msg.Action == tea.MouseActionMotion {
+			m.adjustTreeWidth(msg.X)
+			return m, nil
+		}
+	}
+	if msg.Action == tea.MouseActionPress && abs(msg.X-splitZone) <= 2 {
+		m.dragSplit = true
+		return m, nil
+	}
 	if msg.X < m.treeWidth {
 		return m.handleTreeMouse(msg)
 	}

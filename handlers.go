@@ -27,6 +27,15 @@ func (m Model) handleBrowseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.mode = ModeProfilePicker
 		}
 		return m, nil
+	case msg.Type == m.keys.ShrinkTree:
+		m.adjustTreeWidth(m.treeWidth - 5)
+		return m, nil
+	case msg.Type == m.keys.GrowTree:
+		m.adjustTreeWidth(m.treeWidth + 5)
+		return m, nil
+	case msg.Type == m.keys.ResetTree:
+		m.adjustTreeWidth(m.width / 4)
+		return m, nil
 	case msg.Type == tea.KeyEnter:
 		entry := m.fileTree.SelectedEntry()
 		if entry != nil {

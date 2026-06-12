@@ -33,6 +33,10 @@ type KeyMap struct {
 
 	CyclePinPrev []tea.KeyType
 	CyclePinNext []tea.KeyType
+
+	ShrinkTree tea.KeyType
+	GrowTree   tea.KeyType
+	ResetTree  tea.KeyType
 }
 
 // MatchKey reports whether msg matches any of the given key types.
@@ -86,5 +90,8 @@ func DefaultKeys() KeyMap {
 		ProfileSwitch: 'P',
 		CyclePinPrev:  []tea.KeyType{tea.KeyCtrlOpenBracket},
 		CyclePinNext:  []tea.KeyType{tea.KeyCtrlCloseBracket},
+		ShrinkTree:    tea.KeyCtrlLeft,
+		GrowTree:      tea.KeyCtrlRight,
+		ResetTree:     tea.KeyCtrlBackslash,
 	}
 }

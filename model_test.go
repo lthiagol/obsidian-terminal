@@ -598,3 +598,72 @@ func indexOfFirstCollapsedDir(ft FileTree) int {
 	}
 	return -1
 }
+
+func TestKeyDispatch_ShrinkTree(t *testing.T) {
+	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
+	var model tea.Model = NewModel(cfg)
+	m := model.(Model)
+	if m.err != nil {
+		t.Fatalf("NewModel error: %v", m.err)
+	}
+
+	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+	m = model.(Model)
+	initialWidth := m.treeWidth
+
+	// Ctrl+Left shrinks tree
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyCtrlLeft})
+	m = model.(Model)
+	if m.treeWidth >= initialWidth {
+		t.Errorf("Ctrl+Left should shrink tree: was %d, now %d", initialWidth, m.treeWidth)
+	}
+}
+
+func TestKeyDispatch_GrowTree(t *testing.T) {
+	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
+	var model tea.Model = NewModel(cfg)
+	m := model.(Model)
+	if m.err != nil {
+		t.Fatalf("NewModel error: %v", m.err)
+	}
+
+	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+	m = model.(Model)
+
+	// Shrink first so we can grow
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyCtrlLeft})
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyCtrlLeft})
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyCtrlLeft})
+	m = model.(Model)
+	shrunkWidth := m.treeWidth
+
+	// Ctrl+Right grows tree
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyCtrlRight})
+	m = model.(Model)
+	if m.treeWidth <= shrunkWidth {
+		t.Errorf("Ctrl+Right should grow tree: was %d, now %d", shrunkWidth, m.treeWidth)
+	}
+}
+
+func TestKeyDispatch_ResetTree(t *testing.T) {
+	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
+	var model tea.Model = NewModel(cfg)
+	m := model.(Model)
+	if m.err != nil {
+		t.Fatalf("NewModel error: %v", m.err)
+	}
+
+	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 30})
+	m = model.(Model)
+
+	// Shrink then reset
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyCtrlLeft})
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyCtrlLeft})
+
+	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyCtrlBackslash})
+	m = model.(Model)
+	// Should be close to default (width/4 for width=100 = 25)
+	if m.treeWidth < 22 || m.treeWidth > 28 {
+		t.Errorf("Reset should restore ~25: got %d", m.treeWidth)
+	}
+}

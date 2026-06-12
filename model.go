@@ -84,6 +84,9 @@ type Model struct {
 	width     int
 	height    int
 	treeWidth int
+	treeRatio float64
+
+	dragSplit bool
 
 	config  *Config
 	ready   bool
@@ -230,6 +233,28 @@ func NewModel(cfg *Config) Model {
 	return m
 }
 
+func (m *Model) adjustTreeWidth(newWidth int) {
+	if newWidth < 15 {
+		newWidth = 15
+	}
+	if newWidth > m.width/2 {
+		newWidth = m.width / 2
+	}
+	m.treeWidth = newWidth
+	if m.width > 0 {
+		m.treeRatio = float64(m.treeWidth) / float64(m.width)
+	}
+	m.fileTree.SetSize(m.treeWidth, m.height-1)
+	viewerWidth := m.width - m.treeWidth - 2
+	if viewerWidth < 10 {
+		viewerWidth = 10
+	}
+	m.viewer.SetSize(viewerWidth, m.height-1)
+	if m.activeNote != nil {
+		m.viewer.SetContent(m.activeNote.Body, viewerWidth)
+	}
+}
+
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.SetWindowTitle("obsidian-terminal"),
@@ -253,10 +278,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		m.treeWidth = max(msg.Width/4, 25)
-		if m.treeWidth < 5 {
-			m.treeWidth = 5
+		if m.treeRatio == 0 {
+			m.treeRatio = 0.25
 		}
+		m.treeWidth = max(int(float64(m.width)*m.treeRatio), 25)
 		m.fileTree.SetSize(m.treeWidth, m.height-1)
 		viewerWidth := m.width - m.treeWidth - 2
 		if viewerWidth < 10 {
