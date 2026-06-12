@@ -69,11 +69,11 @@ func (m *Model) registerCommands() []Command {
 			Key:         "Enter",
 			Modes:       []Mode{ModeView},
 			Action: func(m *Model) (tea.Model, tea.Cmd) {
-				if m.viewer.SelectedLinkIndex() >= 0 {
-					target := m.viewer.SelectedLinkPath()
-					if target != "" {
-						resolved := ResolveWikiLink(target, m.vault, m.config.VaultPath)
-						if resolved != "" {
+		if m.viewer.SelectedLinkIndex() >= 0 {
+				target := m.viewer.SelectedLinkPath()
+				if target != "" && m.vault != nil {
+					resolved := ResolveWikiLink(target, m.vault, m.config.VaultPath)
+					if resolved != "" {
 							m.openNote(resolved)
 						}
 					}
@@ -237,11 +237,10 @@ func (m *Model) filterCommands(q string) []Command {
 
 func (m *Model) commandMatches(cmd Command, q string) bool {
 	qLower := strings.ToLower(q)
-	if strings.Contains(strings.ToLower(cmd.Name), qLower) {
-		return true
-	}
-	if strings.Contains(strings.ToLower(cmd.Description), qLower) {
-		return true
+	nameMatch := strings.Contains(strings.ToLower(cmd.Name), qLower)
+	descMatch := strings.Contains(strings.ToLower(cmd.Description), qLower)
+	if !nameMatch && !descMatch {
+		return false
 	}
 	if len(cmd.Modes) == 0 {
 		return true

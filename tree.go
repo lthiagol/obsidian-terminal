@@ -192,9 +192,15 @@ func (ft FileTree) SelectedPath() string {
 	return ""
 }
 
-func (ft FileTree) SetSize(width, height int) {
-	_ = width
-	_ = height
+func (ft *FileTree) SetSize(width, height int) {
+	if width < 10 {
+		width = 10
+	}
+	if height < 1 {
+		height = 1
+	}
+	ft.width = width
+	ft.height = height
 }
 
 func (ft FileTree) Cursor() int {

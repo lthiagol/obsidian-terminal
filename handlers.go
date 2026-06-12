@@ -112,7 +112,7 @@ func (m Model) handleViewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case msg.Type == tea.KeyEnter:
 		if m.viewer.SelectedLinkIndex() >= 0 {
 			target := m.viewer.SelectedLinkPath()
-			if target != "" {
+			if target != "" && m.vault != nil {
 				resolved := ResolveWikiLink(target, m.vault, m.config.VaultPath)
 				if resolved != "" {
 					m.openNote(resolved)
@@ -245,6 +245,9 @@ func (m *Model) openNote(path string) {
 
 	// Set up embed resolver for this note load
 	m.viewer.SetEmbedResolver(func(target, heading string) (string, error) {
+		if m.vault == nil {
+			return "", fmt.Errorf("vault not available")
+		}
 		resolved := ResolveWikiLink(target, m.vault, m.config.VaultPath)
 		if resolved == "" {
 			return "", fmt.Errorf("not found: %s", target)

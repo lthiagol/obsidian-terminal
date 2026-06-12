@@ -328,7 +328,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		if MatchRune(msg, m.keys.QuitRune) || MatchRune(msg, 'Q') {
+		if (m.mode == ModeBrowse || m.mode == ModeView) && !m.commandPaletteVisible && !m.recentVisible && !m.outlineVisible && (MatchRune(msg, m.keys.QuitRune) || MatchRune(msg, 'Q')) {
 			m.quitting = true
 			saveSession(m)
 			return m, tea.Quit
