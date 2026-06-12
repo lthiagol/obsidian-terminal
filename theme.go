@@ -27,11 +27,14 @@ type Palette struct {
 	Border          lipgloss.Color
 	SelectionText   lipgloss.Color
 
-	ModeBrowse lipgloss.Color
-	ModeView   lipgloss.Color
-	ModeSearch lipgloss.Color
-	ModeFind   lipgloss.Color
-	ModeHelp   lipgloss.Color
+	ModeBrowse     lipgloss.Color
+	ModeView       lipgloss.Color
+	ModeSearch     lipgloss.Color
+	ModeFind       lipgloss.Color
+	ModeHelp       lipgloss.Color
+	ModeTags       lipgloss.Color
+	ModeProfile    lipgloss.Color
+	Heading1       lipgloss.Color
 
 	TreeStyle   lipgloss.Style
 	ViewerStyle lipgloss.Style
@@ -63,10 +66,13 @@ var themeData = map[string]themeDef{
 			"border":           "#374151",
 			"selection_text":   "#000000",
 			"mode_browse":      "#a78bfa",
-			"mode_view":        "#2dd4bf",
+			"mode_view":        "#e879f9",
 			"mode_search":      "#fbbf24",
 			"mode_find":        "#fbbf24",
 			"mode_help":        "#60a5fa",
+			"mode_tags":        "#fb923c",
+			"mode_profile":     "#a78bfa",
+			"heading1":         "#e879f9",
 		},
 	},
 	"catppuccin-latte": {
@@ -86,10 +92,13 @@ var themeData = map[string]themeDef{
 			"surface":          "#ccd0da",
 			"border":           "#acb0be",
 			"mode_browse":      "#8839ef",
-			"mode_view":        "#1e66f5",
+			"mode_view":        "#ea76cb",
 			"mode_search":      "#7287fd",
 			"mode_find":        "#7287fd",
 			"mode_help":        "#1e66f5",
+			"mode_tags":        "#fe640b",
+			"mode_profile":     "#8839ef",
+			"heading1":         "#ea76cb",
 		},
 	},
 	"catppuccin-frappe": {
@@ -109,10 +118,13 @@ var themeData = map[string]themeDef{
 			"surface":          "#414559",
 			"border":           "#626880",
 			"mode_browse":      "#ca9ee6",
-			"mode_view":        "#8caaee",
+			"mode_view":        "#f4b8e4",
 			"mode_search":      "#babbf1",
 			"mode_find":        "#babbf1",
 			"mode_help":        "#8caaee",
+			"mode_tags":        "#ef9f76",
+			"mode_profile":     "#ca9ee6",
+			"heading1":         "#f4b8e4",
 		},
 	},
 	"catppuccin-macchiato": {
@@ -132,10 +144,13 @@ var themeData = map[string]themeDef{
 			"surface":          "#363a4f",
 			"border":           "#5b6078",
 			"mode_browse":      "#c6a0f6",
-			"mode_view":        "#8aadf4",
+			"mode_view":        "#f5bde6",
 			"mode_search":      "#b7bdf8",
 			"mode_find":        "#b7bdf8",
 			"mode_help":        "#8aadf4",
+			"mode_tags":        "#f5a97f",
+			"mode_profile":     "#c6a0f6",
+			"heading1":         "#f5bde6",
 		},
 	},
 	"catppuccin-mocha": {
@@ -155,10 +170,13 @@ var themeData = map[string]themeDef{
 			"surface":          "#313244",
 			"border":           "#585b70",
 			"mode_browse":      "#cba6f7",
-			"mode_view":        "#89b4fa",
+			"mode_view":        "#f5c2e7",
 			"mode_search":      "#b4befe",
 			"mode_find":        "#b4befe",
 			"mode_help":        "#89b4fa",
+			"mode_tags":        "#fab387",
+			"mode_profile":     "#cba6f7",
+			"heading1":         "#f5c2e7",
 		},
 	},
 	"dracula": {
@@ -178,10 +196,13 @@ var themeData = map[string]themeDef{
 			"surface":          "#44475a",
 			"border":           "#6272a4",
 			"mode_browse":      "#bd93f9",
-			"mode_view":        "#8be9fd",
-			"mode_search":      "#ff79c6",
-			"mode_find":        "#ff79c6",
+			"mode_view":        "#ff79c6",
+			"mode_search":      "#f1fa8c",
+			"mode_find":        "#f1fa8c",
 			"mode_help":        "#8be9fd",
+			"mode_tags":        "#ffb86c",
+			"mode_profile":     "#bd93f9",
+			"heading1":         "#ff79c6",
 		},
 	},
 	"alucard": {
@@ -201,10 +222,13 @@ var themeData = map[string]themeDef{
 			"surface":          "#323540",
 			"border":           "#576284",
 			"mode_browse":      "#b390e3",
-			"mode_view":        "#6cb6c5",
-			"mode_search":      "#e377a9",
-			"mode_find":        "#e377a9",
+			"mode_view":        "#e377a9",
+			"mode_search":      "#f0c062",
+			"mode_find":        "#f0c062",
 			"mode_help":        "#6cb6c5",
+			"mode_tags":        "#d08735",
+			"mode_profile":     "#b390e3",
+			"heading1":         "#e377a9",
 		},
 	},
 }
@@ -230,6 +254,7 @@ func buildPalette(name string) (Palette, error) {
 		Surface:         parseHex(def.Colors["surface"]),
 		Border:          parseHex(def.Colors["border"]),
 		SelectionText:   parseHexOrDefault(def.Colors["selection_text"], "#000000"),
+		Heading1:        parseHexOrDefault(def.Colors["heading1"], "#e879f9"),
 	}
 	return rebuildDerivedStyles(p), nil
 }
@@ -267,7 +292,7 @@ func newDarkPalette() Palette {
 			TextPrimary: "#e5e7eb", TextSecondary: "#9ca3af", TextMuted: "#6b7280",
 			TextDim: "#4b5563", Success: "#34d399", Warning: "#fbbf24",
 			Error: "#f87171", Info: "#60a5fa", Background: "#111827",
-			Surface: "#1f2937", Border: "#374151",
+			Surface: "#1f2937", Border: "#374151", Heading1: "#e879f9",
 		})
 	}
 	return p
@@ -315,11 +340,13 @@ var (
 )
 
 var ModeColors = map[Mode]lipgloss.Color{
-	ModeBrowse: Accent,
-	ModeView:   AccentTertiary,
-	ModeSearch: AccentSecondary,
-	ModeFind:   AccentSecondary,
-	ModeHelp:   Info,
+	ModeBrowse:        Accent,
+	ModeView:          AccentSecondary,
+	ModeSearch:        AccentSecondary,
+	ModeFind:          AccentSecondary,
+	ModeHelp:          Info,
+	ModeTags:          AccentSecondary,
+	ModeProfilePicker: Accent,
 }
 
 func activatePalette(p Palette) {
@@ -340,11 +367,13 @@ func activatePalette(p Palette) {
 	HelpStyle = p.HelpStyle
 	SearchStyle = p.SearchStyle
 	ModeColors = map[Mode]lipgloss.Color{
-		ModeBrowse: p.ModeBrowse,
-		ModeView:   p.ModeView,
-		ModeSearch: p.ModeSearch,
-		ModeFind:   p.ModeFind,
-		ModeHelp:   p.ModeHelp,
+		ModeBrowse:        p.ModeBrowse,
+		ModeView:          p.ModeView,
+		ModeSearch:        p.ModeSearch,
+		ModeFind:          p.ModeFind,
+		ModeHelp:          p.ModeHelp,
+		ModeTags:          p.ModeTags,
+		ModeProfilePicker: p.ModeProfile,
 	}
 }
 
@@ -357,7 +386,7 @@ func markdownStyleFrom(p Palette, lineSpacing string) markdown.RendererStyle {
 		TextDim:         p.TextDim,
 		Success:         p.Success,
 		CodeBackground:  p.Surface,
-		Heading1:        p.AccentSecondary,
+		Heading1:        p.Heading1,
 		LineSpacing:     lineSpacing,
 	}
 }
@@ -545,10 +574,12 @@ func rebuildDerivedStyles(p Palette) Palette {
 		Padding(1, 2)
 
 	p.ModeBrowse = p.Accent
-	p.ModeView = p.AccentTertiary
+	p.ModeView = p.Heading1
 	p.ModeSearch = p.AccentSecondary
 	p.ModeFind = p.AccentSecondary
 	p.ModeHelp = p.Info
+	p.ModeTags = p.AccentSecondary
+	p.ModeProfile = p.Accent
 
 	return p
 }

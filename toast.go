@@ -59,16 +59,16 @@ func renderToast(toast Toast, width int) string {
 	var borderColor lipgloss.Color
 	switch toast.Type {
 	case ToastInfo:
-		icon = "i"
+		icon = "\u2139" // ℹ
 		borderColor = Info
 	case ToastSuccess:
-		icon = "v"
+		icon = "\u2714" // ✔
 		borderColor = Success
 	case ToastWarning:
-		icon = "!"
+		icon = "\u26A0" // ⚠
 		borderColor = Warning
 	case ToastError:
-		icon = "x"
+		icon = "\u2716" // ✖
 		borderColor = Error
 	}
 

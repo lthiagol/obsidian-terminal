@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/lthiagol/obsidian-terminal/internal/search"
 )
@@ -107,12 +109,27 @@ func (m Model) handleViewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	case msg.Type == tea.KeyEsc:
+		if m.inNoteSearchActive {
+			m.inNoteSearchActive = false
+			m.inNoteSearchQuery = ""
+			m.inNoteMatches = nil
+			return m, nil
+		}
 		m.mode = m.prevMode
 		m.activeNote = nil
 		return m, nil
 	case MatchRune(msg, m.keys.Search):
-		m.enterSearchMode()
-		return m, nil
+		return m.activateInNoteSearch()
+	case MatchRune(msg, 'n'):
+		if m.inNoteSearchActive {
+			m.cycleInNoteMatch(1)
+			return m, nil
+		}
+	case MatchRune(msg, 'N'):
+		if m.inNoteSearchActive {
+			m.cycleInNoteMatch(-1)
+			return m, nil
+		}
 	case MatchRune(msg, m.keys.Find):
 		m.enterFindMode()
 		return m, nil
@@ -126,6 +143,12 @@ func (m Model) handleViewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case msg.Type == tea.KeyTab:
 		m.viewer.CycleLink()
+		return m, nil
+	case MatchRune(msg, '['):
+		m.goBackHistory()
+		return m, nil
+	case MatchRune(msg, ']'):
+		m.goForwardHistory()
 		return m, nil
 	case msg.Type == tea.KeyEnter:
 		if m.viewer.SelectedLinkIndex() >= 0 {
@@ -252,6 +275,11 @@ func (m *Model) enterHelpMode() {
 }
 
 func (m *Model) openNote(path string) {
+	// Push current note to history before navigating
+	if m.activeNote != nil && m.activeNote.Path != path {
+		m.history = append(m.history, m.activeNote.Path)
+		m.historyForward = nil // clear forward history on new navigation
+	}
 	note, err := LoadNote(m.config.VaultPath, path)
 	if err != nil {
 		m.addToast("Could not load note: "+err.Error(), ToastError)
@@ -484,4 +512,128 @@ func (m *Model) setTheme(themeName string) {
 	m.palette = palette
 	m.viewer.renderStyle = markdownStyleFrom(palette, m.config.LineSpacing)
 	m.searchStyle = searchStyleFrom(palette)
+}
+
+func (m *Model) goBackHistory() {
+	if len(m.history) == 0 {
+		return
+	}
+	prev := m.history[len(m.history)-1]
+	m.history = m.history[:len(m.history)-1]
+	if m.activeNote != nil {
+		m.historyForward = append(m.historyForward, m.activeNote.Path)
+	}
+	m.openNote(prev)
+}
+
+func (m *Model) goForwardHistory() {
+	if len(m.historyForward) == 0 {
+		return
+	}
+	next := m.historyForward[len(m.historyForward)-1]
+	m.historyForward = m.historyForward[:len(m.historyForward)-1]
+	if m.activeNote != nil {
+		m.history = append(m.history, m.activeNote.Path)
+	}
+	m.openNote(next)
+}
+
+func (m Model) activateInNoteSearch() (tea.Model, tea.Cmd) {
+	if m.activeNote == nil || m.activeNote.Body == "" {
+		return m, nil
+	}
+	m.inNoteSearchActive = true
+	m.inNoteSearchQuery = ""
+	m.inNoteSearchIdx = 0
+	m.inNoteMatches = nil
+	return m, nil
+}
+
+func (m *Model) updateInNoteSearch(query string) {
+	m.inNoteSearchQuery = query
+	m.inNoteSearchIdx = 0
+	m.inNoteMatches = nil
+
+	if query == "" {
+		return
+	}
+
+	body := ""
+	if m.activeNote != nil {
+		body = m.activeNote.Body
+	}
+	lines := strings.Split(body, "\n")
+	queryLower := strings.ToLower(query)
+	for i, line := range lines {
+		if strings.Contains(strings.ToLower(line), queryLower) {
+			m.inNoteMatches = append(m.inNoteMatches, i)
+		}
+	}
+}
+
+func (m *Model) cycleInNoteMatch(dir int) {
+	if len(m.inNoteMatches) == 0 {
+		return
+	}
+	m.inNoteSearchIdx = (m.inNoteSearchIdx + dir) % len(m.inNoteMatches)
+	if m.inNoteSearchIdx < 0 {
+		m.inNoteSearchIdx += len(m.inNoteMatches)
+	}
+	targetLine := m.inNoteMatches[m.inNoteSearchIdx]
+	m.viewer.SetScrollPosition(targetLine)
+}
+
+func (m *Model) handleInNoteSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	if msg.Type == tea.KeyEsc {
+		m.inNoteSearchActive = false
+		m.inNoteSearchQuery = ""
+		m.inNoteMatches = nil
+		return m, nil
+	}
+	if msg.Type == tea.KeyEnter {
+		m.inNoteSearchActive = false
+		m.inNoteSearchQuery = ""
+		m.inNoteMatches = nil
+		return m, nil
+	}
+	if msg.Type == tea.KeyBackspace {
+		if len(m.inNoteSearchQuery) > 0 {
+			m.updateInNoteSearch(m.inNoteSearchQuery[:len(m.inNoteSearchQuery)-1])
+		}
+		return m, nil
+	}
+	if MatchRune(msg, 'n') {
+		m.cycleInNoteMatch(1)
+		return m, nil
+	}
+	if MatchRune(msg, 'N') {
+		m.cycleInNoteMatch(-1)
+		return m, nil
+	}
+	if len(msg.Runes) > 0 {
+		m.updateInNoteSearch(m.inNoteSearchQuery + string(msg.Runes))
+		return m, nil
+	}
+	return m, nil
+}
+
+func (m Model) renderInNoteSearch() string {
+	if !m.inNoteSearchActive {
+		return ""
+	}
+	width := m.width - m.treeWidth - 6
+	if width < 20 {
+		width = 20
+	}
+
+	var sb strings.Builder
+	label := lipgloss.NewStyle().Bold(true).Foreground(AccentSecondary).Render("/")
+	sb.WriteString(fmt.Sprintf("%s%s_", label, m.inNoteSearchQuery))
+
+	if len(m.inNoteMatches) > 0 {
+		info := fmt.Sprintf("  (%d/%d)", m.inNoteSearchIdx+1, len(m.inNoteMatches))
+		sb.WriteString(lipgloss.NewStyle().Foreground(TextDim).Render(info))
+	}
+
+	return lipgloss.NewStyle().Width(width).Render(sb.String())
 }

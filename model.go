@@ -141,6 +141,13 @@ type Model struct {
 	recentCursor  int
 
 	profilePicker      ProfilePicker
+	inNoteSearchActive bool
+	inNoteSearchQuery  string
+	inNoteSearchIdx    int
+	inNoteMatches      []int
+	history            []string
+	historyForward     []string
+	previewVisible     bool
 
 	commandPaletteVisible bool
 	commandPaletteQuery   string
@@ -332,7 +339,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.openDailyNote()
 			return m, nil
 		case tea.KeyCtrlO:
-			m.toggleRecents()
+			if m.mode == ModeView {
+				m.goBackHistory()
+			} else {
+				m.toggleRecents()
+			}
 			return m, nil
 		case tea.KeyCtrlK:
 			m.openCommandPalette()
@@ -363,6 +374,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 			return m, nil
+		}
+
+		if m.inNoteSearchActive {
+			return m.handleInNoteSearchKey(msg)
 		}
 
 		// Retry rescan when vault is broken
@@ -451,7 +466,12 @@ func (m Model) View() string {
 					backlinkStyle.Render(m.backlinkPanel.View()),
 				)
 			} else {
-				rightPanel = m.viewer.View()
+				viewerOutput := m.viewer.View()
+				if m.inNoteSearchActive {
+					searchBar := m.renderInNoteSearch()
+					viewerOutput = lipgloss.JoinVertical(lipgloss.Left, searchBar, "", viewerOutput)
+				}
+				rightPanel = viewerOutput
 			}
 		default:
 			rightPanel = "Select a file to view"

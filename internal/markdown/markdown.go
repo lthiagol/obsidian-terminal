@@ -919,28 +919,56 @@ func renderBlockquote(line MarkdownLine, width int, style RendererStyle) string 
 }
 
 func renderCallout(line MarkdownLine, width int, style RendererStyle) string {
-	icon := "ℹ"
+	icon := "\u2139" // ℹ
 	switch line.CalloutType {
 	case "note":
-		icon = "📝"
-	case "tip":
-		icon = "💡"
-	case "warning":
-		icon = "⚠"
-	case "danger":
-		icon = "🚫"
+		icon = "\u2139" // ℹ
 	case "info":
-		icon = "ℹ"
+		icon = "\u2139" // ℹ
+	case "tip":
+		icon = "\u2736" // ✶
+	case "hint":
+		icon = "\u2736" // ✶
+	case "important":
+		icon = "\u2605" // ★
+	case "warning":
+		icon = "\u26A0" // ⚠
+	case "caution":
+		icon = "\u26A0" // ⚠
+	case "danger":
+		icon = "\u2716" // ✖
+	case "error":
+		icon = "\u2716" // ✖
 	case "todo":
-		icon = "☐"
+		icon = "\u25CB" // ○
 	case "question":
-		icon = "❓"
+		icon = "?"
+	case "help":
+		icon = "?"
+	case "faq":
+		icon = "?"
 	case "success":
-		icon = "✅"
+		icon = "\u2714" // ✔
+	case "check":
+		icon = "\u2714" // ✔
+	case "done":
+		icon = "\u2714" // ✔
 	case "bug":
-		icon = "🐛"
+		icon = "\u25C6" // ◆
 	case "example":
-		icon = "📋"
+		icon = "\u25B6" // ▶
+	case "abstract":
+		icon = "\u2261" // ≡
+	case "summary":
+		icon = "\u2261" // ≡
+	case "quote":
+		icon = "\u201C" // "
+	case "failure":
+		icon = "\u2718" // ✘
+	case "fail":
+		icon = "\u2718" // ✘
+	case "missing":
+		icon = "\u2718" // ✘
 	}
 
 	typeStyle := lipgloss.NewStyle().Bold(true).Foreground(style.AccentSecondary)
