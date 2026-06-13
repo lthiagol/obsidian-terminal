@@ -1,8 +1,8 @@
-# M49 — Graph View (ASCII)
+# M96 — Graph View (ASCII)
 
-**Status:** ⏳ pending  
-**Phase:** 11 — Visual & UX  
-**Priority:** 🟡 High  
+**Status:** ⏳ pending (deferred from M49)  
+**Phase:** 99 — Future (Low Priority)  
+**Priority:** 🔵 Low  
 **Finding:** M47 deferred; STATUS non-goals updated — read-only ASCII graph is in charter  
 **Execution plan:** [PHASE-12-EXECUTION-PLAN.md](../PHASE-12-EXECUTION-PLAN.md) Track D
 

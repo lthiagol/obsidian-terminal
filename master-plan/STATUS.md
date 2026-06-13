@@ -136,7 +136,7 @@
 |-----------|--------|-------|---------|-----------|
 | M47: Visual Polish & Look-and-Feel | ✅ done | 0 | 2026-06-12 | 2026-06-12 |
 | M48: Note Preview Pane | ✅ done | 4 | 2026-06-13 | 2026-06-13 |
-| M49: Graph View (ASCII) | ⏳ pending | 0 | — | — |
+| M49 → **M96** | ⏸ deferred → Phase 99 | 0 | — | — |
 
 ### Phase 10: Robustness (Priority: 🔵 Future)
 
@@ -166,6 +166,7 @@ From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
+| M96: Graph View (ASCII, deferred from M49) | ⏳ pending | 0 | — | — |
 | M97: Export to PDF/HTML | ⏳ pending | 0 | — | — |
 | M98: Image Preview | ⏳ pending | 0 | — | — |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
@@ -273,7 +274,7 @@ content) without ANSI-aware horizontal clipping complexity.
 7. **M54** — WP1 benchmarks only → decision gate → WP2–4 if 5k vault p95 > 200ms
 
 **Track D — Features**
-8. **M48 + M49** — Preview pane + graph view
+8. **M48** — Preview pane (✅ done); **M49 → M96** — Graph view (⏸ deferred)
 
 **Deferred (Phase 99)**
 - **M57** — Package extraction (after M52; reactivation criteria in milestone)
