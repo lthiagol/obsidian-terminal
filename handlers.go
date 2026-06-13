@@ -421,33 +421,6 @@ func (m Model) handleCommandPaletteKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) handleOutlineKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch {
-	case msg.Type == tea.KeyEsc || MatchRune(msg, m.keys.Outline):
-		m.outlineVisible = false
-		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
-		if m.outlineCursor < len(m.outlineItems)-1 {
-			m.outlineCursor++
-		}
-		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
-		if m.outlineCursor > 0 {
-			m.outlineCursor--
-		}
-		return m, nil
-	case msg.Type == tea.KeyEnter:
-		if m.outlineCursor < len(m.outlineItems) {
-			item := m.outlineItems[m.outlineCursor]
-			m.viewer.ScrollTop()
-			m.viewer.ScrollDown(item.YOffset)
-			m.outlineVisible = false
-		}
-		return m, nil
-	}
-	return m, nil
-}
-
 func (m Model) handleRecentsKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
 	case msg.Type == tea.KeyEsc:
