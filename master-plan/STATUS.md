@@ -118,7 +118,7 @@
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M38: Split model.go + Consolidate Note Opening | 🟡 partial → **M52** | — | 2026-06-11 | 2026-06-11 |
+| M38: Split model.go + Consolidate Note Opening | ✅ done (→ M52) | — | 2026-06-11 | 2026-06-13 |
 | M39: ANSI Wrapping & Scroll Fixes | ✅ done | — | 2026-06-11 | 2026-06-11 |
 
 ### Phase 9: Code Quality (Priority: 🟢 Medium)
@@ -154,7 +154,7 @@ From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
 |-----------|--------|-------|---------|-----------|
 | M50: Navigation History Fix | ✅ done | 7 | 2026-06-13 | 2026-06-13 |
 | M51: Theme De-globalization (finish M37) | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
-| M52: Decompose model.go (finish M38) | ⏳ pending | 0 | — | — |
+| M52: Decompose model.go (finish M38) | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
 | M53: Documentation & Plan Sync | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
 | M54: Incremental Vault Rescan | ⏳ pending (gated) | 0 | — | — |
 | M55: CI Pipeline | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
@@ -318,8 +318,7 @@ M48-M49 (Features) + M57 (Package extraction, optional)
 | Milestone | Done | Remaining |
 |-----------|------|-----------|
 | M37 | ✅ done via M51 | No globals remain |
-| M38 | `openNote()` consolidation, mouse/search paths fixed | `model.go` still 1013 lines → **M52** |
-| M55 | WP1 + WP2 complete, CI workflow created | CI green on default branch → **M53** |
+| M38 | ✅ done via M52 | model.go < 400 lines |
 
 ## Keybinding Conflicts Resolved
 
