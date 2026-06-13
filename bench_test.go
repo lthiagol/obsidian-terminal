@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -114,5 +116,40 @@ func BenchmarkScanVault(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		_, _, _, _ = ScanVault("testdata/test-vault", skipDirs)
+	}
+}
+
+func BenchmarkScanVault_1k(b *testing.B) {
+	dir := b.TempDir()
+	generateBenchVault(dir, 100, 10)
+	skipDirs := []string{".obsidian", ".git", ".trash", "node_modules", "archive"}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		_, _, _, _ = ScanVault(dir, skipDirs)
+	}
+}
+
+func BenchmarkScanVault_5k(b *testing.B) {
+	dir := b.TempDir()
+	generateBenchVault(dir, 500, 10)
+	skipDirs := []string{".obsidian", ".git", ".trash", "node_modules", "archive"}
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		_, _, _, _ = ScanVault(dir, skipDirs)
+	}
+}
+
+func generateBenchVault(root string, dirs, filesPerDir int) {
+	for i := 0; i < dirs; i++ {
+		dirPath := fmt.Sprintf("%s/dir%d", root, i)
+		os.MkdirAll(dirPath, 0755)
+		for j := 0; j < filesPerDir; j++ {
+			content := fmt.Sprintf("---\ntitle: Note %d-%d\ntags:\n  - bench\n---\n\n# Note %d-%d\n\nThis is benchmark content.\n", i, j, i, j)
+			os.WriteFile(fmt.Sprintf("%s/note%d.md", dirPath, j), []byte(content), 0644)
+		}
 	}
 }

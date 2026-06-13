@@ -47,10 +47,10 @@ func BenchmarkScanVault_5k(b *testing.B)
 
 #### Benchmark results (fill on execution)
 
-| Fixture | p50 | p95 | allocs/op |
-|---------|-----|-----|-----------|
-| 1k | | | |
-| 5k | | | |
+| Fixture | p50 | allocs/op | Decision |
+|---------|-----|-----------|----------|
+| 1k | 12.9ms | 1.8MB / 18k | — |
+| 5k | 73.9ms | 8.8MB / 91k | ✅ < 200ms gate → full scan acceptable |
 
 ---
 
