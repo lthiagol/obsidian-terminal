@@ -37,12 +37,13 @@ func buildHelpLines(p Palette) []string {
 		{
 			title: "File Tree",
 			bindings: []string{
-				"Enter    — open note / toggle folder",
-				"← →      — collapse / expand folder",
-				"T        — browse tags",
-				"p        — pin/unpin note",
-				"P        — switch profile",
-				"Ctrl+[/] — cycle pinned notes",
+			"Enter    — open note / toggle folder",
+			"← →      — collapse / expand folder",
+			"v        — toggle note preview",
+			"T        — browse tags",
+			"p        — pin/unpin note",
+			"P        — switch profile",
+			"Ctrl+[/] — cycle pinned notes",
 			},
 		},
 		{

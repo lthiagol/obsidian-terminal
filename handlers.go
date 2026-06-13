@@ -50,9 +50,15 @@ func (m Model) handleBrowseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
 		m.fileTree.MoveDown()
+		if m.previewVisible {
+			m.previewPath = ""
+		}
 		return m, nil
 	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
 		m.fileTree.MoveUp()
+		if m.previewVisible {
+			m.previewPath = ""
+		}
 		return m, nil
 	case MatchKey(msg, m.keys.Left) || MatchRune(msg, m.keys.LeftRune):
 		m.fileTree.collapse()
@@ -66,6 +72,15 @@ func (m Model) handleBrowseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case MatchRune(msg, m.keys.BottomRune):
 		if len(m.fileTree.items) > 0 {
 			m.fileTree.cursor = len(m.fileTree.items) - 1
+		}
+		return m, nil
+	case MatchRune(msg, m.keys.PreviewToggle):
+		m.previewVisible = !m.previewVisible
+		if m.previewVisible {
+			m.previewPath = ""
+			m.addToast("Preview on", ToastInfo)
+		} else {
+			m.addToast("Preview off", ToastInfo)
 		}
 		return m, nil
 	case MatchRune(msg, m.keys.PinRune):

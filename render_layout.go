@@ -75,7 +75,11 @@ func (m Model) View() string {
 				rightPanel = viewerOutput
 			}
 		default:
-			rightPanel = "Select a file to view"
+			if m.mode == ModeBrowse && m.previewVisible {
+				rightPanel = m.renderPreview()
+			} else {
+				rightPanel = "Select a file to view"
+			}
 		}
 	}
 

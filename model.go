@@ -138,6 +138,8 @@ type Model struct {
 	history            []string
 	historyForward     []string
 	previewVisible     bool
+	previewPath        string
+	previewPane        PreviewPane
 
 	commandPaletteVisible bool
 	commandPaletteQuery   string
@@ -226,6 +228,7 @@ func NewModel(cfg *Config) Model {
 		palette:         palette,
 		activePinnedIdx: -1,
 		profilePicker:   NewProfilePicker(cfg.Profiles, palette),
+		previewPane:     NewPreviewPane(),
 	}
 	if len(validationWarnings) > 0 {
 		for _, w := range validationWarnings {

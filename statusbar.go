@@ -63,7 +63,7 @@ func (m Model) renderStatusBar() string {
 func modeHints(mode Mode) string {
 	switch mode {
 	case ModeBrowse:
-		return "/ search | Enter open | ? help | q quit"
+		return "/ search | v preview | Enter open | ? help | q quit"
 	case ModeView:
 		return "h back | j/k scroll | Tab link | / search | ? help"
 	case ModeSearch:

@@ -30,6 +30,7 @@ type KeyMap struct {
 	PinRune       rune // PinRune pins the current note (p).
 	Outline       rune // Outline shows the table of contents (t).
 	ProfileSwitch rune // ProfileSwitch opens the profile picker (P).
+	PreviewToggle rune // PreviewToggle toggles the note preview pane (v).
 
 	CyclePinPrev []tea.KeyType // CyclePinPrev cycles to the previous pinned note.
 	CyclePinNext []tea.KeyType // CyclePinNext cycles to the next pinned note.
@@ -88,6 +89,7 @@ func DefaultKeys() KeyMap {
 		PinRune:       'p',
 		Outline:       't',
 		ProfileSwitch: 'P',
+		PreviewToggle: 'v',
 		CyclePinPrev:  []tea.KeyType{tea.KeyCtrlOpenBracket},
 		CyclePinNext:  []tea.KeyType{tea.KeyCtrlCloseBracket},
 		ShrinkTree:    tea.KeyCtrlLeft,
