@@ -135,7 +135,7 @@
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
 | M47: Visual Polish & Look-and-Feel | ✅ done | 0 | 2026-06-12 | 2026-06-12 |
-| M48: Note Preview Pane | ⏳ pending | 0 | — | — |
+| M48: Note Preview Pane | ✅ done | 4 | 2026-06-13 | 2026-06-13 |
 | M49: Graph View (ASCII) | ⏳ pending | 0 | — | — |
 
 ### Phase 10: Robustness (Priority: 🔵 Future)
@@ -170,7 +170,7 @@ From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
 | M98: Image Preview | ⏳ pending | 0 | — | — |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
 
-**Total Tests:** ~287 (run `go test ./... -v -count=1 | grep -c '^--- PASS'`)
+**Total Tests:** ~296 (run `go test ./... -v -count=1 | grep -c '^--- PASS'`)
 
 ## Execution Order
 
