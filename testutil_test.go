@@ -25,7 +25,7 @@ func newTestModel(t *testing.T, cfg *Config) Model {
 func sendKey(t *testing.T, m Model, msg tea.KeyMsg) Model {
 	t.Helper()
 	model, _ := m.Update(msg)
-	return model.(Model)
+	return modelFromInterface(model)
 }
 
 func sendKeys(t *testing.T, m Model, msgs ...tea.KeyMsg) Model {
@@ -71,16 +71,27 @@ func indexOfFirstFile(ft FileTree) int {
 	return 0
 }
 
+func modelFromInterface(v tea.Model) Model {
+	switch m := v.(type) {
+	case Model:
+		return m
+	case *Model:
+		return *m
+	default:
+		panic("unexpected tea.Model type")
+	}
+}
+
 func navigateToFirstFile(t *testing.T, model *tea.Model) Model {
 	t.Helper()
-	m := (*model).(Model)
+	m := modelFromInterface(*model)
 	firstFileIdx := indexOfFirstFile(m.fileTree)
 	for m.fileTree.Cursor() < firstFileIdx {
 		*model, _ = (*model).Update(tea.KeyMsg{Type: tea.KeyDown})
-		m = (*model).(Model)
+		m = modelFromInterface(*model)
 	}
 	*model, _ = (*model).Update(tea.KeyMsg{Type: tea.KeyEnter})
-	m = (*model).(Model)
+	m = modelFromInterface(*model)
 	if m.mode != ModeView {
 		t.Fatalf("navigateToFirstFile: expected ModeView, got %v", m.mode)
 	}
