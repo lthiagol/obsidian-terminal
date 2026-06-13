@@ -7,10 +7,10 @@ import (
 )
 
 func (m Model) renderStatusBar() string {
-	modeColor := ModeColors[m.mode]
+	modeColor := m.palette.ModeColor(m.mode)
 	modeBadge := lipgloss.NewStyle().
 		Background(modeColor).
-		Foreground(SelectionText).
+		Foreground(m.palette.SelectionText).
 		Padding(0, 1).
 		Render(fmt.Sprintf(" %s ", m.mode.String()))
 
@@ -43,10 +43,10 @@ func (m Model) renderStatusBar() string {
 		info = "j/k scroll | Esc back"
 	}
 
-	midSection := lipgloss.NewStyle().Foreground(TextSecondary).Padding(0, 1).Render(info)
+	midSection := lipgloss.NewStyle().Foreground(m.palette.TextSecondary).Padding(0, 1).Render(info)
 
 	hints := modeHints(m.mode)
-	hintSection := lipgloss.NewStyle().Foreground(TextDim).Padding(0, 1).Render(hints)
+	hintSection := lipgloss.NewStyle().Foreground(m.palette.TextDim).Padding(0, 1).Render(hints)
 
 	modeWidth := lipgloss.Width(modeBadge)
 	midWidth := max(0, m.width-modeWidth-lipgloss.Width(hintSection)-4)
@@ -57,7 +57,7 @@ func (m Model) renderStatusBar() string {
 		hintSection,
 	)
 
-	return StatusStyle.Width(m.width).Render(fullBar)
+	return m.palette.StatusStyle.Width(m.width).Render(fullBar)
 }
 
 func modeHints(mode Mode) string {

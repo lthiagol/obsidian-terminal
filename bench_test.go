@@ -31,7 +31,7 @@ func createTestTree(count int) *VaultEntry {
 
 func BenchmarkFileTreeView(b *testing.B) {
 	tree := createTestTree(100)
-	ft := NewFileTree(tree)
+	ft := NewFileTree(tree, newDarkPalette())
 	ft.SetSize(30, 50)
 
 	b.ResetTimer()

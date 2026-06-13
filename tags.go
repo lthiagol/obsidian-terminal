@@ -19,9 +19,10 @@ type TagList struct {
 	cursor  int
 	width   int
 	height  int
+	palette Palette
 }
 
-func NewTagList(tagIndex map[string][]string) TagList {
+func NewTagList(tagIndex map[string][]string, palette Palette) TagList {
 	var entries []TagEntry
 	for tag, files := range tagIndex {
 		entries = append(entries, TagEntry{
@@ -41,6 +42,7 @@ func NewTagList(tagIndex map[string][]string) TagList {
 	return TagList{
 		entries: entries,
 		cursor:  0,
+		palette: palette,
 	}
 }
 
@@ -77,14 +79,14 @@ func (tl TagList) Count() int {
 func (tl TagList) View() string {
 	if len(tl.entries) == 0 {
 		return lipgloss.NewStyle().
-			Foreground(TextMuted).
+			Foreground(tl.palette.TextMuted).
 			Render("  No tags found")
 	}
 
 	var sb strings.Builder
 	header := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(Accent).
+		Foreground(tl.palette.Accent).
 		Render(fmt.Sprintf("  Tags (%d)", len(tl.entries)))
 	sb.WriteString(header)
 	sb.WriteString("\n")
@@ -93,13 +95,13 @@ func (tl TagList) View() string {
 		line := fmt.Sprintf("  #%-20s (%d)", entry.Name, entry.Count)
 		if i == tl.cursor {
 			line = lipgloss.NewStyle().
-				Background(Accent).
-				Foreground(SelectionText).
+				Background(tl.palette.Accent).
+				Foreground(tl.palette.SelectionText).
 				Bold(true).
 				Render(line)
 		} else {
 			line = lipgloss.NewStyle().
-				Foreground(TextSecondary).
+				Foreground(tl.palette.TextSecondary).
 				Render(line)
 		}
 		sb.WriteString(line)

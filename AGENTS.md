@@ -24,6 +24,8 @@ make lint        # golangci-lint (requires: brew install golangci-lint)
 make fmt         # gofmt
 make clean       # remove built binary
 make install     # go install .
+make bench       # run benchmarks (5s default)
+make bench-short # run benchmarks (1s)
 ```
 
 Always run `make test && make vet` after making changes.
@@ -40,6 +42,14 @@ Always run `make test && make vet` after making changes.
 - Arrow keys must also work — every navigation binding supports both
 - New keybindings must be added to the `KeyMap` struct and `DefaultKeys()`
 - Use `MatchKey(msg, key)` for `tea.KeyType` and `MatchRune(msg, rune)` for runes
+
+### Navigation History
+- Use `loadNote(path, kind)` for all navigation moves (see `handlers.go`)
+- `kind` is `noteNavKind`: `navUser` (explicit open), `navHistory` (back/forward), `navReload` (rescan)
+- `openNote(path)` is syntactic sugar for `loadNote(path, navUser)` — pushes to history/recents
+- `navHistory` — does NOT push to history or recents (prevents double-push)
+- `navReload` — does NOT touch history or recents at all
+- Always use the appropriate kind to avoid history corruption
 
 ### Testing
 - Go stdlib `testing` package only — no test frameworks

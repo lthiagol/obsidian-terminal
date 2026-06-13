@@ -12,7 +12,7 @@ func InvalidateHelpCache() {
 	cachedHelpLines = nil
 }
 
-func buildHelpLines() []string {
+func buildHelpLines(p Palette) []string {
 	if cachedHelpLines != nil {
 		return cachedHelpLines
 	}
@@ -82,19 +82,19 @@ func buildHelpLines() []string {
 	}
 
 	lines := []string{
-		lipgloss.NewStyle().Bold(true).Foreground(Accent).Render("obsidian-terminal — Keybindings"),
+		lipgloss.NewStyle().Bold(true).Foreground(p.Accent).Render("obsidian-terminal — Keybindings"),
 		"",
 	}
 
 	for _, g := range groups {
-		header := lipgloss.NewStyle().Bold(true).Foreground(Accent).Render(g.title)
+		header := lipgloss.NewStyle().Bold(true).Foreground(p.Accent).Render(g.title)
 		lines = append(lines, header)
 		for _, b := range g.bindings {
 			parts := strings.SplitN(b, "—", 2)
-			key := lipgloss.NewStyle().Foreground(AccentSecondary).Render(strings.TrimSpace(parts[0]))
+			key := lipgloss.NewStyle().Foreground(p.AccentSecondary).Render(strings.TrimSpace(parts[0]))
 			var desc string
 			if len(parts) > 1 {
-				desc = lipgloss.NewStyle().Foreground(TextSecondary).Render("—" + parts[1])
+				desc = lipgloss.NewStyle().Foreground(p.TextSecondary).Render("—" + parts[1])
 			}
 			lines = append(lines, "  "+key+"  "+desc)
 		}
@@ -106,7 +106,7 @@ func buildHelpLines() []string {
 }
 
 func (m Model) renderHelp() string {
-	lines := buildHelpLines()
+	lines := buildHelpLines(m.palette)
 
 	if m.helpScroll > len(lines)-1 {
 		m.helpScroll = len(lines) - 1

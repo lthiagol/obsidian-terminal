@@ -270,6 +270,28 @@ func parseHexOrDefault(s, def string) lipgloss.Color {
 	return lipgloss.Color(s)
 }
 
+// ModeColor returns the accent color for the given mode.
+func (p Palette) ModeColor(mode Mode) lipgloss.Color {
+	switch mode {
+	case ModeBrowse:
+		return p.ModeBrowse
+	case ModeView:
+		return p.ModeView
+	case ModeSearch:
+		return p.ModeSearch
+	case ModeFind:
+		return p.ModeFind
+	case ModeHelp:
+		return p.ModeHelp
+	case ModeTags:
+		return p.ModeTags
+	case ModeProfilePicker:
+		return p.ModeProfile
+	default:
+		return p.Accent
+	}
+}
+
 // ValidThemeNames returns a list of all available theme names.
 func ValidThemeNames() []string {
 	var names []string
@@ -298,6 +320,10 @@ func newDarkPalette() Palette {
 	return p
 }
 
+// Deprecated global variables.
+// These are no longer read at runtime — all UI code uses Model.palette fields.
+// Kept to avoid breaking tests and to serve as default values for references.
+// Will be removed after M52 when all widget tests are updated.
 var (
 	Accent          = lipgloss.Color("#a78bfa")
 	AccentSecondary = lipgloss.Color("#fbbf24")
@@ -309,6 +335,29 @@ var (
 	Warning         = lipgloss.Color("#fbbf24")
 	Error           = lipgloss.Color("#f87171")
 	Info            = lipgloss.Color("#60a5fa")
+	SelectionText   = lipgloss.Color("#000000")
+	TreeStyle       = lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder(), false, false, false, true).
+			BorderForeground(Accent).
+			Padding(0, 1)
+	ViewerStyle = lipgloss.NewStyle().
+			Padding(0, 1)
+	StatusStyle = lipgloss.NewStyle().
+			Background(lipgloss.Color("#1f2937")).
+			Padding(0, 1)
+	HelpStyle = lipgloss.NewStyle().
+			Padding(1, 2)
+	SearchStyle = lipgloss.NewStyle().
+			Padding(1, 2)
+	ModeColors = map[Mode]lipgloss.Color{
+		ModeBrowse:        Accent,
+		ModeView:          AccentSecondary,
+		ModeSearch:        AccentSecondary,
+		ModeFind:          AccentSecondary,
+		ModeHelp:          Info,
+		ModeTags:          AccentSecondary,
+		ModeProfilePicker: Accent,
+	}
 )
 
 var (
@@ -316,66 +365,6 @@ var (
 	IconFolderClosed = "▸ "
 	IconFile         = "◇ "
 )
-
-var SelectionText = lipgloss.Color("#000000")
-
-var (
-	TreeStyle = lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder(), false, false, false, true).
-			BorderForeground(Accent).
-			Padding(0, 1)
-
-	ViewerStyle = lipgloss.NewStyle().
-			Padding(0, 1)
-
-	StatusStyle = lipgloss.NewStyle().
-			Background(lipgloss.Color("#1f2937")).
-			Padding(0, 1)
-
-	HelpStyle = lipgloss.NewStyle().
-			Padding(1, 2)
-
-	SearchStyle = lipgloss.NewStyle().
-			Padding(1, 2)
-)
-
-var ModeColors = map[Mode]lipgloss.Color{
-	ModeBrowse:        Accent,
-	ModeView:          AccentSecondary,
-	ModeSearch:        AccentSecondary,
-	ModeFind:          AccentSecondary,
-	ModeHelp:          Info,
-	ModeTags:          AccentSecondary,
-	ModeProfilePicker: Accent,
-}
-
-func activatePalette(p Palette) {
-	Accent = p.Accent
-	AccentSecondary = p.AccentSecondary
-	AccentTertiary = p.AccentTertiary
-	TextSecondary = p.TextSecondary
-	TextMuted = p.TextMuted
-	TextDim = p.TextDim
-	Success = p.Success
-	Warning = p.Warning
-	Error = p.Error
-	Info = p.Info
-	SelectionText = p.SelectionText
-	TreeStyle = p.TreeStyle
-	ViewerStyle = p.ViewerStyle
-	StatusStyle = p.StatusStyle
-	HelpStyle = p.HelpStyle
-	SearchStyle = p.SearchStyle
-	ModeColors = map[Mode]lipgloss.Color{
-		ModeBrowse:        p.ModeBrowse,
-		ModeView:          p.ModeView,
-		ModeSearch:        p.ModeSearch,
-		ModeFind:          p.ModeFind,
-		ModeHelp:          p.ModeHelp,
-		ModeTags:          p.ModeTags,
-		ModeProfilePicker: p.ModeProfile,
-	}
-}
 
 func markdownStyleFrom(p Palette, lineSpacing string) markdown.RendererStyle {
 	return markdown.RendererStyle{

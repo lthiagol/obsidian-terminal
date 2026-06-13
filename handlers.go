@@ -321,7 +321,7 @@ func (m *Model) applyNote(note *VaultNote, kind noteNavKind) {
 	})
 
 	m.viewer.SetContent(note.Body, m.width-m.treeWidth-2)
-	m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)
+	m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex, m.palette)
 	m.backlinkMode = false
 	m.buildOutline()
 
@@ -387,7 +387,7 @@ func (m Model) handleTagsKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 func (m *Model) enterTagsMode() {
 	m.prevMode = m.mode
 	m.mode = ModeTags
-	m.tagList = NewTagList(m.tagIndex)
+	m.tagList = NewTagList(m.tagIndex, m.palette)
 }
 
 func (m Model) handleCommandPaletteKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
@@ -527,10 +527,10 @@ func (m *Model) setTheme(themeName string) {
 	if err != nil {
 		return
 	}
-	activatePalette(palette)
 	m.palette = palette
 	m.viewer.renderStyle = markdownStyleFrom(palette, m.config.LineSpacing)
 	m.searchStyle = searchStyleFrom(palette)
+	m.fileTree.SetPalette(palette)
 }
 
 func (m *Model) goBackHistory() {
@@ -646,12 +646,12 @@ func (m Model) renderInNoteSearch() string {
 	}
 
 	var sb strings.Builder
-	label := lipgloss.NewStyle().Bold(true).Foreground(AccentSecondary).Render("/")
+	label := lipgloss.NewStyle().Bold(true).Foreground(m.palette.AccentSecondary).Render("/")
 	sb.WriteString(fmt.Sprintf("%s%s_", label, m.inNoteSearchQuery))
 
 	if len(m.inNoteMatches) > 0 {
 		info := fmt.Sprintf("  (%d/%d)", m.inNoteSearchIdx+1, len(m.inNoteMatches))
-		sb.WriteString(lipgloss.NewStyle().Foreground(TextDim).Render(info))
+		sb.WriteString(lipgloss.NewStyle().Foreground(m.palette.TextDim).Render(info))
 	}
 
 	return lipgloss.NewStyle().Width(width).Render(sb.String())

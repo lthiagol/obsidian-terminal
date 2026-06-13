@@ -282,12 +282,12 @@ func (m Model) renderCommandPalette() string {
 
 	header := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(Accent).
+		Foreground(m.palette.Accent).
 		Render("Command Palette")
 	sb.WriteString(header)
 
 	queryStyle := lipgloss.NewStyle().
-		Foreground(AccentSecondary).
+		Foreground(m.palette.AccentSecondary).
 		Background(lipgloss.Color("#222222"))
 	queryText := m.commandPaletteQuery
 	if queryText == "" {
@@ -299,7 +299,7 @@ func (m Model) renderCommandPalette() string {
 
 	if len(m.commandPaletteResults) == 0 {
 		sb.WriteString(lipgloss.NewStyle().
-			Foreground(TextMuted).
+			Foreground(m.palette.TextMuted).
 			Render("  No matching commands"))
 		return sb.String()
 	}
@@ -309,13 +309,13 @@ func (m Model) renderCommandPalette() string {
 
 		if i == m.commandPaletteCursor {
 			line = lipgloss.NewStyle().
-				Background(Accent).
-				Foreground(SelectionText).
+				Background(m.palette.Accent).
+				Foreground(m.palette.SelectionText).
 				Bold(true).
 				Render(line)
 		} else {
 			line = lipgloss.NewStyle().
-				Foreground(TextSecondary).
+				Foreground(m.palette.TextSecondary).
 				Render(line)
 		}
 

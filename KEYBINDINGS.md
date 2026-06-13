@@ -18,8 +18,15 @@ This document contains the complete keybinding reference for obsidian-terminal. 
 |-----|--------|-------|
 | `Ctrl+C` | Quit | Immediate exit |
 | `Ctrl+R` | Force rescan vault | Rebuild file tree and indexes |
-| `q` | Quit | Graceful exit |
-| `Q` | Quit | Alternative quit |
+| `Ctrl+D` | Open daily note | Navigate to today's note |
+| `Ctrl+O` | Recent notes / go back | In View mode: go back in history; otherwise: toggle recent notes |
+| `Ctrl+K` | Command palette | Open command palette overlay |
+| `Ctrl+←` | Shrink tree panel | Decrease tree width by 5 |
+| `Ctrl+→` | Grow tree panel | Increase tree width by 5 |
+| `Ctrl+\` | Reset tree width | Restore default tree width (1/4 of screen) |
+| `q` / `Q` | Quit | Graceful exit |
+| `?` | Toggle help | Show/hide help panel |
+| `Esc` | Cancel / go back | Context-dependent |
 
 ### Browse Mode
 
@@ -31,9 +38,16 @@ This document contains the complete keybinding reference for obsidian-terminal. 
 | `l` / `→` | Expand directory | Tree navigation |
 | `g` | Jump to top | Move to first item |
 | `G` | Jump to bottom | Move to last item |
+| `PgUp` | Page up | Scroll tree up |
+| `PgDn` | Page down | Scroll tree down |
 | `Enter` | Open note / toggle folder | Primary action |
 | `/` | Fuzzy file search | Enter search mode |
 | `s` | Full-text content search | Enter find mode |
+| `T` | Browse tags | Enter tag browser mode |
+| `p` | Pin/unpin current note | Toggle pin on selected entry |
+| `P` | Switch profile | Open profile picker (if profiles configured) |
+| `Ctrl+[` | Cycle to previous pinned note | Navigate pinned notes |
+| `Ctrl+]` | Cycle to next pinned note | Navigate pinned notes |
 | `?` | Toggle help | Show/hide help panel |
 
 ### View Mode
@@ -49,8 +63,16 @@ This document contains the complete keybinding reference for obsidian-terminal. 
 | `Tab` | Cycle wiki-links | Highlight next link |
 | `Enter` | Follow selected link | Navigate to linked note |
 | `h` / `Esc` | Back to browse | Exit viewer |
-| `/` | Fuzzy file search | Enter search mode |
-| `s` | Full-text content search | Enter find mode |
+| `b` | Toggle backlinks panel | Show/hide backlinks overlay |
+| `t` | Toggle outline/TOC | Show/hide table of contents overlay |
+| `p` | Pin/unpin current note | Toggle pin on active note |
+| `Ctrl+[` | Cycle to previous pinned note | Navigate pinned notes |
+| `Ctrl+]` | Cycle to next pinned note | Navigate pinned notes |
+| `/` | Activate in-note search | Search within current note |
+| `n` / `N` | Next / previous in-note match | Cycle search results (when in-note search active) |
+| `s` | Full-text content search | Enter find mode across all notes |
+| `[` | Go back in history | Navigate to previous note |
+| `]` | Go forward in history | Navigate to next note |
 | `?` | Toggle help | Show/hide help panel |
 
 ### Search/Find Mode
@@ -64,6 +86,24 @@ This document contains the complete keybinding reference for obsidian-terminal. 
 | `Backspace` | Delete character | Query editing |
 | *(any rune)* | Append to query | Query editing |
 
+### Backlink Mode (overlay in View Mode)
+
+| Key | Action | Notes |
+|-----|--------|-------|
+| `j` / `↓` | Move down | Backlink list navigation |
+| `k` / `↑` | Move up | Backlink list navigation |
+| `Enter` | Open selected backlink | Navigate to linked note |
+| `Esc` / `b` | Close backlinks | Return to view mode |
+
+### Tag Browser Mode
+
+| Key | Action | Notes |
+|-----|--------|-------|
+| `j` / `↓` | Move down | Tag list navigation |
+| `k` / `↑` | Move up | Tag list navigation |
+| `Enter` | Filter by selected tag | Apply tag filter to file tree |
+| `Esc` | Cancel | Return to browse mode |
+
 ### Help Mode
 
 | Key | Action | Notes |
@@ -72,25 +112,53 @@ This document contains the complete keybinding reference for obsidian-terminal. 
 | `k` / `↑` | Scroll up | Help navigation |
 | `Esc` | Close help | Return to previous mode |
 
-## Planned Keybindings
+### Command Palette Overlay
 
-### Reserved for Future Features
+| Key | Action | Notes |
+|-----|--------|-------|
+| `j` / `↓` | Move down in results | Command navigation |
+| `k` / `↑` | Move up in results | Command navigation |
+| `Enter` | Execute selected command | |
+| `Esc` | Close palette | Cancel |
+| `Backspace` | Delete character | Query editing |
+| *(any rune)* | Append to query | Query editing |
 
-| Key | Feature | Mode | Milestone | Status |
-|-----|---------|------|-----------|--------|
-| `b` | Toggle backlinks panel | View | M19 | ⏳ pending |
-| `t` | Toggle outline/TOC | View | M25 | ⏳ pending |
-| `T` | Open tag browser | Browse | M20 | ⏳ pending |
-| `p` | Pin/unpin current note | Browse, View | M24 | ⏳ pending |
-| `P` | Open profile picker | Browse | M21 | ⏳ pending |
-| `o` | Open outline (alternative) | View | M25 | 🔄 backup |
-| `Ctrl+D` | Open daily note | Global | M26 | ⏳ pending |
-| `Ctrl+O` | Open recent notes | Global | M26 | ⏳ pending |
-| `Ctrl+K` | Open command palette | Global | M29 | ⏳ pending |
-| `Ctrl+[` | Cycle to previous pin | Global | M24 | ⏳ pending |
-| `Ctrl+]` | Cycle to next pin | Global | M24 | ⏳ pending |
+### Recent Notes Overlay
 
-### Mouse Support (M18)
+| Key | Action | Notes |
+|-----|--------|-------|
+| `j` / `↓` | Move down in list | Recent notes navigation |
+| `k` / `↑` | Move up in list | Recent notes navigation |
+| `Enter` | Open selected note | |
+| `Esc` | Close list | Cancel |
+
+### Outline Overlay
+
+| Key | Action | Notes |
+|-----|--------|-------|
+| `j` / `↓` | Move down | Outline navigation |
+| `k` / `↑` | Move up | Outline navigation |
+| `Enter` | Jump to heading | Scroll viewer to selected heading |
+| `Esc` / `t` | Close outline | Return to view mode |
+
+### Profile Picker Mode
+
+| Key | Action | Notes |
+|-----|--------|-------|
+| `j` / `↓` | Move down | Profile list navigation |
+| `k` / `↑` | Move up | Profile list navigation |
+| `Enter` | Switch to selected profile | |
+| `Esc` | Cancel / quit | Returns to browse or quit if no vault loaded |
+
+### Broken Vault State
+
+| Key | Action | Notes |
+|-----|--------|-------|
+| `r` | Retry rescan | Attempt to reload vault |
+| `q` / `Q` | Quit | Exit application |
+| `?` | Toggle help | Show/hide help panel |
+
+## Mouse Support
 
 | Action | Target | Behavior |
 |--------|--------|----------|
@@ -101,6 +169,17 @@ This document contains the complete keybinding reference for obsidian-terminal. 
 | Left click | Search results | Select result |
 | Left double-click | Search results | Open result |
 | Wheel up/down | Help | Scroll help text |
+
+## Reserved Keys
+
+**Do not allocate these without updating this document:**
+
+- All navigation keys: `j/k/h/l`, arrows, `g/G`
+- Core actions: `Enter`, `Esc`, `Tab`, `/`, `s`, `?`, `q`
+- System keys: `Ctrl+C`, `Ctrl+R`, `Ctrl+D`, `Ctrl+O`, `Ctrl+K`
+- Tree resize: `Ctrl+←`, `Ctrl+→`, `Ctrl+\`
+- Already in use: `b`, `t`, `T`, `p`, `P`, `n`, `N`, `[`, `]`, `r`
+- Pin cycling: `Ctrl+[`, `Ctrl+]`
 
 ## Keybinding Conflict Resolution
 
@@ -113,15 +192,6 @@ When adding a new keybinding:
 5. **Use Ctrl combinations** - For global actions
 6. **Update this document** - Add to "Reserved" table before implementing
 7. **Update help text** - Add to `help.go` renderHelp() function
-
-## Reserved Keys
-
-**Do not allocate these without updating this document:**
-
-- All navigation keys: `j/k/h/l`, arrows, `g/G`
-- Core actions: `Enter`, `Esc`, `Tab`, `/`, `s`, `?`, `q`
-- System keys: `Ctrl+C`, `Ctrl+R`
-- Already planned: See "Reserved for Future Features" table
 
 ## Testing Keybindings
 

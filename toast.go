@@ -49,31 +49,31 @@ func (m *Model) expireToasts() {
 func (m Model) renderToasts() string {
 	var lines []string
 	for _, toast := range m.toasts {
-		lines = append(lines, renderToast(toast, m.width))
+		lines = append(lines, renderToast(toast, m.width, m.palette))
 	}
 	return strings.Join(lines, "\n")
 }
 
-func renderToast(toast Toast, width int) string {
+func renderToast(toast Toast, width int, p Palette) string {
 	var icon string
 	var borderColor lipgloss.Color
 	switch toast.Type {
 	case ToastInfo:
 		icon = "\u2139" // ℹ
-		borderColor = Info
+		borderColor = p.Info
 	case ToastSuccess:
 		icon = "\u2714" // ✔
-		borderColor = Success
+		borderColor = p.Success
 	case ToastWarning:
 		icon = "\u26A0" // ⚠
-		borderColor = Warning
+		borderColor = p.Warning
 	case ToastError:
 		icon = "\u2716" // ✖
-		borderColor = Error
+		borderColor = p.Error
 	}
 
 	iconStyle := lipgloss.NewStyle().Foreground(borderColor).Bold(true)
-	msgStyle := lipgloss.NewStyle().Foreground(TextSecondary)
+	msgStyle := lipgloss.NewStyle().Foreground(p.TextSecondary)
 	borderStyle := lipgloss.NewStyle().Border(lipgloss.NormalBorder(), false, false, false, true).BorderForeground(borderColor)
 
 	content := iconStyle.Render(" " + icon + " ") + msgStyle.Render(toast.Message)

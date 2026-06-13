@@ -60,6 +60,8 @@ Available `make` targets:
 | `make fmt` | Format code |
 | `make clean` | Remove built binary |
 | `make install` | Install to `$GOPATH/bin` |
+| `make bench` | Run benchmarks (5s default) |
+| `make bench-short` | Run benchmarks (1s) |
 
 ## Usage
 
@@ -115,10 +117,13 @@ See [KEYBINDINGS.md](KEYBINDINGS.md) for the complete keybinding reference, incl
 | `P` | Switch profile |
 | `Tab` | Cycle wiki-links (in viewer) |
 | `Ctrl+D` | Open daily note |
-| `Ctrl+O` | Recent notes |
+| `Ctrl+O` | Recent notes / go back |
 | `Ctrl+R` | Force rescan vault |
 | `Ctrl+K` | Command palette |
 | `Ctrl+←` / `Ctrl+→` | Resize tree panel |
+| `Ctrl+\` | Reset tree panel width |
+| `Ctrl+[` / `Ctrl+]` | Cycle pinned notes |
+| `[` / `]` | History back / forward |
 | `?` | Help screen |
 | `q` | Quit |
 

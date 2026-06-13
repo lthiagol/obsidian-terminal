@@ -112,7 +112,7 @@ func TestProfilePicker_New(t *testing.T) {
 		"archive":  {Path: "/archive", Theme: "light"},
 	}
 
-	pp := NewProfilePicker(profiles)
+	pp := NewProfilePicker(profiles, newDarkPalette())
 
 	if pp.Count() != 3 {
 		t.Errorf("Count() = %d, want 3", pp.Count())
@@ -137,7 +137,7 @@ func TestProfilePicker_Navigation(t *testing.T) {
 		"c": {Path: "/c"},
 	}
 
-	pp := NewProfilePicker(profiles)
+	pp := NewProfilePicker(profiles, newDarkPalette())
 
 	if pp.cursor != 0 {
 		t.Errorf("initial cursor = %d, want 0", pp.cursor)
@@ -183,7 +183,7 @@ func TestProfilePicker_Selected(t *testing.T) {
 		"personal": {Path: "/personal"},
 	}
 
-	pp := NewProfilePicker(profiles)
+	pp := NewProfilePicker(profiles, newDarkPalette())
 
 	// Should return first profile (sorted)
 	selected := pp.Selected()

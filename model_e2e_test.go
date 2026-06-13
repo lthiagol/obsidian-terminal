@@ -176,7 +176,7 @@ func TestRenderToast(t *testing.T) {
 		TTL:     3 * time.Second,
 	}
 
-	rendered := renderToast(toast, 80)
+	rendered := renderToast(toast, 80, newDarkPalette())
 	if !strings.Contains(rendered, "Test toast message") {
 		t.Error("rendered toast should contain the message")
 	}

@@ -33,11 +33,13 @@ ModeBrowse ──Enter──→ ModeView ──Esc──→ ModeBrowse
     │                     │
     ├──/──→ ModeSearch    ├──?──→ ModeHelp
     ├──T──→ ModeTags      ├──s──→ ModeFind
-    ├──?──→ ModeHelp      └──b──→ backlink panel (overlay, not a separate mode)
+    ├──s──→ ModeFind      ├──b──→ backlink panel (overlay, not a separate mode)
+    ├──?──→ ModeHelp      └──/──→ in-note search (overlay, not a separate mode)
     └──P──→ ModeProfilePicker
 
 Overlays (render over main panel without mode change):
-  Command palette (Ctrl+K), Recent notes (Ctrl+O), Outline (t), Scan errors (from palette)
+  Command palette (Ctrl+K), Recent notes (Ctrl+O), Outline (t), Backlinks (b),
+  In-note search (/), Scan errors (from palette), Pins (Ctrl+[/])
 
 Vault states:
   VaultStateOK → VaultStateBroken (inaccessible) → VaultStateOK (auto-recover)
@@ -58,13 +60,15 @@ Vault states:
 
 ## Module Map
 
+> **M52 pending:** Outline (`buildOutline`, `renderOutline`), recents (`addRecentNote`, `toggleRecents`, `renderRecents`), pinned notes (`togglePin`, `cyclePinned*`, `validatePins`), and daily note (`buildDailyNotePath`, `openDailyNote`) functions currently live in `model.go` and `handlers.go`. They will be extracted to their own files in M52.
+
 ### Root package (`main`)
 
 | File | Responsibility | Key Exports |
 |------|---------------|-------------|
 | `main.go` | Entry point, flag parsing, config loading, Bubble Tea program start | `main()` |
-| `model.go` | Central `Model` struct, `Init/Update/View`, mode dispatch, status bar, toast system, layout | `Model`, `Mode*` constants |
-| `handlers.go` | Mode-specific key handlers (`handleBrowseKey`, `handleViewKey`, etc.) | `handle*Key` |
+| `model.go` | Central `Model` struct, `Init/Update/View`, mode dispatch, note opening, daily notes, recent notes, pinned notes, toast system, command palette cmd, layout | `Model`, `Mode*` constants |
+| `handlers.go` | Mode-specific key handlers (`handleBrowseKey`, `handleViewKey`, etc.), note-loading API (`loadNote`, `applyNote`, `openNote`), history navigation | `handle*Key`, `loadNote`, `applyNote`, `openNote`, `goBackHistory`, `goForwardHistory` |
 | `tree.go` | File tree widget: vault entry nesting, expand/collapse, cursor, filtering | `FileTree`, `NewFileTree` |
 | `viewer.go` | Markdown viewer widget: wraps the markdown render pipeline, wiki-link cycling | `MarkdownViewer`, `SetContent` |
 | `viewport.go` | Custom viewport: scroll, soft-wrap (ANSI-aware), X/Y offset | `viewport`, `softWrap` |
@@ -76,17 +80,13 @@ Vault states:
 | `mouse.go` | Mouse event handling: tree click, split drag, scroll, double-click | `handleMouse`, `opentreeItem` |
 | `backlinks.go` | Backlinks panel widget (shown inside view mode) | `BacklinkPanel` |
 | `tags.go` | Tag browser/filter widget | `TagList` |
-| `outline.go` | Table of contents outline panel | `renderOutline`, `buildOutline` |
-| `recents.go` | Recent notes panel | `addRecentNote`, `renderRecents` |
 | `statusbar.go` | Status bar: mode display, file name, key hints | `renderStatusBar`, `modeHints` |
 | `help.go` | Help panel with all keybindings | `renderHelp`, `buildHelpSections` |
 | `toast.go` | Toast notification system | `addToast`, `renderToasts`, `expireToasts` |
-| `pins.go` | Pinned notes | `togglePin`, `cyclePinned*`, `validatePins` |
-| `pinned_display.go` | Pinned notes UI rendering | `renderPinned` |
+| `command_palette.go` | Command palette overlay: query input, result navigation, command execution | `openCommandPalette`, `executeCommand` |
 | `wikilink.go` | Wiki-link resolution (basename, alias, exact path) | `ResolveWikiLink`, `findAlias`, `findBasename` |
 | `yamlmini.go` | Custom mini YAML parser (no external dep) | `scanYAML`, `parseNestedMap`, `parseFlatMap` |
 | `profile_picker.go` | Profile selection widget | `ProfilePicker` |
-| `daily.go` | Daily note creation/navigation helpers | `buildDailyNotePath`, `openDailyNote` |
 
 ### `internal/markdown/`
 
@@ -242,6 +242,8 @@ Activate with `--profile` flag or `P` key in browse mode.
 ---
 
 ## Theme System
+
+> **M51 pending:** Theme colors currently use global `activatePalette()`. Post-M51 they will live on `Model.palette`.
 
 ### Architecture
 

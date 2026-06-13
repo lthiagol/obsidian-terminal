@@ -22,6 +22,7 @@ type FileTree struct {
 	vault  *VaultEntry
 	width  int
 	height int
+	palette Palette
 
 	fileStyle     lipgloss.Style
 	dirStyle      lipgloss.Style
@@ -30,22 +31,33 @@ type FileTree struct {
 	keyMap        KeyMap
 }
 
+// SetPalette updates the theme palette used for rendering.
+func (ft *FileTree) SetPalette(p Palette) {
+	ft.palette = p
+	ft.rebuildStyles()
+}
+
+func (ft *FileTree) rebuildStyles() {
+	p := ft.palette
+	ft.fileStyle = lipgloss.NewStyle().Foreground(p.TextSecondary)
+	ft.dirStyle = lipgloss.NewStyle().Foreground(p.AccentSecondary)
+	ft.selectedStyle = lipgloss.NewStyle().Background(p.Accent).Foreground(p.SelectionText).Bold(true)
+}
+
 // NewFileTree creates a FileTree from a vault entry tree.
-func NewFileTree(vault *VaultEntry) FileTree {
+func NewFileTree(vault *VaultEntry, palette Palette) FileTree {
 	ft := FileTree{
-		vault:  vault,
-		width:  25,
-		height: 20,
+		vault:   vault,
+		width:   25,
+		height:  20,
+		palette: palette,
 	}
 	var items []treeItem
 	for _, child := range vault.Children {
 		items = append(items, flattenTree(child, 0, !child.IsDir)...)
 	}
 	ft.items = items
-
-	ft.fileStyle = lipgloss.NewStyle().Foreground(TextSecondary)
-	ft.dirStyle = lipgloss.NewStyle().Foreground(AccentSecondary)
-	ft.selectedStyle = lipgloss.NewStyle().Background(Accent).Foreground(SelectionText).Bold(true)
+	ft.rebuildStyles()
 
 	ft.keyMap = DefaultKeys()
 
@@ -266,7 +278,7 @@ func (ft *FileTree) ResetFilter(vault *VaultEntry) {
 func (ft FileTree) View() string {
 	if len(ft.items) == 0 {
 		return lipgloss.NewStyle().
-			Foreground(TextMuted).
+			Foreground(ft.palette.TextMuted).
 			PaddingTop(2).
 			PaddingLeft(2).
 			Render("no notes found")

@@ -13,7 +13,7 @@ func TestTree_RootExpanded(t *testing.T) {
 		t.Fatalf("ScanVault failed: %v", err)
 	}
 
-	ft := NewFileTree(tree)
+	ft := NewFileTree(tree, newDarkPalette())
 
 	if ft.ItemCount() == 0 {
 		t.Error("tree should have items (root expanded, children visible)")
@@ -39,7 +39,7 @@ func TestTree_ExpandCollapse(t *testing.T) {
 		t.Fatalf("ScanVault failed: %v", err)
 	}
 
-	ft := NewFileTree(tree)
+	ft := NewFileTree(tree, newDarkPalette())
 
 	// Find a directory
 	dirIdx := -1
@@ -108,7 +108,7 @@ func TestTree_SelectionClamped(t *testing.T) {
 		t.Fatalf("ScanVault failed: %v", err)
 	}
 
-	ft := NewFileTree(tree)
+	ft := NewFileTree(tree, newDarkPalette())
 
 	// Go to bottom
 	maxIdx := ft.ItemCount() - 1
@@ -147,7 +147,7 @@ func TestTree_ViewAfterExpand(t *testing.T) {
 		t.Fatalf("ScanVault failed: %v", err)
 	}
 
-	ft := NewFileTree(tree)
+	ft := NewFileTree(tree, newDarkPalette())
 
 	// Expand all directories to reveal deep nesting
 	for i := 0; i < ft.ItemCount(); i++ {
@@ -169,7 +169,7 @@ func TestTree_SymlinkShownInTree(t *testing.T) {
 		t.Fatalf("ScanVault failed: %v", err)
 	}
 
-	ft := NewFileTree(tree)
+	ft := NewFileTree(tree, newDarkPalette())
 
 	foundSymlink := false
 	for _, item := range ft.Items() {
@@ -194,7 +194,7 @@ func TestTree_ApplyPathFilter(t *testing.T) {
 		t.Fatalf("ScanVault failed: %v", err)
 	}
 
-	ft := NewFileTree(tree)
+	ft := NewFileTree(tree, newDarkPalette())
 
 	// Filter to only show a specific file
 	filter := map[string]bool{
@@ -226,7 +226,7 @@ func TestTree_ApplyPathFilter_Empty(t *testing.T) {
 		t.Fatalf("ScanVault failed: %v", err)
 	}
 
-	ft := NewFileTree(tree)
+	ft := NewFileTree(tree, newDarkPalette())
 	filter := map[string]bool{} // empty filter
 	ft.ApplyPathFilter(filter)
 
@@ -242,7 +242,7 @@ func TestTree_ResetFilter(t *testing.T) {
 		t.Fatalf("ScanVault failed: %v", err)
 	}
 
-	ft := NewFileTree(tree)
+	ft := NewFileTree(tree, newDarkPalette())
 	origCount := ft.ItemCount()
 
 	// Apply a narrow filter
@@ -272,7 +272,7 @@ func TestTree_TopBottomJumps(t *testing.T) {
 		t.Fatalf("ScanVault failed: %v", err)
 	}
 
-	ft := NewFileTree(tree)
+	ft := NewFileTree(tree, newDarkPalette())
 	if ft.ItemCount() < 3 {
 		t.Skip("need at least 3 items")
 	}
@@ -298,7 +298,7 @@ func TestTree_EnterOnExpandedDir(t *testing.T) {
 		t.Fatalf("ScanVault failed: %v", err)
 	}
 
-	ft := NewFileTree(tree)
+	ft := NewFileTree(tree, newDarkPalette())
 
 	// Find a directory
 	dirIdx := -1
@@ -334,7 +334,7 @@ func TestNewFileTree_EmptyVault(t *testing.T) {
 		IsDir:    true,
 		Children: nil,
 	}
-	ft := NewFileTree(root)
+	ft := NewFileTree(root, newDarkPalette())
 	if ft.ItemCount() != 0 {
 		t.Errorf("empty vault should have 0 items, got %d", ft.ItemCount())
 	}

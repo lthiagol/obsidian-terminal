@@ -14,10 +14,11 @@ type ProfilePicker struct {
 	cursor   int
 	width    int
 	height   int
+	palette  Palette
 }
 
 // NewProfilePicker creates a ProfilePicker from a map of profiles.
-func NewProfilePicker(profiles map[string]Profile) ProfilePicker {
+func NewProfilePicker(profiles map[string]Profile, palette Palette) ProfilePicker {
 	var names []string
 	for name := range profiles {
 		names = append(names, name)
@@ -27,6 +28,7 @@ func NewProfilePicker(profiles map[string]Profile) ProfilePicker {
 	return ProfilePicker{
 		profiles: names,
 		cursor:   0,
+		palette:  palette,
 	}
 }
 
@@ -67,7 +69,7 @@ func (pp *ProfilePicker) SetSize(width, height int) {
 func (pp ProfilePicker) View() string {
 	if len(pp.profiles) == 0 {
 		return lipgloss.NewStyle().
-			Foreground(TextMuted).
+			Foreground(pp.palette.TextMuted).
 			Width(pp.width).
 			Height(pp.height).
 			Align(lipgloss.Center, lipgloss.Center).
@@ -79,7 +81,7 @@ func (pp ProfilePicker) View() string {
 	// Title
 	title := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(Accent).
+		Foreground(pp.palette.Accent).
 		Render("Select Vault Profile")
 	sb.WriteString(title)
 	sb.WriteString("\n\n")
@@ -89,13 +91,13 @@ func (pp ProfilePicker) View() string {
 		var line string
 		if i == pp.cursor {
 			line = lipgloss.NewStyle().
-				Background(Accent).
-				Foreground(SelectionText).
+				Background(pp.palette.Accent).
+				Foreground(pp.palette.SelectionText).
 				Bold(true).
 				Render(fmt.Sprintf("  %s  ", name))
 		} else {
 			line = lipgloss.NewStyle().
-				Foreground(TextSecondary).
+				Foreground(pp.palette.TextSecondary).
 				Render(fmt.Sprintf("  %s", name))
 		}
 		sb.WriteString(line)
@@ -107,7 +109,7 @@ func (pp ProfilePicker) View() string {
 	// Footer
 	sb.WriteString("\n\n")
 	footer := lipgloss.NewStyle().
-		Foreground(TextDim).
+		Foreground(pp.palette.TextDim).
 		Render("↑/↓ navigate • Enter select • Esc quit")
 	sb.WriteString(footer)
 

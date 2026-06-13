@@ -167,8 +167,6 @@ func NewModel(cfg *Config) Model {
 	if cfg.CustomTheme != nil {
 		palette, _ = paletteFromCustom(cfg.CustomTheme, palette)
 	}
-	activatePalette(palette)
-
 	// If no vault path but profiles exist, enter picker mode
 	if cfg.VaultPath == "" && len(cfg.Profiles) > 0 {
 		m := Model{
@@ -177,7 +175,7 @@ func NewModel(cfg *Config) Model {
 			config:        cfg,
 			keys:          keys,
 			palette:       palette,
-			profilePicker: NewProfilePicker(cfg.Profiles),
+			profilePicker: NewProfilePicker(cfg.Profiles, palette),
 		}
 		if len(validationWarnings) > 0 {
 			for _, w := range validationWarnings {
@@ -230,14 +228,14 @@ func NewModel(cfg *Config) Model {
 		allPaths:        paths,
 		keys:            keys,
 		config:          cfg,
-		fileTree:        NewFileTree(tree),
+		fileTree:        NewFileTree(tree, palette),
 		viewer:          NewViewer(markdownStyleFrom(palette, cfg.LineSpacing)),
 		searchStyle:     searchStyleFrom(palette),
 		scanErrors:      scanErrors,
 		vaultState:      vaultStateFrom(len(scanErrors)),
 		palette:         palette,
 		activePinnedIdx: -1,
-		profilePicker:   NewProfilePicker(cfg.Profiles),
+		profilePicker:   NewProfilePicker(cfg.Profiles, palette),
 	}
 	if len(validationWarnings) > 0 {
 		for _, w := range validationWarnings {
@@ -417,7 +415,7 @@ func (m Model) View() string {
 
 	if m.width < 60 || m.height < 15 {
 		return lipgloss.NewStyle().
-			Foreground(Warning).
+			Foreground(m.palette.Warning).
 			Width(m.width).
 			Height(m.height).
 			Align(lipgloss.Center, lipgloss.Center).
@@ -455,10 +453,10 @@ func (m Model) View() string {
 			} else if m.backlinkMode {
 				viewerHeight := (m.height - 1) * 7 / 10
 				backlinkHeight := m.height - 1 - viewerHeight - 1
-				viewerStyle := ViewerStyle.Width(m.width - m.treeWidth - 1).Height(viewerHeight)
+				viewerStyle := m.palette.ViewerStyle.Width(m.width - m.treeWidth - 1).Height(viewerHeight)
 				backlinkStyle := lipgloss.NewStyle().
 					Border(lipgloss.NormalBorder(), true, false, false, false).
-					BorderForeground(Accent).
+					BorderForeground(m.palette.Accent).
 					Width(m.width - m.treeWidth - 1).
 					Height(backlinkHeight)
 				rightPanel = lipgloss.JoinVertical(lipgloss.Left,
@@ -480,8 +478,8 @@ func (m Model) View() string {
 
 	treePanel := m.fileTree.View()
 
-	treeStyle := TreeStyle.Width(m.treeWidth).Height(m.height - 1)
-	viewerStyle := ViewerStyle.Width(m.width - m.treeWidth - 1).Height(m.height - 1)
+	treeStyle := m.palette.TreeStyle.Width(m.treeWidth).Height(m.height - 1)
+	viewerStyle := m.palette.ViewerStyle.Width(m.width - m.treeWidth - 1).Height(m.height - 1)
 
 	leftP := treeStyle.Render(treePanel)
 	rightP := viewerStyle.Render(rightPanel)
@@ -510,7 +508,7 @@ func (m Model) renderFind() string {
 
 func (m Model) renderSearchPanel(label, resultLabel string) string {
 	var sb strings.Builder
-	modeLabel := lipgloss.NewStyle().Bold(true).Foreground(AccentSecondary).Render(label)
+	modeLabel := lipgloss.NewStyle().Bold(true).Foreground(m.palette.AccentSecondary).Render(label)
 	sb.WriteString(fmt.Sprintf("%s  %s_  (%d %s)", modeLabel, m.searchState.Query(), m.searchState.ResultCount(), resultLabel))
 	sb.WriteString("\n\n")
 	sb.WriteString(search.RenderResults(m.searchState, m.width-m.treeWidth-6, m.searchStyle))
@@ -574,7 +572,7 @@ func (m *Model) rescanVault() {
 	m.backlinkIndex = indexes.Backlinks
 	m.tagIndex = indexes.Tags
 	m.allPaths = allPaths(tree)
-	m.fileTree = NewFileTree(tree)
+	m.fileTree = NewFileTree(tree, m.palette)
 	m.validatePins()
 
 	if oldActivePath != "" {
@@ -727,14 +725,14 @@ func (m *Model) buildOutline() {
 func (m Model) renderOutline() string {
 	if len(m.outlineItems) == 0 {
 		return lipgloss.NewStyle().
-			Foreground(TextMuted).
+			Foreground(m.palette.TextMuted).
 			Render("  No headings in this note")
 	}
 
 	var sb strings.Builder
 	header := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(Accent).
+		Foreground(m.palette.Accent).
 		Render(fmt.Sprintf("  Outline (%d)", len(m.outlineItems)))
 	sb.WriteString(header)
 	sb.WriteString("\n")
@@ -745,13 +743,13 @@ func (m Model) renderOutline() string {
 
 		if i == m.outlineCursor {
 			line = lipgloss.NewStyle().
-				Background(Accent).
-				Foreground(SelectionText).
+				Background(m.palette.Accent).
+				Foreground(m.palette.SelectionText).
 				Bold(true).
 				Render(line)
 		} else {
 			line = lipgloss.NewStyle().
-				Foreground(TextSecondary).
+				Foreground(m.palette.TextSecondary).
 				Render(line)
 		}
 
@@ -878,14 +876,14 @@ func (m *Model) openRecentNote(index int) {
 func (m Model) renderRecents() string {
 	if len(m.recentNotes) == 0 {
 		return lipgloss.NewStyle().
-			Foreground(TextMuted).
+			Foreground(m.palette.TextMuted).
 			Render("  No recent notes")
 	}
 
 	var sb strings.Builder
 	header := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(Accent).
+		Foreground(m.palette.Accent).
 		Render(fmt.Sprintf("  Recent Notes (%d)", len(m.recentNotes)))
 	sb.WriteString(header)
 	sb.WriteString("\n")
@@ -895,13 +893,13 @@ func (m Model) renderRecents() string {
 
 		if i == m.recentCursor {
 			line = lipgloss.NewStyle().
-				Background(Accent).
-				Foreground(SelectionText).
+				Background(m.palette.Accent).
+				Foreground(m.palette.SelectionText).
 				Bold(true).
 				Render(line)
 		} else {
 			line = lipgloss.NewStyle().
-				Foreground(TextSecondary).
+				Foreground(m.palette.TextSecondary).
 				Render(line)
 		}
 
@@ -924,7 +922,7 @@ func (m Model) renderBrokenVaultScreen() string {
 		textWidth = 1
 	}
 
-	title := lipgloss.NewStyle().Bold(true).Foreground(Error).Render("Vault is inaccessible")
+	title := lipgloss.NewStyle().Bold(true).Foreground(m.palette.Error).Render("Vault is inaccessible")
 	msg := "The vault directory could not be read. It may have been moved, deleted, or permissions may have changed."
 	wrapped := wordWrap(msg, textWidth)
 
@@ -933,7 +931,7 @@ func (m Model) renderBrokenVaultScreen() string {
 		"P  Switch profile",
 		"q  Quit",
 	}
-	recoveryText := lipgloss.NewStyle().Foreground(TextSecondary).Render(strings.Join(recovery, "  │  "))
+	recoveryText := lipgloss.NewStyle().Foreground(m.palette.TextSecondary).Render(strings.Join(recovery, "  │  "))
 
 	content := lipgloss.JoinVertical(lipgloss.Left,
 		title,
@@ -945,7 +943,7 @@ func (m Model) renderBrokenVaultScreen() string {
 
 	box := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(Error).
+		BorderForeground(m.palette.Error).
 		Padding(padH/2, padH).
 		Width(width).
 		Render(content)
@@ -963,20 +961,20 @@ func (m Model) renderScanErrors() string {
 	}
 
 	var sb strings.Builder
-	title := lipgloss.NewStyle().Bold(true).Foreground(Warning).Render(
+	title := lipgloss.NewStyle().Bold(true).Foreground(m.palette.Warning).Render(
 		fmt.Sprintf("Scan Errors (%d)", len(m.scanErrors)))
 	sb.WriteString(title)
 	sb.WriteString("\n")
-	sb.WriteString(lipgloss.NewStyle().Foreground(TextDim).Render(strings.Repeat("─", width)))
+	sb.WriteString(lipgloss.NewStyle().Foreground(m.palette.TextDim).Render(strings.Repeat("─", width)))
 	sb.WriteString("\n\n")
 
 	for _, err := range m.scanErrors {
-		sb.WriteString(lipgloss.NewStyle().Foreground(TextSecondary).Render(" • " + err))
+		sb.WriteString(lipgloss.NewStyle().Foreground(m.palette.TextSecondary).Render(" • " + err))
 		sb.WriteString("\n")
 	}
 
 	sb.WriteString("\n")
-	hint := lipgloss.NewStyle().Foreground(TextDim).Render("Ctrl+R to rescan  •  Esc to close")
+	hint := lipgloss.NewStyle().Foreground(m.palette.TextDim).Render("Ctrl+R to rescan  •  Esc to close")
 	sb.WriteString(hint)
 
 	return sb.String()

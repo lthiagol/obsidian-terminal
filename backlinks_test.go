@@ -5,7 +5,7 @@ import (
 )
 
 func TestBacklinkPanel_Empty(t *testing.T) {
-	bp := NewBacklinkPanel("nonexistent.md", map[string][]string{})
+	bp := NewBacklinkPanel("nonexistent.md", map[string][]string{}, newDarkPalette())
 	if bp.Count() != 0 {
 		t.Errorf("expected 0 backlinks, got %d", bp.Count())
 	}
@@ -15,7 +15,7 @@ func TestBacklinkPanel_WithLinks(t *testing.T) {
 	index := map[string][]string{
 		"note.md": {"a.md", "b.md", "c.md"},
 	}
-	bp := NewBacklinkPanel("note.md", index)
+	bp := NewBacklinkPanel("note.md", index, newDarkPalette())
 	if bp.Count() != 3 {
 		t.Errorf("expected 3 backlinks, got %d", bp.Count())
 	}
@@ -25,7 +25,7 @@ func TestBacklinkPanel_Navigation(t *testing.T) {
 	index := map[string][]string{
 		"note.md": {"a.md", "b.md", "c.md"},
 	}
-	bp := NewBacklinkPanel("note.md", index)
+	bp := NewBacklinkPanel("note.md", index, newDarkPalette())
 
 	if bp.SelectedPath() != "a.md" {
 		t.Errorf("initial selection = %q, want 'a.md'", bp.SelectedPath())
@@ -52,7 +52,7 @@ func TestBacklinkPanel_Normalization(t *testing.T) {
 	index := map[string][]string{
 		"note.md": {"source.md"},
 	}
-	bp := NewBacklinkPanel("Note.md", index)
+	bp := NewBacklinkPanel("Note.md", index, newDarkPalette())
 	if bp.Count() != 1 {
 		t.Errorf("expected 1 backlink with normalized path, got %d", bp.Count())
 	}

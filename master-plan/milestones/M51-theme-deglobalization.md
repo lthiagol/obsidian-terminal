@@ -1,6 +1,6 @@
 # M51 — Complete Theme De-globalization
 
-**Status:** ⏳ pending (finishes partial **M37**)  
+**Status:** ✅ done (finishes partial **M37**)  
 **Finding:** F-2 in [ARCHITECTURE-REVIEW-2026-06-13.md](../ARCHITECTURE-REVIEW-2026-06-13.md)  
 **Execution plan:** [PHASE-12-EXECUTION-PLAN.md](../PHASE-12-EXECUTION-PLAN.md) §6
 

@@ -120,9 +120,6 @@ func TestThemeWiredToModel(t *testing.T) {
 	if m.palette.Accent != "#bd93f9" {
 		t.Errorf("expected dracula accent #bd93f9, got %s", m.palette.Accent)
 	}
-	if Accent != "#bd93f9" {
-		t.Errorf("package-level Accent should be dracula #bd93f9, got %s", Accent)
-	}
 }
 
 func TestLoadConfig_CLIOverride(t *testing.T) {
