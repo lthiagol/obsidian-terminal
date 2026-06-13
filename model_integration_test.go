@@ -8,14 +8,11 @@ import (
 )
 
 func TestRenderingPipeline_FullDocument(t *testing.T) {
-	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
-	var model tea.Model = NewModel(cfg)
-	if model.(Model).err != nil {
-		t.Fatalf("NewModel error: %v", model.(Model).err)
-	}
+	m := newTestModel(t, &Config{})
+	model := tea.Model(m)
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 40})
 
-	m := navigateToFirstFile(t, &model)
+	m = navigateToFirstFile(t, &model)
 
 	output := m.viewer.View()
 	if output == "" {
@@ -36,15 +33,12 @@ func TestRenderingPipeline_FullDocument(t *testing.T) {
 }
 
 func TestWorkflow_SearchAndOpen(t *testing.T) {
-	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
-	var model tea.Model = NewModel(cfg)
-	if model.(Model).err != nil {
-		t.Fatalf("NewModel error: %v", model.(Model).err)
-	}
+	m := newTestModel(t, &Config{})
+	model := tea.Model(m)
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 40})
 
 	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
-	m := model.(Model)
+	m = model.(Model)
 	if m.mode != ModeSearch {
 		t.Fatalf("expected ModeSearch after /, got %v", m.mode)
 	}
@@ -74,14 +68,11 @@ func TestWorkflow_SearchAndOpen(t *testing.T) {
 }
 
 func TestWorkflow_TreeClickAndOpen(t *testing.T) {
-	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
-	var model tea.Model = NewModel(cfg)
-	if model.(Model).err != nil {
-		t.Fatalf("NewModel error: %v", model.(Model).err)
-	}
+	m := newTestModel(t, &Config{})
+	model := tea.Model(m)
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 40})
 
-	m := navigateToFirstFile(t, &model)
+	m = navigateToFirstFile(t, &model)
 
 	if m.activeNote == nil {
 		t.Fatal("activeNote should be set")
@@ -101,14 +92,11 @@ func TestWorkflow_TreeClickAndOpen(t *testing.T) {
 }
 
 func TestWorkflow_FollowWikiLink(t *testing.T) {
-	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
-	var model tea.Model = NewModel(cfg)
-	if model.(Model).err != nil {
-		t.Fatalf("NewModel error: %v", model.(Model).err)
-	}
+	m := newTestModel(t, &Config{})
+	model := tea.Model(m)
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 40})
 
-	m := navigateToFirstFile(t, &model)
+	m = navigateToFirstFile(t, &model)
 
 	if m.viewer.LinkCount() < 1 {
 		t.Fatal("expected at least one wiki-link in index.md")
@@ -136,14 +124,11 @@ func TestWorkflow_FollowWikiLink(t *testing.T) {
 }
 
 func TestStatePreservation_ThemeSwitch(t *testing.T) {
-	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
-	var model tea.Model = NewModel(cfg)
-	if model.(Model).err != nil {
-		t.Fatalf("NewModel error: %v", model.(Model).err)
-	}
+	m := newTestModel(t, &Config{})
+	model := tea.Model(m)
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 40})
 
-	m := navigateToFirstFile(t, &model)
+	m = navigateToFirstFile(t, &model)
 
 	prevPath := m.activeNote.Path
 	prevMode := m.mode
@@ -171,14 +156,11 @@ func TestStatePreservation_ThemeSwitch(t *testing.T) {
 }
 
 func TestStatePreservation_SplitResize(t *testing.T) {
-	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
-	var model tea.Model = NewModel(cfg)
-	if model.(Model).err != nil {
-		t.Fatalf("NewModel error: %v", model.(Model).err)
-	}
+	m := newTestModel(t, &Config{})
+	model := tea.Model(m)
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 40})
 
-	m := navigateToFirstFile(t, &model)
+	m = navigateToFirstFile(t, &model)
 
 	prevPath := m.activeNote.Path
 	prevMode := m.mode
@@ -211,15 +193,11 @@ func TestSession_SaveAndRestore(t *testing.T) {
 	stateHome := t.TempDir()
 	t.Setenv("XDG_STATE_HOME", stateHome)
 
-	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
-	var model tea.Model = NewModel(cfg)
-	if model.(Model).err != nil {
-		t.Fatalf("NewModel error: %v", model.(Model).err)
-	}
+	m := newTestModel(t, &Config{})
+	model := tea.Model(m)
 	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 40})
-	m := model.(Model)
+	m = model.(Model)
 
-	// Find the projects/ directory and expand it, then locate a file within
 	dirIdx := indexOfFirstCollapsedDir(m.fileTree)
 	if dirIdx < 0 {
 		t.Skip("no collapsed directory to test")
@@ -228,22 +206,18 @@ func TestSession_SaveAndRestore(t *testing.T) {
 		model, _ = model.Update(tea.KeyMsg{Type: tea.KeyDown})
 		m = model.(Model)
 	}
-	// Save the directory path we're about to expand
 	expandedDir := m.fileTree.Items()[m.fileTree.Cursor()].entry.Path
 
 	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'l'}})
 	m = model.(Model)
 
-	// Move cursor down to a file within the expanded directory
 	for i := 0; i < 3; i++ {
 		model, _ = model.Update(tea.KeyMsg{Type: tea.KeyDown})
 		m = model.(Model)
 	}
 
-	// Verify we're on a file (not dir)
 	selected := m.fileTree.SelectedEntry()
 	if selected == nil || selected.IsDir {
-		// Navigate further if needed
 		firstFileAfter := indexOfFirstFileFrom(m.fileTree, m.fileTree.Cursor())
 		for m.fileTree.Cursor() < firstFileAfter {
 			model, _ = model.Update(tea.KeyMsg{Type: tea.KeyDown})
@@ -253,15 +227,13 @@ func TestSession_SaveAndRestore(t *testing.T) {
 
 	saveSession(m)
 
-	// Create new model and verify restore
-	newM := NewModel(cfg)
+	newM := NewModel(&Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs})
 	if newM.err != nil {
 		t.Fatalf("NewModel error: %v", newM.err)
 	}
 	newModel, _ := newM.Update(tea.WindowSizeMsg{Width: 100, Height: 40})
 	restored := newModel.(Model)
 
-	// Check that the expanded directory is still expanded
 	foundExpanded := false
 	for _, item := range restored.fileTree.Items() {
 		if item.entry.IsDir && item.entry.Path == expandedDir && item.expanded {

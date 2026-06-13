@@ -535,39 +535,6 @@ func TestModel_ViewReturnsNonEmpty(t *testing.T) {
 	}
 }
 
-func navigateToFirstFile(t *testing.T, model *tea.Model) Model {
-	t.Helper()
-	m := (*model).(Model)
-	firstFileIdx := indexOfFirstFile(m.fileTree)
-	for m.fileTree.Cursor() < firstFileIdx {
-		*model, _ = (*model).Update(tea.KeyMsg{Type: tea.KeyDown})
-		m = (*model).(Model)
-	}
-	*model, _ = (*model).Update(tea.KeyMsg{Type: tea.KeyEnter})
-	m = (*model).(Model)
-	if m.mode != ModeView {
-		t.Fatalf("navigateToFirstFile: expected ModeView, got %v", m.mode)
-	}
-	return m
-}
-
-func indexOfFirstFile(ft FileTree) int {
-	for i, item := range ft.Items() {
-		if !item.entry.IsDir {
-			return i
-		}
-	}
-	return 0
-}
-
-func indexOfFirstCollapsedDir(ft FileTree) int {
-	for i, item := range ft.Items() {
-		if item.entry.IsDir && !item.expanded {
-			return i
-		}
-	}
-	return -1
-}
 
 func TestKeyDispatch_ShrinkTree(t *testing.T) {
 	cfg := &Config{VaultPath: testVaultPath(t), SkipDirs: DefaultConfig().SkipDirs}
