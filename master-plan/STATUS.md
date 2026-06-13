@@ -1,7 +1,10 @@
 # obsidian-terminal — Build Status
 
-**Last updated:** 2026-06-12
-**Language:** Go 1.24+
+**Last updated:** 2026-06-13
+**Language:** Go 1.26+ (see `go.mod`)
+**Architecture review:** [ARCHITECTURE-REVIEW-2026-06-13.md](./ARCHITECTURE-REVIEW-2026-06-13.md)  
+**Execution plan (Phase 12):** [PHASE-12-EXECUTION-PLAN.md](./PHASE-12-EXECUTION-PLAN.md)  
+**Templates:** [template/README.md](./template/README.md)  
 **Framework:** Bubble Tea + Bubbles + Lipgloss
 **Dependencies:** bubbletea, lipgloss (2 total)
 **Target:** Read-only TUI markdown viewer for Obsidian vaults
@@ -12,7 +15,8 @@
          custom Obsidian-flavored markdown parser, auto-refresh
 - **v2:** Tabs, backlinks, tag browser, outline/TOC, daily-note navigation, in-note search,
          tables, checkboxes, mermaid code-blocks, LaTeX
-- **Non-goals:** AI features, editing/writing operations, kanban, pomodoro, graph view, bookmarks
+- **Non-goals:** AI features, editing/writing operations, kanban, pomodoro, bookmarks
+- **Planned read-only extras:** ASCII graph view (M49), note preview pane (M48) — see Phase 11
 
 ## Key Decisions
 
@@ -108,13 +112,13 @@
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
 | M36: Quick Bug Fixes | ✅ done | 5 | 2026-06-11 | 2026-06-11 |
-| M37: Theme System Refactor | ✅ done | — | 2026-06-11 | 2026-06-11 |
+| M37: Theme System Refactor | 🟡 partial → **M51** | — | 2026-06-11 | 2026-06-11 |
 
 ### Phase 8: Architecture Improvements (Priority: 🟡 High)
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M38: Split model.go + Consolidate Note Opening | ✅ done | — | 2026-06-11 | 2026-06-11 |
+| M38: Split model.go + Consolidate Note Opening | 🟡 partial → **M52** | — | 2026-06-11 | 2026-06-11 |
 | M39: ANSI Wrapping & Scroll Fixes | ✅ done | — | 2026-06-11 | 2026-06-11 |
 
 ### Phase 9: Code Quality (Priority: 🟢 Medium)
@@ -142,7 +146,23 @@
 | M45: Graceful Degradation | ✅ done | 9 | 2026-06-12 | 2026-06-12 |
 | M46: Integration Test Suite | ✅ done | 7 | 2026-06-12 | 2026-06-12 |
 
-### Phase 11: Future (Low Priority)
+### Phase 12: Review Remediation (Priority: 🟡 High)
+
+From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
+
+| Milestone | Status | Tests | Started | Completed |
+|-----------|--------|-------|---------|-----------|
+| M50: Navigation History Fix | ⏳ pending | 0 | — | — |
+| M51: Theme De-globalization (finish M37) | ⏳ pending | 0 | — | — |
+| M52: Decompose model.go (finish M38) | ⏳ pending | 0 | — | — |
+| M53: Documentation & Plan Sync | ⏳ pending | 0 | — | — |
+| M54: Incremental Vault Rescan | ⏳ pending (gated) | 0 | — | — |
+| M55: CI Pipeline | ⏳ pending | 0 | — | — |
+| M56: Test Infrastructure & Coverage | ⏳ pending | 0 | — | — |
+| M57: Package Structure Extraction | ⏸ deferred → Phase 99 | 0 | — | — |
+| M58: Fuzzy Search Optimization | ⏸ deferred → Phase 99 | 0 | — | — |
+
+### Phase 99: Future (Low Priority)
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
@@ -150,7 +170,7 @@
 | M98: Image Preview | ⏳ pending | 0 | — | — |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
 
-**Total Tests:** 144
+**Total Tests:** ~285 (run `go test ./... -v -count=1 | grep -c '^--- PASS'`)
 
 ## Execution Order
 
@@ -237,6 +257,30 @@ content) without ANSI-aware horizontal clipping complexity.
 
 **Rationale:** M44-M46 improve robustness and test coverage. They can be done in any order but are lower priority than bug fixes and architecture improvements.
 
+### Batch 11: Review Remediation (🟡 High — see [PHASE-12-EXECUTION-PLAN.md](./PHASE-12-EXECUTION-PLAN.md))
+
+**Track A — Correctness & safety**
+1. **M50** — Navigation history fix (4 WPs, includes daily-note loader)
+2. **M55** — CI pipeline (after M50 tests land)
+3. **M53** — Documentation sync (after M50 behavior frozen)
+
+**Track B — Architecture (strict order)**
+4. **M51** — Theme de-globalization (finish M37)
+5. **M52** — Decompose model.go (7 WPs, one per session; finish M38)
+
+**Track C — Quality & scale**
+6. **M56** — Test helpers + gap tests (after M50)
+7. **M54** — WP1 benchmarks only → decision gate → WP2–4 if 5k vault p95 > 200ms
+
+**Track D — Features**
+8. **M48 + M49** — Preview pane + graph view
+
+**Deferred (Phase 99)**
+- **M57** — Package extraction (after M52; reactivation criteria in milestone)
+- **M58** — Fuzzy search alloc optimization (if benchmarks prove need)
+
+**Minimum shippable Phase 12:** Track A only (~1–2 days).
+
 ## Milestone Dependencies
 
 ```
@@ -256,8 +300,25 @@ M39 (ANSI Wrapping) — can start after M37
   ↓
 M40-M43 (Code Quality) — independent, can be parallel
   ↓
-M44-M46 (Robustness) — future
+M44-M46 (Robustness)
+  ↓
+M50 (History fix)
+  ↓
+M51 (Theme) → M52 (model split) — strict sequence, not parallel
+  ↓
+M56 (Tests) + M55 (CI)
+  ↓
+M54 (Incremental rescan) — independent
+  ↓
+M48-M49 (Features) + M57 (Package extraction, optional)
 ```
+
+## Partial Milestones (needs follow-up)
+
+| Milestone | Done | Remaining |
+|-----------|------|-----------|
+| M37 | Data-driven themes, `m.palette`, `switchToProfile` pointer fix | Remove global `activatePalette` mutation → **M51** |
+| M38 | `openNote()` consolidation, mouse/search paths fixed | `model.go` still 1013 lines → **M52** |
 
 ## Keybinding Conflicts Resolved
 
@@ -270,3 +331,14 @@ All keybindings are documented in [KEYBINDINGS.md](../KEYBINDINGS.md). Key resol
 - `b` — Backlinks (View mode only)
 
 No conflicts: same key can have different actions in different modes.
+
+## Maintenance checklist
+
+Run after each milestone closure (see [template/README.md](./template/README.md)):
+
+- [ ] Milestone file: all acceptance criteria checked
+- [ ] Milestone status emoji matches this table
+- [ ] Test count updated (`go test ./... -v -count=1 | grep -c '^--- PASS'`)
+- [ ] Started / Completed dates filled
+- [ ] KEYBINDINGS / DESIGN updated if behavior changed
+- [ ] No ✅ without checked criteria; use 🟡 partial + follow-up milestone if needed

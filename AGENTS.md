@@ -63,14 +63,24 @@ The project uses a `master-plan/` folder to track progress and plan larger work.
 
 ```
 master-plan/
-├── STATUS.md          # Progress overview, goals, key decisions, milestone table
-└── milestones/        # Individual milestone documents
+├── STATUS.md                              # Progress overview (see template/STATUS-TEMPLATE.md)
+├── REVIEW-TEMPLATE.md                     # Project-agnostic review template
+├── PHASE-12-EXECUTION-PLAN.md             # Work packages, challenged decisions
+├── ARCHITECTURE-REVIEW-{date}.md          # Point-in-time review findings
+├── template/                              # Templates for new milestones & STATUS
+│   ├── README.md
+│   ├── MILESTONE-TEMPLATE.md
+│   └── STATUS-TEMPLATE.md
+└── milestones/                            # Individual milestone documents
     ├── M0-environment.md
-    ├── M1-config-vault.md
     └── ...
 ```
 
 `STATUS.md` is the source of truth for overall progress — it contains the milestone table with status, test counts, and dates.
+
+**Creating milestones:** copy [template/MILESTONE-TEMPLATE.md](./master-plan/template/MILESTONE-TEMPLATE.md) → `milestones/M{N}-slug.md`. Register in STATUS.md.
+
+**Architecture reviews:** copy [REVIEW-TEMPLATE.md](./master-plan/REVIEW-TEMPLATE.md). Complex work uses work packages (WPs) per [PHASE-12-EXECUTION-PLAN.md](./master-plan/PHASE-12-EXECUTION-PLAN.md).
 
 ### When to use milestones
 
@@ -80,40 +90,24 @@ master-plan/
 
 ### Milestone workflow
 
-1. **Create** — Write a new `master-plan/milestones/M<N>-<slug>.md` with status `⏳ pending`. Include Goal, Steps, and Completion Criteria sections. Register it in `STATUS.md`.
-2. **Start** — Change status to `🚧 in progress`, update the date in `STATUS.md`.
-3. **Work** — Implement the milestone steps.
-4. **Complete** — Change status to `✅ done`, update the date and test count in `STATUS.md`, verify `make test && make vet`.
+1. **Create** — Copy [template/MILESTONE-TEMPLATE.md](./master-plan/template/MILESTONE-TEMPLATE.md) to `master-plan/milestones/M<N>-<slug>.md`. Fill all sections (goal, out of scope, dependencies, WPs, acceptance criteria). Register in `STATUS.md`.
+2. **Start** — Change status to `🚧 in progress`, update Started date in `STATUS.md`.
+3. **Work** — Execute one **work package (WP)** per session; run `make test && make vet` after each WP.
+4. **Complete** — Check all acceptance criteria in the milestone file; set status to `✅ done` (or `🟡 partial → M<N>` if follow-up remains); update Completed date and test count in `STATUS.md`.
+
+See [template/README.md](./master-plan/template/README.md) for status legend and rules.
 
 ### Milestone document template
 
+Use [template/MILESTONE-TEMPLATE.md](./master-plan/template/MILESTONE-TEMPLATE.md) — do not use the shortened inline version below.
+
+Legacy minimal shape (deprecated):
+
 ```markdown
 # M<N> — <Title>
-
 **Status:** ⏳ pending
-
 ## Goal
-
-One-sentence description of what this milestone achieves.
-
-## Files to modify
-
-- `file.go` — what changes
-
-## Steps
-
-### 1. Step title
-Description of what to do.
-
-### 2. Step title
 ...
-
-## Completion Criteria
-
-- [ ] Criterion 1
-- [ ] Criterion 2
-- [ ] `make test` passes all tests
-- [ ] `make vet` exits 0
 ```
 
 ## Low-Priority Milestones (M85-M99)

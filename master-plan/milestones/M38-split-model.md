@@ -1,6 +1,6 @@
 # M38 — Split model.go and Consolidate Note Opening
 
-**Status:** ⏳ pending
+**Status:** 🟡 partial — see **M52** for remaining work
 
 ## Goal
 

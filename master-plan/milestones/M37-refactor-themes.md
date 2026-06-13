@@ -1,6 +1,6 @@
 # M37 — Theme System Refactor
 
-**Status:** ⏳ pending
+**Status:** 🟡 partial — see **M51** for remaining work
 
 ## Goal
 
