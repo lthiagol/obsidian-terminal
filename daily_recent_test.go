@@ -5,6 +5,35 @@ import (
 	"time"
 )
 
+func TestOpenDailyNote_MissingFile(t *testing.T) {
+	cfg := &Config{
+		VaultPath:        testVaultPath(t),
+		SkipDirs:         DefaultConfig().SkipDirs,
+		DailyNotesDir:    "Journal",
+		DailyNotesFormat: "2006-01-02",
+	}
+	model := NewModel(cfg)
+	if model.err != nil {
+		t.Fatalf("NewModel: %v", model.err)
+	}
+
+	model.openDailyNote()
+
+	if model.mode != ModeView {
+		t.Errorf("expected ModeView after openDailyNote, got %v", model.mode)
+	}
+	if model.activeNote == nil {
+		t.Fatal("expected activeNote to be set")
+	}
+	if model.activeNote.Body != "" {
+		t.Errorf("expected empty body for missing daily note, got %q", model.activeNote.Body)
+	}
+	if model.activeNote.Path == "" {
+		t.Error("expected non-empty path for daily note")
+	}
+	model.openDailyNote() // second call: no panic, no nil pointer
+}
+
 func TestBuildDailyNotePath(t *testing.T) {
 	cfg := &Config{
 		VaultPath:        testVaultPath(t),

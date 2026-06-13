@@ -584,7 +584,7 @@ func (m *Model) rescanVault() {
 			m.mode = ModeBrowse
 			m.activeNote = nil
 		} else {
-			m.openNote(note.Path)
+			m.loadNote(note.Path, navReload)
 		}
 	}
 }
@@ -811,16 +811,16 @@ func (m *Model) openDailyNote() {
 	note, err := LoadNote(m.config.VaultPath, path)
 	if err != nil {
 		dateStr := time.Now().Format(m.config.DailyNotesFormat)
-		m.activeNote = &VaultNote{
+		note = &VaultNote{
 			Path:  path,
 			Title: "Daily: " + dateStr,
 			Body:  "",
 		}
-		m.prevMode = m.mode
-		m.mode = ModeView
-		m.viewer.SetContent(m.activeNote.Body, m.width-m.treeWidth-2)
-		m.buildOutline()
-		m.addRecentNote(path)
+		if m.activeNote != nil && m.activeNote.Path != path {
+			m.history = append(m.history, m.activeNote.Path)
+			m.historyForward = nil
+		}
+		m.applyNote(note, navUser)
 		return
 	}
 	m.openNote(note.Path)

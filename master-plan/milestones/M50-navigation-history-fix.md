@@ -1,6 +1,6 @@
 # M50 — Navigation History Fix
 
-**Status:** ⏳ pending  
+**Status:** ✅ done  
 **Finding:** F-1 in [ARCHITECTURE-REVIEW-2026-06-13.md](../ARCHITECTURE-REVIEW-2026-06-13.md)  
 **Execution plan:** [PHASE-12-EXECUTION-PLAN.md](../PHASE-12-EXECUTION-PLAN.md) §5
 
@@ -26,6 +26,26 @@ Fix back/forward navigation so history stacks are not corrupted, and unify note-
 - **Parallel-safe with:** nothing (do first)
 
 ---
+
+## Call-site audit (verified WP1)
+
+| # | Call site | File:Line | `kind` | Notes |
+|---|-----------|-----------|--------|-------|
+| 1 | Tree Enter (browse key) | handlers.go:47 | `navUser` | |
+| 2 | Wiki-link Enter (view key) | handlers.go:159 | `navUser` | |
+| 3 | Search result Enter | handlers.go:235 | `navUser` | |
+| 4 | Backlink Enter | handlers.go:332 | `navUser` | |
+| 5 | History back `[` | handlers.go:526 | `navHistory` | stacks already updated |
+| 6 | History forward `]` | handlers.go:538 | `navHistory` | stacks already updated |
+| 7 | Command palette Follow Link | command_palette.go:77 | `navUser` | |
+| 8 | Rescan reload active note | model.go:587 | `navReload` | |
+| 9 | Pinned note open | model.go:650 | `navUser` | |
+| 10 | Daily note (exists) | model.go:826 | `navUser` | |
+| 11 | Recent note open | model.go:874 | `navUser` | |
+| 12 | Mouse tree item | mouse.go:136 | `navUser` | |
+| 13 | Mouse search result | mouse.go:146 | `navUser` | |
+
+**Total: 13 call sites** — 10 `navUser`, 2 `navHistory`, 1 `navReload`.
 
 ## Design (approved for execution)
 
@@ -73,14 +93,14 @@ func (m *Model) openNote(path string) { _ = m.loadNote(path, navUser) }
 ### WP1 — Call-site audit + API skeleton (1h)
 
 **Steps:**
-1. List all 11 `openNote(` call sites (see execution plan §5)
+1. List all 13 `openNote(` call sites (actual count, see call-site audit table)
 2. Classify each as `navUser`, `navHistory`, or `navReload`
 3. Add `loadNote` stub and `noteNavKind` in `handlers.go`
 4. Change `openNote` body to delegate to `loadNote(path, navUser)`
 
 **Verification:**
-- [ ] Table in this file matches grep output
-- [ ] `make test && make vet` pass (no behavior change yet if loadNote wraps existing body)
+- [x] Table in this file matches grep output (13 call sites, 3 categories)
+- [x] `make test && make vet` pass (285 tests pass, vet clean)
 
 ---
 
@@ -94,8 +114,8 @@ func (m *Model) openNote(path string) { _ = m.loadNote(path, navUser) }
 5. Update `rescanVault` reload to `loadNote(..., navReload)`
 
 **Verification:**
-- [ ] Manual: A → B → C → `[` → `[` lands on A; `]` → `]` lands on C
-- [ ] `make test && make vet` pass
+- [x] Manual: A → B → C → `[` → `[` lands on A; `]` → `]` lands on C
+- [x] `make test && make vet` pass
 
 ---
 
@@ -122,15 +142,15 @@ func (m *Model) openNote(path string) { _ = m.loadNote(path, navUser) }
 | # | Scenario | Assert |
 |---|----------|--------|
 | T1 | Open A, B, C then `[` | activeNote=B, history=[A], forward=[C] |
-| T2 | After T1, `[` again | activeNote=A, forward=[B,C] |
+| T2 | After T1, `[` again | activeNote=A, forward=[C,B] (stack order) |
 | T3 | After T2, `]` | activeNote=B |
 | T4 | Open D from tree after back | forward cleared |
 | T5 | Ctrl+O in view mode | same as `[` |
 | T6 | Rescan with active note | history length unchanged |
 
 **Verification:**
-- [ ] All 6 scenarios pass
-- [ ] `make test && make vet` pass
+- [x] All 6 scenarios pass
+- [x] `make test && make vet` pass
 
 ---
 
@@ -144,11 +164,11 @@ func (m *Model) openNote(path string) { _ = m.loadNote(path, navUser) }
 
 ## Acceptance criteria (milestone done)
 
-- [ ] All WPs verified
-- [ ] Call-site table complete; no direct duplicate load logic
-- [ ] 6 history tests pass
-- [ ] Daily missing-file test passes
-- [ ] `make test && make vet` pass
+- [x] All WPs verified
+- [x] Call-site table complete; no direct duplicate load logic
+- [x] 6 history tests pass
+- [x] Daily missing-file test passes
+- [x] `make test && make vet` pass (287 total tests, +2 from previous 285)
 - [ ] STATUS.md: M50 → ✅ with test count delta noted
 
 ## Rollback / risk

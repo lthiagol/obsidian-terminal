@@ -17,6 +17,8 @@ make build       # compile binary
 make run         # go run .
 make test        # run all tests
 make test-race   # run tests with race detector
+make bench       # run all benchmarks
+make bench-short # run benchmarks with 100ms benchtime (quick smoke check)
 make vet         # go vet
 make lint        # golangci-lint (requires: brew install golangci-lint)
 make fmt         # gofmt

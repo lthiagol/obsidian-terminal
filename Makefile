@@ -1,4 +1,4 @@
-.PHONY: build run test lint vet clean install
+.PHONY: build run test test-race bench bench-short lint vet fmt clean install
 
 BINARY := obsidian-terminal
 GO := go
@@ -15,6 +15,12 @@ test:
 
 test-race:
 	$(GO) test ./... -race -count=1
+
+bench:
+	$(GO) test -bench=. -benchmem -run=^$$ ./...
+
+bench-short:
+	$(GO) test -bench=. -benchtime=100ms -run=^$$ ./...
 
 vet:
 	$(GO) vet ./...

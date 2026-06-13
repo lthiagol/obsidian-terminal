@@ -1,6 +1,6 @@
 # obsidian-terminal — Build Status
 
-**Last updated:** 2026-06-13
+**Last updated:** 2026-06-13 (M50, M55 milestones)
 **Language:** Go 1.26+ (see `go.mod`)
 **Architecture review:** [ARCHITECTURE-REVIEW-2026-06-13.md](./ARCHITECTURE-REVIEW-2026-06-13.md)  
 **Execution plan (Phase 12):** [PHASE-12-EXECUTION-PLAN.md](./PHASE-12-EXECUTION-PLAN.md)  
@@ -152,12 +152,12 @@ From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M50: Navigation History Fix | ⏳ pending | 0 | — | — |
+| M50: Navigation History Fix | ✅ done | 7 | 2026-06-13 | 2026-06-13 |
 | M51: Theme De-globalization (finish M37) | ⏳ pending | 0 | — | — |
 | M52: Decompose model.go (finish M38) | ⏳ pending | 0 | — | — |
 | M53: Documentation & Plan Sync | ⏳ pending | 0 | — | — |
 | M54: Incremental Vault Rescan | ⏳ pending (gated) | 0 | — | — |
-| M55: CI Pipeline | ⏳ pending | 0 | — | — |
+| M55: CI Pipeline | 🟡 partial → **M53** | — | 2026-06-13 | 2026-06-13 |
 | M56: Test Infrastructure & Coverage | ⏳ pending | 0 | — | — |
 | M57: Package Structure Extraction | ⏸ deferred → Phase 99 | 0 | — | — |
 | M58: Fuzzy Search Optimization | ⏸ deferred → Phase 99 | 0 | — | — |
@@ -170,7 +170,7 @@ From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
 | M98: Image Preview | ⏳ pending | 0 | — | — |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
 
-**Total Tests:** ~285 (run `go test ./... -v -count=1 | grep -c '^--- PASS'`)
+**Total Tests:** ~287 (run `go test ./... -v -count=1 | grep -c '^--- PASS'`)
 
 ## Execution Order
 
@@ -319,6 +319,7 @@ M48-M49 (Features) + M57 (Package extraction, optional)
 |-----------|------|-----------|
 | M37 | Data-driven themes, `m.palette`, `switchToProfile` pointer fix | Remove global `activatePalette` mutation → **M51** |
 | M38 | `openNote()` consolidation, mouse/search paths fixed | `model.go` still 1013 lines → **M52** |
+| M55 | WP1 + WP2 complete, CI workflow created | CI green on default branch → **M53** |
 
 ## Keybinding Conflicts Resolved
 

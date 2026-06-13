@@ -274,22 +274,34 @@ func (m *Model) enterHelpMode() {
 	m.helpScroll = 0
 }
 
-func (m *Model) openNote(path string) {
-	// Push current note to history before navigating
-	if m.activeNote != nil && m.activeNote.Path != path {
-		m.history = append(m.history, m.activeNote.Path)
-		m.historyForward = nil // clear forward history on new navigation
+type noteNavKind int
+
+const (
+	navUser noteNavKind = iota // user navigation: push history, clear forward
+	navHistory                 // back/forward: stacks already updated
+	navReload                  // rescan refresh: no history changes
+)
+
+func (m *Model) loadNote(path string, kind noteNavKind) {
+	if kind == navUser {
+		if m.activeNote != nil && m.activeNote.Path != path {
+			m.history = append(m.history, m.activeNote.Path)
+			m.historyForward = nil
+		}
 	}
 	note, err := LoadNote(m.config.VaultPath, path)
 	if err != nil {
 		m.addToast("Could not load note: "+err.Error(), ToastError)
 		return
 	}
+	m.applyNote(note, kind)
+}
+
+func (m *Model) applyNote(note *VaultNote, kind noteNavKind) {
 	m.activeNote = note
 	m.prevMode = m.mode
 	m.mode = ModeView
 
-	// Set up embed resolver for this note load
 	m.viewer.SetEmbedResolver(func(target, heading string) (string, error) {
 		if m.vault == nil {
 			return "", fmt.Errorf("vault not available")
@@ -312,7 +324,14 @@ func (m *Model) openNote(path string) {
 	m.backlinkPanel = NewBacklinkPanel(note.Path, m.backlinkIndex)
 	m.backlinkMode = false
 	m.buildOutline()
-	m.addRecentNote(path)
+
+	if kind != navReload {
+		m.addRecentNote(note.Path)
+	}
+}
+
+func (m *Model) openNote(path string) {
+	m.loadNote(path, navUser)
 }
 
 func (m Model) handleBacklinkKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
@@ -523,7 +542,7 @@ func (m *Model) goBackHistory() {
 	if m.activeNote != nil {
 		m.historyForward = append(m.historyForward, m.activeNote.Path)
 	}
-	m.openNote(prev)
+	m.loadNote(prev, navHistory)
 }
 
 func (m *Model) goForwardHistory() {
@@ -535,7 +554,7 @@ func (m *Model) goForwardHistory() {
 	if m.activeNote != nil {
 		m.history = append(m.history, m.activeNote.Path)
 	}
-	m.openNote(next)
+	m.loadNote(next, navHistory)
 }
 
 func (m Model) activateInNoteSearch() (tea.Model, tea.Cmd) {
