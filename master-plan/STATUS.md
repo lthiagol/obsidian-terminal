@@ -160,7 +160,7 @@ From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
 | M55: CI Pipeline | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
 | M56: Test Infrastructure & Coverage | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
 | M57: Package Structure Extraction | ⏸ deferred → Phase 99 | 0 | — | — |
-| M58: Fuzzy Search Optimization | ⏸ deferred → Phase 99 | 0 | — | — |
+| M58: Fuzzy Search Optimization | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
 
 ### Phase 99: Future (Low Priority)
 
@@ -171,7 +171,7 @@ From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
 | M98: Image Preview | ⏳ pending | 0 | — | — |
 | M99: Homebrew Distribution | ⏳ pending | 0 | — | — |
 
-**Total Tests:** ~296 (run `go test ./... -v -count=1 | grep -c '^--- PASS'`)
+**Total Tests:** ~298 (run `go test ./... -v -count=1 | grep -c '^--- PASS'`)
 
 ## Execution Order
 

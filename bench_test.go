@@ -49,14 +49,18 @@ func BenchmarkFuzzySearch(b *testing.B) {
 		paths[i] = "vault/path/note" + strings.Repeat("x", 20) + string(rune('0'+i%10)) + ".md"
 	}
 	lower := make([]string, len(paths))
+	runes := make([][]rune, len(paths))
+	lowerRunes := make([][]rune, len(paths))
 	for i, p := range paths {
 		lower[i] = strings.ToLower(p)
+		runes[i] = []rune(p)
+		lowerRunes[i] = []rune(lower[i])
 	}
 
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		_ = search.FuzzySearch("test", paths, lower)
+		_ = search.FuzzySearch("test", paths, lower, runes, lowerRunes)
 	}
 }
 

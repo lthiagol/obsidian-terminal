@@ -241,9 +241,14 @@ func (m *Model) filterCommands(q string) []Command {
 		}
 	}
 
+	qLower := strings.ToLower(q)
+	qRunes := []rune(q)
+	qLowerRunes := []rune(qLower)
 	sort.Slice(filtered, func(i, j int) bool {
-		scoreI := search.FuzzyScore(q, filtered[i].Name, strings.ToLower(filtered[i].Name))
-		scoreJ := search.FuzzyScore(q, filtered[j].Name, strings.ToLower(filtered[j].Name))
+		nameI := filtered[i].Name
+		nameJ := filtered[j].Name
+		scoreI := search.FuzzyScore(qRunes, qLowerRunes, []rune(nameI), []rune(strings.ToLower(nameI)), strings.ToLower(nameI))
+		scoreJ := search.FuzzyScore(qRunes, qLowerRunes, []rune(nameJ), []rune(strings.ToLower(nameJ)), strings.ToLower(nameJ))
 		return scoreI > scoreJ
 	})
 

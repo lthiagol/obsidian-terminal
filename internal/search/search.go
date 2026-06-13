@@ -39,6 +39,8 @@ type State struct {
 	selected    int
 	allPaths    []string
 	allLower    []string
+	allRunes    [][]rune
+	allLowerRunes [][]rune
 	searchIndex map[string]string
 }
 
@@ -53,18 +55,24 @@ type Style struct {
 // NewState creates a new search state with the given mode and data.
 func NewState(mode Mode, paths []string, index map[string]string) State {
 	lower := make([]string, len(paths))
+	runes := make([][]rune, len(paths))
+	lowerRunes := make([][]rune, len(paths))
 	for i, p := range paths {
 		lower[i] = strings.ToLower(p)
+		runes[i] = []rune(p)
+		lowerRunes[i] = []rune(lower[i])
 	}
 	s := State{
-		mode:        mode,
-		allPaths:    paths,
-		allLower:    lower,
-		searchIndex: index,
-		selected:    0,
+		mode:          mode,
+		allPaths:      paths,
+		allLower:      lower,
+		allRunes:      runes,
+		allLowerRunes: lowerRunes,
+		searchIndex:   index,
+		selected:      0,
 	}
 	if mode == Name {
-		s.results = FuzzySearch("", paths, lower)
+		s.results = FuzzySearch("", paths, lower, runes, lowerRunes)
 	}
 	return s
 }
@@ -76,7 +84,7 @@ func (s *State) SetQuery(query string) {
 
 	switch s.mode {
 	case Name:
-		s.results = FuzzySearch(query, s.allPaths, s.allLower)
+		s.results = FuzzySearch(query, s.allPaths, s.allLower, s.allRunes, s.allLowerRunes)
 	case Content:
 		if query == "" {
 			s.results = []Result{}
@@ -135,22 +143,17 @@ func (s State) SelectedResult() *Result {
 }
 
 // FuzzyScore computes a match score between query and target.
-// targetLower must be strings.ToLower(target).
-func FuzzyScore(query, target, targetLower string) float64 {
-	queryLower := strings.ToLower(query)
-
-	if queryLower == "" || targetLower == "" {
+// queryRunes and queryLowerRunes must be pre-computed from the same query.
+// targetOrigRunes and targetLowerRunes must be pre-computed from the same target.
+// targetLower is a string copy of targetLowerRunes for boundary checks.
+func FuzzyScore(queryRunes, queryLowerRunes, targetOrigRunes, targetLowerRunes []rune, targetLower string) float64 {
+	if len(queryLowerRunes) == 0 || len(targetLowerRunes) == 0 {
 		return 0
 	}
 
-	if queryLower == targetLower {
-		return 100 + float64(len(queryLower))
+	if string(queryLowerRunes) == targetLower {
+		return 100 + float64(len(queryLowerRunes))
 	}
-
-	queryRunes := []rune(query)
-	queryLowerRunes := []rune(queryLower)
-	targetLowerRunes := []rune(targetLower)
-	targetOrigRunes := []rune(target)
 
 	qi := 0
 	ti := 0
@@ -211,32 +214,57 @@ func FuzzyScore(query, target, targetLower string) float64 {
 	return score
 }
 
+func pathRune(slice [][]rune, i int) []rune {
+	if i < len(slice) {
+		return slice[i]
+	}
+	return nil
+}
+
 func isBoundary(r rune) bool {
 	return r == '/' || r == '-' || r == '_' || r == ' ' || r == '.'
 }
 
 // FuzzySearch performs fuzzy matching on file paths.
 // pathsLower must contain strings.ToLower for each path.
-func FuzzySearch(query string, paths, pathsLower []string) []Result {
+// pathsRunes and pathsLowerRunes are pre-computed []rune slices (optional — pass nil to compute on the fly).
+func FuzzySearch(query string, paths, pathsLower []string, pathsRunes, pathsLowerRunes [][]rune) []Result {
 	if query == "" {
-		results := make([]Result, len(paths))
-		for i, path := range paths {
-			results[i] = Result{Path: path, Score: 0}
+		n := maxSearchResults
+		if len(paths) < n {
+			n = len(paths)
 		}
-		sort.Slice(results, func(i, j int) bool {
-			return pathsLower[i] < pathsLower[j]
-		})
-		if len(results) > maxSearchResults {
-			results = results[:maxSearchResults]
+		results := make([]Result, n)
+		for i := 0; i < n; i++ {
+			results[i] = Result{Path: paths[i], Score: 0}
+		}
+		if n > 1 {
+			sort.Slice(results, func(i, j int) bool {
+				return pathsLower[i] < pathsLower[j]
+			})
 		}
 		return results
 	}
 
-	var results []Result
+	queryLower := strings.ToLower(query)
+	queryRunes := []rune(query)
+	queryLowerRunes := []rune(queryLower)
+	results := make([]Result, 0, maxSearchResults)
 	for i, path := range paths {
-		score := FuzzyScore(query, path, pathsLower[i])
+		targetOrigRunes := pathRune(pathsRunes, i)
+		targetLowerRunes := pathRune(pathsLowerRunes, i)
+		if targetOrigRunes == nil {
+			targetOrigRunes = []rune(path)
+		}
+		if targetLowerRunes == nil {
+			targetLowerRunes = []rune(pathsLower[i])
+		}
+		score := FuzzyScore(queryRunes, queryLowerRunes, targetOrigRunes, targetLowerRunes, pathsLower[i])
 		if score > 0 {
 			results = append(results, Result{Path: path, Score: score})
+			if len(results) >= maxSearchResults {
+				break
+			}
 		}
 	}
 
