@@ -159,7 +159,7 @@ From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
 | M54: Incremental Vault Rescan | ✅ done (WP1 gate: 5k scan 74ms) | 0 | 2026-06-13 | 2026-06-13 |
 | M55: CI Pipeline | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
 | M56: Test Infrastructure & Coverage | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
-| M57: Package Structure Extraction | ⏸ deferred → Phase 99 | 0 | — | — |
+| M57: Package Structure Extraction | 🎯 design phase (adopt later) | 0 | — | — |
 | M58: Fuzzy Search Optimization | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
 
 ### Phase 99: Future (Low Priority)
