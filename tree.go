@@ -1,0 +1,398 @@
+package main
+
+import (
+	"path/filepath"
+	"slices"
+	"strings"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
+
+type treeItem struct {
+	entry    *VaultEntry
+	expanded bool
+	depth    int
+}
+
+// FileTree is a navigable file tree widget for the vault.
+type FileTree struct {
+	items  []treeItem
+	cursor int
+	vault  *VaultEntry
+	width  int
+	height int
+	palette Palette
+
+	fileStyle     lipgloss.Style
+	dirStyle      lipgloss.Style
+	selectedStyle lipgloss.Style
+	prefixCache   []string
+	keyMap        KeyMap
+}
+
+// SetPalette updates the theme palette used for rendering.
+func (ft *FileTree) SetPalette(p Palette) {
+	ft.palette = p
+	ft.rebuildStyles()
+}
+
+func (ft *FileTree) rebuildStyles() {
+	p := ft.palette
+	ft.fileStyle = lipgloss.NewStyle().Foreground(p.TextSecondary)
+	ft.dirStyle = lipgloss.NewStyle().Foreground(p.AccentSecondary)
+	ft.selectedStyle = lipgloss.NewStyle().Background(p.Accent).Foreground(p.SelectionText).Bold(true)
+}
+
+// NewFileTree creates a FileTree from a vault entry tree.
+func NewFileTree(vault *VaultEntry, palette Palette) FileTree {
+	ft := FileTree{
+		vault:   vault,
+		width:   25,
+		height:  20,
+		palette: palette,
+	}
+	var items []treeItem
+	for _, child := range vault.Children {
+		items = append(items, flattenTree(child, 0, !child.IsDir)...)
+	}
+	ft.items = items
+	ft.rebuildStyles()
+
+	ft.keyMap = DefaultKeys()
+
+	maxDepth := maxEntryDepth(vault)
+	ft.prefixCache = make([]string, maxDepth+1)
+	for d := 0; d <= maxDepth; d++ {
+		ft.prefixCache[d] = strings.Repeat("  ", d)
+	}
+
+	return ft
+}
+
+func flattenTree(entry *VaultEntry, depth int, expanded bool) []treeItem {
+	var items []treeItem
+
+	if entry.IsDir {
+		items = append(items, treeItem{entry: entry, depth: depth, expanded: expanded})
+		if entry.Children != nil && expanded {
+			for _, child := range entry.Children {
+				items = append(items, flattenTree(child, depth+depthIncrement, !child.IsDir)...)
+			}
+		}
+	} else {
+		items = append(items, treeItem{entry: entry, depth: depth})
+	}
+
+	return items
+}
+
+func (ft *FileTree) expand() {
+	if ft.cursor >= len(ft.items) {
+		return
+	}
+
+	item := &ft.items[ft.cursor]
+	if !item.entry.IsDir || item.expanded {
+		return
+	}
+
+	item.expanded = true
+
+	if item.entry.Children == nil {
+		return
+	}
+
+	childItems := flattenChildren(item.entry.Children, item.depth+depthIncrement)
+
+	pos := ft.cursor + 1
+	ft.items = slices.Insert(ft.items, pos, childItems...)
+}
+
+func (ft *FileTree) collapse() {
+	if ft.cursor >= len(ft.items) {
+		return
+	}
+
+	item := &ft.items[ft.cursor]
+	if !item.entry.IsDir || !item.expanded {
+		return
+	}
+
+	item.expanded = false
+
+	cutEnd := ft.cursor + 1
+	for cutEnd < len(ft.items) && ft.items[cutEnd].depth > item.depth {
+		cutEnd++
+	}
+
+	ft.items = append(ft.items[:ft.cursor+1], ft.items[cutEnd:]...)
+}
+
+func flattenChildren(children []*VaultEntry, depth int) []treeItem {
+	var items []treeItem
+	for _, child := range children {
+		items = append(items, flattenTree(child, depth, !child.IsDir)...)
+	}
+	return items
+}
+
+func (ft *FileTree) Update(msg tea.Msg) (FileTree, tea.Cmd) {
+	keyMsg, ok := msg.(tea.KeyMsg)
+	if !ok {
+		return *ft, nil
+	}
+
+	switch {
+	case MatchKey(keyMsg, ft.keys().Up) || MatchRune(keyMsg, ft.keys().UpRune):
+		if ft.cursor > 0 {
+			ft.cursor--
+		}
+	case MatchKey(keyMsg, ft.keys().Down) || MatchRune(keyMsg, ft.keys().DownRune):
+		if ft.cursor < len(ft.items)-1 {
+			ft.cursor++
+		}
+	case MatchKey(keyMsg, ft.keys().Right) || MatchRune(keyMsg, ft.keys().RightRune):
+		ft.expand()
+	case MatchKey(keyMsg, ft.keys().Left) || MatchRune(keyMsg, ft.keys().LeftRune):
+		ft.collapse()
+	case MatchRune(keyMsg, ft.keys().TopRune):
+		ft.cursor = 0
+	case MatchRune(keyMsg, ft.keys().BottomRune):
+		if len(ft.items) > 0 {
+			ft.cursor = len(ft.items) - 1
+		}
+	case keyMsg.Type == tea.KeyEnter:
+		ft.toggleExpand()
+	}
+
+	return *ft, nil
+}
+
+func (ft FileTree) keys() KeyMap {
+	return ft.keyMap
+}
+
+func (ft *FileTree) toggleExpand() {
+	if ft.cursor >= len(ft.items) {
+		return
+	}
+	item := ft.items[ft.cursor]
+	if item.entry.IsDir {
+		if item.expanded {
+			ft.collapse()
+		} else {
+			ft.expand()
+		}
+	}
+}
+
+func (ft FileTree) SelectedEntry() *VaultEntry {
+	if ft.cursor >= 0 && ft.cursor < len(ft.items) {
+		return ft.items[ft.cursor].entry
+	}
+	return nil
+}
+
+func (ft FileTree) IsDirSelected() bool {
+	entry := ft.SelectedEntry()
+	return entry != nil && entry.IsDir
+}
+
+func (ft FileTree) SelectedPath() string {
+	entry := ft.SelectedEntry()
+	if entry != nil {
+		return entry.Path
+	}
+	return ""
+}
+
+func (ft *FileTree) SetSize(width, height int) {
+	if width < 10 {
+		width = 10
+	}
+	if height < 1 {
+		height = 1
+	}
+	ft.width = width
+	ft.height = height
+}
+
+func (ft FileTree) Cursor() int {
+	return ft.cursor
+}
+
+func (ft *FileTree) MoveUp() {
+	if ft.cursor > 0 {
+		ft.cursor--
+	}
+}
+
+func (ft *FileTree) MoveDown() {
+	if ft.cursor < len(ft.items)-1 {
+		ft.cursor++
+	}
+}
+
+func (ft *FileTree) MoveToY(y int) {
+	if y < 0 {
+		y = 0
+	}
+	if y >= len(ft.items) {
+		y = len(ft.items) - 1
+	}
+	ft.cursor = y
+}
+
+func (ft *FileTree) ApplyPathFilter(paths map[string]bool) {
+	var filtered []treeItem
+	for _, item := range ft.items {
+		if item.entry.IsDir {
+			hasMatchingDescendant := false
+			for _, fi := range ft.items {
+				if !fi.entry.IsDir && strings.HasPrefix(fi.entry.Path, item.entry.Path+string(filepath.Separator)) && paths[fi.entry.Path] {
+					hasMatchingDescendant = true
+					break
+				}
+			}
+			if hasMatchingDescendant {
+				filtered = append(filtered, item)
+			}
+		} else if paths[item.entry.Path] {
+			filtered = append(filtered, item)
+		}
+	}
+	ft.items = filtered
+	ft.cursor = 0
+}
+
+func (ft *FileTree) ResetFilter(vault *VaultEntry) {
+	var items []treeItem
+	for _, child := range vault.Children {
+		items = append(items, flattenTree(child, 0, !child.IsDir)...)
+	}
+	ft.items = items
+	ft.cursor = 0
+}
+
+func (ft FileTree) View() string {
+	if len(ft.items) == 0 {
+		return lipgloss.NewStyle().
+			Foreground(ft.palette.TextMuted).
+			PaddingTop(2).
+			PaddingLeft(2).
+			Render("no notes found")
+	}
+
+	var sb strings.Builder
+	availableWidth := ft.width - 4
+	if availableWidth < 10 {
+		availableWidth = 10
+	}
+
+	for i, item := range ft.items {
+		isSelected := i == ft.cursor
+
+		prefix := ft.getPrefix(item.depth)
+
+		var icon string
+		if item.entry.IsDir {
+			if item.expanded {
+				icon = IconFolderOpen
+			} else {
+				icon = IconFolderClosed
+			}
+		} else {
+			icon = IconFile
+		}
+
+		name := item.entry.Name
+		if item.entry.IsSymlink {
+			name += " ->"
+		}
+
+		fullLine := prefix + icon + name
+		if len([]rune(fullLine)) > availableWidth {
+			runes := []rune(fullLine)
+			fullLine = string(runes[:availableWidth-1]) + "…"
+		}
+
+		var rendered string
+		if isSelected {
+			rendered = ft.selectedStyle.Render(fullLine)
+		} else if item.entry.IsDir {
+			rendered = ft.dirStyle.Render(fullLine)
+		} else {
+			rendered = ft.fileStyle.Render(fullLine)
+		}
+
+		sb.WriteString(rendered)
+		if i < len(ft.items)-1 {
+			sb.WriteString("\n")
+		}
+	}
+
+	return sb.String()
+}
+
+func (ft FileTree) getPrefix(depth int) string {
+	if depth < len(ft.prefixCache) {
+		return ft.prefixCache[depth]
+	}
+	return strings.Repeat("  ", depth)
+}
+
+func (ft FileTree) Items() []treeItem {
+	return ft.items
+}
+
+func (ft FileTree) ItemCount() int {
+	return len(ft.items)
+}
+
+// ExpandedPaths returns relative paths of all expanded directories.
+func (ft FileTree) ExpandedPaths() []string {
+	var paths []string
+	for _, item := range ft.items {
+		if item.entry.IsDir && item.expanded {
+			paths = append(paths, item.entry.Path)
+		}
+	}
+	return paths
+}
+
+// ExpandPath expands all ancestor directories for the given relative path.
+// If called with "notes/meeting.md", it expands "notes" if it exists and is collapsed.
+func (ft *FileTree) ExpandPath(path string) {
+	parts := strings.Split(path, string(filepath.Separator))
+	for i := 0; i < len(parts); i++ {
+		dirPath := strings.Join(parts[:i+1], string(filepath.Separator))
+		for j := range ft.items {
+			if ft.items[j].entry.IsDir && ft.items[j].entry.Path == dirPath && !ft.items[j].expanded {
+				// Navigate to it and expand
+				ft.cursor = j
+				ft.expand()
+				break
+			}
+		}
+	}
+}
+
+const depthIncrement = 1
+
+func maxEntryDepth(entry *VaultEntry) int {
+	maxDepth := 0
+	var walk func(e *VaultEntry, depth int)
+	walk = func(e *VaultEntry, depth int) {
+		if depth > maxDepth {
+			maxDepth = depth
+		}
+		for _, child := range e.Children {
+			walk(child, depth+1)
+		}
+	}
+	for _, child := range entry.Children {
+		walk(child, 0)
+	}
+	return maxDepth
+}
