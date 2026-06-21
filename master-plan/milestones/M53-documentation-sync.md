@@ -1,7 +1,16 @@
 # M53 — Documentation & Plan Sync
 
-**Status:** ✅ done  
+**Status:** 🟡 partial → **M61**  
 **Execution plan:** [PHASE-12-EXECUTION-PLAN.md](../PHASE-12-EXECUTION-PLAN.md)
+
+## Completion summary (2026-06-13)
+
+| WP | Status | Notes |
+|----|--------|-------|
+| WP1 — KEYBINDINGS.md | ✅ done | Matches `keys.go`, `help.go`, `model.go` global dispatch |
+| WP2 — DESIGN.md module map | ❌ **incomplete** | Module map still references phantom files (`outline.go`, `daily.go`, `pins.go`, `recents.go`); still has "M51 pending" and "M52 pending" callouts; missing 5 files extracted in M52 (`vault_rescan.go`, `pin_handler.go`, `outline_handler.go`, `daily_recent_handler.go`, `render_layout.go`). Finish in **M61**. |
+| WP3 — README + AGENTS.md | 🟡 partial | README updated. AGENTS.md styling section still references deprecated globals (`Accent`, `TreeStyle`, etc.) — M51 made these deprecated. Finish in **M61**. |
+| WP4 — STATUS + milestone audit | ✅ done | Test count matches reality ±5 |
 
 ## Goal
 
@@ -17,6 +26,7 @@ Eliminate plan/code drift so agents and contributors do not reintroduce fixed bu
 
 - **After:** M50 (history behavior final), M55 (document CI in README)
 - **Before:** M48/M49 feature work (agents need accurate KEYBINDINGS)
+- **Follow-up:** M61 (finishes WP2 + AGENTS.md styling section; optional rename DESIGN.md → ARCHITECTURE.md)
 
 ---
 
@@ -103,20 +113,34 @@ AGENTS.md:
 
 ---
 
-## Acceptance criteria
+## Acceptance criteria (milestone done)
 
-- [ ] All 4 WPs complete
-- [ ] Agent can implement M48 using only KEYBINDINGS + DESIGN without reading all handlers
-- [ ] `make test && make vet` pass (docs only — no code required)
+- [x] WP1 complete
+- [ ] WP2 complete (→ **M61**)
+- [ ] WP3 AGENTS.md styling section (→ **M61**)
+- [x] WP4 complete
+- [ ] Agent can implement M48 using only KEYBINDINGS + DESIGN without reading all handlers (blocked on WP2)
+- [x] `make test && make vet` pass (docs only — no code required)
 
 ## Handoff notes
 
 Do not change keybindings in this milestone — docs only. If doc reveals a code bug, file new finding / M50 follow-up.
 
+WP2 + AGENTS.md styling section are now owned by **M61**. M61 also considers renaming `DESIGN.md` → `ARCHITECTURE.md` to align with `ARCHITECTURE-REVIEW-*.md` naming and the master-plan template's `{ARCHITECTURE or DESIGN doc}` placeholder.
+
 ## Estimated total
 
-4–5 hours
+4–5 hours (WP1, WP3-README, WP4 done in ~2h; WP2 + AGENTS.md ~2h in M61)
 
 ## Priority
 
 🟡 High (Track A, after M50)
+
+## Completion log
+
+| Field | Value |
+|-------|-------|
+| Started | 2026-06-13 |
+| Completed (WP1, WP3-README, WP4) | 2026-06-13 |
+| Tests added | 0 (docs only) |
+| Notes | WP2 + AGENTS.md styling section → M61. Optional DESIGN.md → ARCHITECTURE.md rename also in M61. |

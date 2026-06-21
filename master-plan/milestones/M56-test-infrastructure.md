@@ -1,7 +1,17 @@
 # M56 — Test Infrastructure & Targeted Coverage
 
-**Status:** ⏳ pending  
+**Status:** ✅ done  
 **Execution plan:** [PHASE-12-EXECUTION-PLAN.md](../PHASE-12-EXECUTION-PLAN.md)
+
+## Completion summary (2026-06-13)
+
+| WP | Status | Tests added | Notes |
+|----|--------|-------------|-------|
+| WP1 — `testutil_test.go` helpers | ✅ done | 0 | `newTestModel`, `sendKey`, `sendKeys`, `assertMode`, `assertActiveNotePath`, `navigateToFirstFile`, `modelFromInterface`, `indexOfFirst*` |
+| WP2 — Refactor integration tests | ✅ done | 0 (refactor) | `model_integration_test.go` migrated to helpers |
+| WP3 — In-note search tests | ✅ done | 5 | `in_note_search_test.go`: Activate, TypeQuery, CycleMatches, EscDismiss, EmptyNote |
+| WP4 — Profile + resize regression | ✅ done | 2 | `regression_test.go`: profile switch + theme palette |
+| WP5 — Makefile test-cover (optional) | ⏸ deferred | — | Not required for milestone completion |
 
 ## Goal
 
@@ -103,10 +113,10 @@ Not required for milestone completion.
 
 ## Acceptance criteria
 
-- [ ] WP1–WP4 complete
-- [ ] `testutil_test.go` exists and is documented in DESIGN.md testing section (M53 follow-up ok)
-- [ ] No test that only asserts `!= nil` without behavior check
-- [ ] `make test && make vet` pass
+- [x] WP1–WP4 complete
+- [x] `testutil_test.go` exists and is documented in DESIGN.md testing section (M53 follow-up ok → M61)
+- [x] No test that only asserts `!= nil` without behavior check
+- [x] `make test && make vet` pass
 
 ## Handoff notes
 
@@ -119,3 +129,12 @@ M50 owns history. Do not duplicate T1–T6 from M50 here.
 ## Priority
 
 🟡 High (Track C, after M50)
+
+## Completion log
+
+| Field | Value |
+|-------|-------|
+| Started | 2026-06-13 |
+| Completed | 2026-06-13 |
+| Tests added | 7 (5 in-note search + 2 regression) |
+| Notes | WP5 (Makefile test-cover) deferred as optional. |

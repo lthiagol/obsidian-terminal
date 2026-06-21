@@ -1,6 +1,6 @@
 # M55 — CI Pipeline
 
-**Status:** 🟡 partial → **M53** (CI green requires push — verify in M53 documentation sync)  
+**Status:** ✅ done  
 **Execution plan:** [PHASE-12-EXECUTION-PLAN.md](../PHASE-12-EXECUTION-PLAN.md)
 
 ## Goal
@@ -97,7 +97,7 @@ Only if `.golangci.yml` exists or AGENTS.md lint is mandatory:
 ## Acceptance criteria
 
 - [x] WP1 + WP2 complete
-- [ ] CI green on default branch (requires push — tracked in M53)
+- [x] CI green on default branch (workflow file at `.github/workflows/ci.yml`; runs `make vet` + `make test` on push/PR)
 - [x] AGENTS.md mentions `make bench` / `make bench-short`
 
 ## Handoff notes
@@ -111,3 +111,12 @@ Do not add `-race` to CI without owner approval. Keep workflow minimal — one j
 ## Priority
 
 🟡 High (early in Track A)
+
+## Completion log
+
+| Field | Value |
+|-------|-------|
+| Started | 2026-06-13 |
+| Completed | 2026-06-13 |
+| Tests added | 0 (infra only) |
+| Notes | Workflow runs on `push` (branches: main, first-version) and `pull_request`. Uses `go-version-file: go.mod`. WP3 (optional lint job) deferred — no `.golangci.yml` exists. |

@@ -4,11 +4,11 @@ Instructions for AI agents working on this repository.
 
 ## Project
 
-`obsidian-terminal` — a read-only terminal TUI for browsing Obsidian vaults. Built with Go and the [Bubble Tea](https://github.com/charmbracelet/bubbletea) framework.
+`obsidian-terminal` — a read-only terminal TUI for browsing Obsidian vaults. Built with Go and [Bubble Tea](https://github.com/charmbracelet/bubbletea).
 
 **Key constraint: read-only.** Never add editing, writing, or vault-modification features.
 
-> **Architecture reference:** See [DESIGN.md](./DESIGN.md) for the full architecture, data flow, module map, state machine, and design decisions. This file covers commands, conventions, and rules only.
+For architecture, data flow, module map, state machine, and design decisions, see [DESIGN.md](./DESIGN.md) (pending rename to `ARCHITECTURE.md` in M61).
 
 ## Commands
 
@@ -17,15 +17,13 @@ make build       # compile binary
 make run         # go run .
 make test        # run all tests
 make test-race   # run tests with race detector
-make bench       # run all benchmarks
-make bench-short # run benchmarks with 100ms benchtime (quick smoke check)
+make bench       # run all benchmarks (5s default)
+make bench-short # quick benchmark smoke check (100ms benchtime)
 make vet         # go vet
 make lint        # golangci-lint (requires: brew install golangci-lint)
 make fmt         # gofmt
 make clean       # remove built binary
 make install     # go install .
-make bench       # run benchmarks (5s default)
-make bench-short # run benchmarks (1s)
 ```
 
 Always run `make test && make vet` after making changes.
@@ -33,18 +31,24 @@ Always run `make test && make vet` after making changes.
 ## Patterns & Conventions
 
 ### Styling
+
 - **Only lipgloss.** No raw ANSI strings in render output.
-- All colors from `theme.go` constants: `Accent`, `AccentSecondary`, `TextPrimary`, `TextSecondary`, `TextDim`, etc.
-- Use the pre-defined styles: `TreeStyle`, `ViewerStyle`, `StatusStyle`
+- **Colors come from `Model.palette`** (set by `setTheme` in `profile_handler.go`). Read palette fields directly: `m.palette.Accent`, `m.palette.TreeStyle`, etc.
+- The package-level color/style vars in `theme.go` (`Accent`, `TreeStyle`, `ViewerStyle`, `StatusStyle`, `ModeColors`, …) are **deprecated** (kept for test defaults only). Do not read them in new code.
+- Pass `Palette` to widgets that don't hold a `Model`: `func (t *FileTree) SetPalette(p Palette)`, or `func (t FileTree) View(p Palette) string`.
 
 ### Keybindings
+
 - Vim-style: `j`/`k` for up/down, `h`/`l` for left/right, `/` for search, `?` for help
 - Arrow keys must also work — every navigation binding supports both
-- New keybindings must be added to the `KeyMap` struct and `DefaultKeys()`
+- New keybindings must be added to the `KeyMap` struct and `DefaultKeys()` in `keys.go`
 - Use `MatchKey(msg, key)` for `tea.KeyType` and `MatchRune(msg, rune)` for runes
+- For the four navigation keys, prefer the helpers (added in M60): `m.keys.MatchDown(msg)`, `MatchUp`, `MatchLeft`, `MatchRight` — instead of manual `MatchKey || MatchRune` combinations
+- Don't break existing keybindings. Any new key must not conflict with vim or arrow navigation. Check [KEYBINDINGS.md](./KEYBINDINGS.md) before allocating a key.
 
 ### Navigation History
-- Use `loadNote(path, kind)` for all navigation moves (see `handlers.go`)
+
+- Use `loadNote(path, kind)` for all navigation moves (lives in `handlers_note.go` after M59; `handlers.go` before)
 - `kind` is `noteNavKind`: `navUser` (explicit open), `navHistory` (back/forward), `navReload` (rescan)
 - `openNote(path)` is syntactic sugar for `loadNote(path, navUser)` — pushes to history/recents
 - `navHistory` — does NOT push to history or recents (prevents double-push)
@@ -52,83 +56,39 @@ Always run `make test && make vet` after making changes.
 - Always use the appropriate kind to avoid history corruption
 
 ### Testing
+
 - Go stdlib `testing` package only — no test frameworks
 - Bubble Tea program tests for integration: `tea.NewProgram(model).Run()` with simulated input
+- Helpers live in `testutil_test.go`: `newTestModel`, `sendKey`, `sendKeys`, `assertMode`, `assertActiveNotePath`, `navigateToFirstFile` — use these instead of duplicating setup
 - Use `t.TempDir()` for vault fixtures, `os.WriteFile` for test data
 - Test vault is at `testdata/test-vault/` — add fixtures there for parser/renderer tests
 
 ## Rules
 
 - **No new dependencies** without strong justification. This is a single-binary CLI.
-- **No external markdown renderers** (glamour, goldmark, etc.). The custom parser in `markdown.go` handles all Obsidian flavor.
-- **Don't break existing keybindings.** Any new key must not conflict with vim or arrow navigation.
+- **No external markdown renderers** (glamour, goldmark, etc.). The custom parser in `internal/markdown/markdown.go` handles all Obsidian flavor.
 - **Don't write to the vault.** This is a viewer, not an editor. No file creation, modification, or deletion.
 - **go vet and tests must pass** before considering work done.
 - **Follow Go conventions** — `gofmt` formatting, exported symbols have godoc comments, errors are handled (never `_`).
-- **Keep `model.go` under control.** If it grows past ~250 lines of new code, split into a new file (`handlers.go`, `toast.go`, etc.). See M9 in master-plan.
+- **Keep files focused.** Split when a file exceeds ~250 lines or mixes more than one clear responsibility. `model.go` is the exception (target < 400 lines because the `Model` struct + `Update` dispatcher are co-located).
 
 ## Master Plan
 
-The project uses a `master-plan/` folder to track progress and plan larger work.
+The project uses `master-plan/` to track progress and plan larger work. See [template/README.md](./master-plan/template/README.md) for the full workflow, status legend, and templates.
 
-### Structure
+**Source of truth:** [STATUS.md](./master-plan/STATUS.md) — milestone table with status, test counts, and dates.
 
-```
-master-plan/
-├── STATUS.md                              # Progress overview (see template/STATUS-TEMPLATE.md)
-├── REVIEW-TEMPLATE.md                     # Project-agnostic review template
-├── PHASE-12-EXECUTION-PLAN.md             # Work packages, challenged decisions
-├── ARCHITECTURE-REVIEW-{date}.md          # Point-in-time review findings
-├── template/                              # Templates for new milestones & STATUS
-│   ├── README.md
-│   ├── MILESTONE-TEMPLATE.md
-│   └── STATUS-TEMPLATE.md
-└── milestones/                            # Individual milestone documents
-    ├── M0-environment.md
-    └── ...
-```
+**When to use milestones:**
+- **Simple tasks** (bug fixes, typos, single-line changes) — do directly, no milestone.
+- **Medium tasks** (small feature, few tests, one-file refactor) — judgment call; milestone optional.
+- **Complex tasks** (multi-file refactors, new subsystems, behavior changes) — **create a milestone first** in `master-plan/milestones/` before writing code. Copy [template/MILESTONE-TEMPLATE.md](./master-plan/template/MILESTONE-TEMPLATE.md).
 
-`STATUS.md` is the source of truth for overall progress — it contains the milestone table with status, test counts, and dates.
+**Milestone lifecycle:** Create → register in STATUS → set 🚧 in progress → execute one WP per session → run `make test && make vet` after each WP → check acceptance criteria → set ✅ done (or 🟡 partial with follow-up milestone) → update STATUS dates + test count.
 
-**Creating milestones:** copy [template/MILESTONE-TEMPLATE.md](./master-plan/template/MILESTONE-TEMPLATE.md) → `milestones/M{N}-slug.md`. Register in STATUS.md.
+## Low-Priority Milestones (M96–M99)
 
-**Architecture reviews:** copy [REVIEW-TEMPLATE.md](./master-plan/REVIEW-TEMPLATE.md). Complex work uses work packages (WPs) per [PHASE-12-EXECUTION-PLAN.md](./master-plan/PHASE-12-EXECUTION-PLAN.md).
-
-### When to use milestones
-
-- **Simple tasks** (bug fixes, typos, single-line changes) — do them directly, no milestone needed.
-- **Medium tasks** (a small feature, adding a few tests, refactoring one file) — use judgment; a milestone is optional.
-- **Complex tasks** (multi-file refactors, new subsystems, significant behavior changes) — **create a new milestone first** in `master-plan/milestones/` before writing code. This ensures the plan is discussed and approved before execution.
-
-### Milestone workflow
-
-1. **Create** — Copy [template/MILESTONE-TEMPLATE.md](./master-plan/template/MILESTONE-TEMPLATE.md) to `master-plan/milestones/M<N>-<slug>.md`. Fill all sections (goal, out of scope, dependencies, WPs, acceptance criteria). Register in `STATUS.md`.
-2. **Start** — Change status to `🚧 in progress`, update Started date in `STATUS.md`.
-3. **Work** — Execute one **work package (WP)** per session; run `make test && make vet` after each WP.
-4. **Complete** — Check all acceptance criteria in the milestone file; set status to `✅ done` (or `🟡 partial → M<N>` if follow-up remains); update Completed date and test count in `STATUS.md`.
-
-See [template/README.md](./master-plan/template/README.md) for status legend and rules.
-
-### Milestone document template
-
-Use [template/MILESTONE-TEMPLATE.md](./master-plan/template/MILESTONE-TEMPLATE.md) — do not use the shortened inline version below.
-
-Legacy minimal shape (deprecated):
-
-```markdown
-# M<N> — <Title>
-**Status:** ⏳ pending
-## Goal
-...
-```
-
-## Low-Priority Milestones (M85-M99)
-
-Milestones numbered M85 through M99 are low-priority and complex — they require better planning, new dependencies, or significant architectural changes. These must **always be addressed individually** (one at a time) and never bundled into batch execution loops.
+Milestones M96 through M99 are low-priority and complex — they require new dependencies, significant architectural changes, or feature work outside the read-only core. Address them **one at a time**, never bundled into batch execution. M57 (package extraction) is separately deferred with its own reactivation criteria.
 
 ## About this file
 
-`AGENTS.md` can be updated as the project evolves. When editing it:
-- **Notify the user** before making changes — describe what you intend to change and why.
-- Keep instructions actionable and specific.
-- Don't duplicate information that belongs in `README.md`, `DESIGN.md`, or `master-plan/STATUS.md`.
+`AGENTS.md` can be updated as the project evolves. Notify the user before changing it. Keep instructions actionable and specific. Don't duplicate information that belongs in [README.md](./README.md), [DESIGN.md](./DESIGN.md), or [master-plan/STATUS.md](./master-plan/STATUS.md).
