@@ -1,6 +1,6 @@
 # M52 — Decompose model.go
 
-**Status:** 🟡 partial → **M59** (finishes partial **M38**)  
+**Status:** ✅ done (via M59 — finishes partial **M38**)  
 **Finding:** F-3 in [ARCHITECTURE-REVIEW-2026-06-13.md](../ARCHITECTURE-REVIEW-2026-06-13.md)  
 **Execution plan:** [PHASE-12-EXECUTION-PLAN.md](../PHASE-12-EXECUTION-PLAN.md) §7
 
@@ -13,7 +13,7 @@
 | WP3 — Extract `outline_handler.go` | ✅ done | `buildOutline`, `renderOutline`, `estimateYOffset` moved |
 | WP4 — Extract `daily_recent_handler.go` | ✅ done | Combined daily + recent into one file (renamed from `daily_handler.go` + `recent_handler.go`) |
 | WP5 — Extract `render_layout.go` | ✅ done | `View`, `renderSearch*`, `renderBrokenVaultScreen`, `renderScanErrors`, `showScanErrors`, `wordWrap` moved |
-| WP6 — Split `handlers.go` by mode | ❌ **skipped** | `handlers.go` is still 624 lines / 26 functions. Finish in **M59** |
+| WP6 — Split `handlers.go` by mode | ✅ done via M59 | `handlers.go` (624 lines) decomposed into `handlers_browse.go` (95), `handlers_view.go` (123), `handlers_search.go` (167), `handlers_note.go` (91), `in_note_search.go` (109), `history.go` (25), `profile_handler.go` (37); `handlers.go` deleted |
 | WP7 — Verify + DESIGN update | 🟡 partial | `model.go` = 400 lines (✅ < 400). DESIGN.md module map NOT updated — defer to **M61** |
 
 ## Goal

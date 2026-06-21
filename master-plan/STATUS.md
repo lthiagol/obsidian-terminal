@@ -1,6 +1,6 @@
 # obsidian-terminal — Build Status
 
-**Last updated:** 2026-06-21 (Phase 13 added: M59, M60, M61; M52/M53 reopened as partial)
+**Last updated:** 2026-06-21 (M59 done: handlers.go decomposed; M52/M38 → ✅)
 **Language:** Go 1.26+ (see `go.mod`)
 **Architecture review:** [ARCHITECTURE-REVIEW-2026-06-13.md](./ARCHITECTURE-REVIEW-2026-06-13.md)  
 **Execution plan:** [PHASE-12-EXECUTION-PLAN.md](./PHASE-12-EXECUTION-PLAN.md) (Phase 12), [PHASE-13-EXECUTION-PLAN.md](./PHASE-13-EXECUTION-PLAN.md) (Phase 13)  
@@ -118,7 +118,7 @@
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M38: Split model.go + Consolidate Note Opening | ✅ done (→ M52) | — | 2026-06-11 | 2026-06-13 |
+| M38: Split model.go + Consolidate Note Opening | ✅ done (via M52 + M59) | — | 2026-06-11 | 2026-06-21 |
 | M39: ANSI Wrapping & Scroll Fixes | ✅ done | — | 2026-06-11 | 2026-06-11 |
 
 ### Phase 9: Code Quality (Priority: 🟢 Medium)
@@ -154,7 +154,7 @@ From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
 |-----------|--------|-------|---------|-----------|
 | M50: Navigation History Fix | ✅ done | 7 | 2026-06-13 | 2026-06-13 |
 | M51: Theme De-globalization (finish M37) | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
-| M52: Decompose model.go (finish M38) | 🟡 partial → **M59** | 0 | 2026-06-11 | 2026-06-13 |
+| M52: Decompose model.go (finish M38) | ✅ done (via M59) | 0 | 2026-06-11 | 2026-06-21 |
 | M53: Documentation & Plan Sync | 🟡 partial → **M61** | 0 | 2026-06-13 | 2026-06-13 |
 | M54: Incremental Vault Rescan | ✅ done (WP1 gate: 5k scan 74ms) | 0 | 2026-06-13 | 2026-06-13 |
 | M55: CI Pipeline | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
@@ -162,7 +162,7 @@ From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
 | M57: Package Structure Extraction | ⏸ deferred (reactivation criteria in milestone; WPs detailed 2026-06-21) | 0 | — | — |
 | M58: Fuzzy Search Optimization | ✅ done (activated out of order) | 0 | 2026-06-13 | 2026-06-13 |
 
-**M52 partial note:** WP1–WP5 done (extracted `vault_rescan.go`, `pin_handler.go`, `outline_handler.go`, `daily_recent_handler.go`, `render_layout.go`; `model.go` = 400 lines). WP6 (split `handlers.go` by mode) was skipped — `handlers.go` is still 624 lines / 26 functions. Finish in **M59**.
+**M52 done via M59:** WP1–WP5 done in M52 (extracted `vault_rescan.go`, `pin_handler.go`, `outline_handler.go`, `daily_recent_handler.go`, `render_layout.go`; `model.go` = 400 lines). WP6 (split `handlers.go` by mode) completed in M59 — `handlers.go` (624 lines) decomposed into `handlers_browse.go` (95), `handlers_view.go` (123), `handlers_search.go` (167), `handlers_note.go` (91), `in_note_search.go` (109), `history.go` (25), `profile_handler.go` (37); `handlers.go` deleted. All files < 250 lines. 298 tests pass.
 
 **M53 partial note:** WP1 (KEYBINDINGS), WP3 (README), WP4 (STATUS audit) done. WP2 (DESIGN.md module map) incomplete — module map still references phantom files (`outline.go`, `daily.go`, `pins.go`, `recents.go`) and has "M51/M52 pending" callouts. Finish in **M61**.
 
@@ -172,7 +172,7 @@ Follow-ups to close partial milestones from Phase 12. See [PHASE-13-EXECUTION-PL
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M59: Finish M52 — handlers.go Decomposition | ⏳ pending | 0 | — | — |
+| M59: Finish M52 — handlers.go Decomposition | ✅ done | 0 | 2026-06-21 | 2026-06-21 |
 | M60: DRY Refactors — KeyMap + Text-Input Helpers | ⏳ pending | 0 | — | — |
 | M61: Finish M53 — Doc Sync Completion (+ rename DESIGN.md → ARCHITECTURE.md) | ⏳ pending | 0 | — | — |
 
@@ -348,8 +348,8 @@ Phase 13 (plan remediation):
 | Milestone | Done | Remaining |
 |-----------|------|-----------|
 | M37 | ✅ done via M51 | No globals remain (deprecated vars kept for tests) |
-| M38 | 🟡 WP1–WP5 via M52 | → **M59** — WP6: split `handlers.go` by mode |
-| M52 | 🟡 WP1–WP5 done; `model.go` = 400 lines | → **M59** — extract `in_note_search.go`, `history.go`, `profile_handler.go`; split `handlers.go` into mode files |
+| M38 | ✅ done via M52 + M59 | No remaining |
+| M52 | ✅ done via M59 | No remaining — `handlers.go` split into 7 focused files, all < 250 lines |
 | M53 | 🟡 WP1, WP3, WP4 done | → **M61** — WP2: fix DESIGN.md module map (phantom files, M51/M52 callouts); update AGENTS.md styling section; optional rename to ARCHITECTURE.md |
 
 ## Keybinding Conflicts Resolved
