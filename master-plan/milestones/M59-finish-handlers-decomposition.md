@@ -19,7 +19,7 @@ Finish M52 by splitting `handlers.go` (624 lines, 26 functions) into focused fil
 - Changing Bubble Tea `Update`/`View` signatures
 - Moving `Model` struct to another package (M57)
 - Rewriting handler logic — pure file moves + import adjustments
-- Updating `DESIGN.md` module map (→ M61)
+- Updating `ARCHITECTURE.md` module map (→ M61)
 - DRY refactors like `KeyMap.MatchDown` helper (→ M60)
 
 ## Dependencies
@@ -27,7 +27,7 @@ Finish M52 by splitting `handlers.go` (624 lines, 26 functions) into focused fil
 | Relation | Milestone / artifact |
 |----------|----------------------|
 | **Blocked by** | M51 (palette threading — done ✅) |
-| **Blocks** | M60 (DRY refactors cleaner on split files), M61 (DESIGN.md module map must reflect final file structure) |
+| **Blocks** | M60 (DRY refactors cleaner on split files), M61 (ARCHITECTURE.md module map must reflect final file structure) |
 | **Parallel-safe with** | nothing — do alone, one WP per commit |
 
 ## Design (approved for execution)
@@ -202,7 +202,7 @@ Total: ~640 lines across 7 files (was 624 in one file — small net growth from 
    - M59 → ✅ done with completion log
    - Update "Last updated" date
 4. Update `M52-decompose-model.md` status line: `🟡 partial → M59` → `✅ done (via M59)`
-5. **Do NOT update `DESIGN.md` module map** — that's M61's job
+5. **Do NOT update `ARCHITECTURE.md` module map** — that's M61's job
 
 **Verification:**
 - [ ] All extracted files < 250 lines (run the `wc -l` command and paste output into completion log)
@@ -253,7 +253,7 @@ All must be checked before setting status to ✅:
 - [x] `make test && make vet` pass
 - [x] `STATUS.md` updated: M52, M38 → ✅; M59 → ✅ with dates and test count delta (0)
 - [x] `M52-decompose-model.md` status updated to ✅ done (via M59)
-- [x] DESIGN.md module map NOT touched (deferred to M61)
+- [x] ARCHITECTURE.md module map NOT touched (deferred to M61)
 
 ## Rollback / risk
 
@@ -275,7 +275,7 @@ All must be checked before setting status to ✅:
 
 **Do not:**
 - Add new functionality, refactor patterns, or rename functions — pure moves only
-- Update `DESIGN.md` — that's M61
+- Update `ARCHITECTURE.md` — that's M61
 - Touch `model.go`, `render_layout.go`, `vault_rescan.go`, `pin_handler.go`, `outline_handler.go`, `daily_recent_handler.go` — they're already extracted
 - Run WPs in parallel — strict sequence WP1 → WP6
 

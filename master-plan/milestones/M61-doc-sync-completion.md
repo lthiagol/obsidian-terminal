@@ -1,6 +1,6 @@
 # M61 — Finish M53: Doc Sync Completion
 
-**Status:** ⏳ pending  
+**Status:** ✅ done  
 **Phase:** 13 — Plan Remediation  
 **Priority:** 🟡 High  
 **Finding:** F-5 in [ARCHITECTURE-REVIEW-2026-06-13.md](../ARCHITECTURE-REVIEW-2026-06-13.md) (M53 WP2 incomplete)  
@@ -8,13 +8,13 @@
 
 ## Goal
 
-Close the M53 partial by fixing the stale `DESIGN.md` module map and the `AGENTS.md` styling section, then optionally rename `DESIGN.md` → `ARCHITECTURE.md` to align with project naming conventions.
+Close the M53 partial by fixing the stale `ARCHITECTURE.md` module map and the `AGENTS.md` styling section, then optionally rename `ARCHITECTURE.md` → `ARCHITECTURE.md` to align with project naming conventions.
 
 ## Problem statement
 
-M53 was marked ✅ in STATUS but WP2 (DESIGN.md module map) was never actually completed. As of 2026-06-21:
+M53 was marked ✅ in STATUS but WP2 (ARCHITECTURE.md module map) was never actually completed. As of 2026-06-21:
 
-1. **`DESIGN.md` module map** (lines 63–89) still has:
+1. **`ARCHITECTURE.md` module map** (lines 63–89) still has:
    - A callout: `> **M52 pending:** Outline, recents, pinned notes, daily note functions currently live in model.go and handlers.go` — **M52 is done** (these are now in `outline_handler.go`, `daily_recent_handler.go`, `pin_handler.go`)
    - A callout: `> **M51 pending:** Theme colors currently use global activatePalette()` — **M51 is done** (colors come from `m.palette`)
    - `model.go` row says "note opening, daily notes, recent notes, pinned notes" — these are extracted
@@ -24,11 +24,11 @@ M53 was marked ✅ in STATUS but WP2 (DESIGN.md module map) was never actually c
 
 2. **`AGENTS.md` styling section** says: "All colors from `theme.go` constants: `Accent`, `AccentSecondary`, `TextPrimary`, `TextSecondary`, `TextDim`, etc." and "Use the pre-defined styles: `TreeStyle`, `ViewerStyle`, `StatusStyle`" — but M51 made these **deprecated globals**. All UI code now reads from `m.palette` / `p.Accent` / `m.palette.TreeStyle`. Following the AGENTS.md guidance would reintroduce the bug M51 fixed.
 
-3. **Filename convention drift:** The master-plan template uses `{ARCHITECTURE or DESIGN doc}` as a placeholder, AGENTS.md describes DESIGN.md as "Architecture reference", and `ARCHITECTURE-REVIEW-*.md` files exist in `master-plan/`. The filename `DESIGN.md` is the odd one out.
+3. **Filename convention drift:** The master-plan template uses `{ARCHITECTURE or DESIGN doc}` as a placeholder, AGENTS.md describes ARCHITECTURE.md as "Architecture reference", and `ARCHITECTURE-REVIEW-*.md` files exist in `master-plan/`. The filename `ARCHITECTURE.md` is the odd one out.
 
 ## Out of scope
 
-- Rewriting the `DESIGN.md` architecture narrative (only module map + callout fixes)
+- Rewriting the `ARCHITECTURE.md` architecture narrative (only module map + callout fixes)
 - Changing the actual architecture (docs only — no code)
 - User-facing README changes (M53 WP3 already did README)
 - Translating docs
@@ -45,7 +45,7 @@ M53 was marked ✅ in STATUS but WP2 (DESIGN.md module map) was never actually c
 
 ### Module map update plan
 
-The updated module map (in `DESIGN.md` → `ARCHITECTURE.md`) will:
+The updated module map (in `ARCHITECTURE.md` → `ARCHITECTURE.md`) will:
 
 1. **Remove** both "M51 pending" and "M52 pending" callout boxes
 2. **Add** a "Post-M52 file structure" note explaining the extraction pattern
@@ -56,26 +56,26 @@ The updated module map (in `DESIGN.md` → `ARCHITECTURE.md`) will:
 
 ### Rename decision (recommended: yes)
 
-**Recommendation: rename `DESIGN.md` → `ARCHITECTURE.md`.**
+**Recommendation: rename `ARCHITECTURE.md` → `ARCHITECTURE.md`.**
 
 **Rationale:**
 - Aligns with `master-plan/ARCHITECTURE-REVIEW-*.md` naming family
 - Matches the master-plan template placeholder `{ARCHITECTURE or DESIGN doc}`
-- Matches AGENTS.md's own description: "Architecture reference: See DESIGN.md"
+- Matches AGENTS.md's own description: "Architecture reference: See ARCHITECTURE.md"
 - Convention in Go/Rust communities is `ARCHITECTURE.md`
 
 **Mechanical scope:**
 ```bash
-git mv DESIGN.md ARCHITECTURE.md
+git mv ARCHITECTURE.md ARCHITECTURE.md
 rg -l 'DESIGN\.md' --glob '*.md'   # find references to update
 ```
-Expected references to update: `AGENTS.md`, `README.md`, `master-plan/STATUS.md`, `master-plan/PHASE-12-EXECUTION-PLAN.md`, `master-plan/milestones/*.md` (those that reference DESIGN.md).
+Expected references to update: `AGENTS.md`, `README.md`, `master-plan/STATUS.md`, `master-plan/PHASE-12-EXECUTION-PLAN.md`, `master-plan/milestones/*.md` (those that reference ARCHITECTURE.md).
 
 ### Key decisions
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Rename `DESIGN.md` → `ARCHITECTURE.md` | **Yes (recommended)** | Naming consistency; one-time mechanical cost |
+| Rename `ARCHITECTURE.md` → `ARCHITECTURE.md` | **Yes (recommended)** | Naming consistency; one-time mechanical cost |
 | Keep module map as a table | Yes | Current format works; only content is stale |
 | Add a "File extraction history" section | No | The milestone files already record this; don't duplicate |
 | Update `AGENTS.md` styling section | Yes (in WP3) | Currently guides agents toward deprecated globals — active risk |
@@ -84,10 +84,10 @@ Expected references to update: `AGENTS.md`, `README.md`, `master-plan/STATUS.md`
 
 ## Work packages
 
-### WP1 — Fix `DESIGN.md` module map (1.5h)
+### WP1 — Fix `ARCHITECTURE.md` module map (1.5h)
 
 **Steps:**
-1. Open `DESIGN.md`. Delete the two callout boxes:
+1. Open `ARCHITECTURE.md`. Delete the two callout boxes:
    - Line ~63: `> **M52 pending:** Outline ...` (M52 done — delete entirely)
    - Line ~246: `> **M51 pending:** Theme colors ...` (M51 done — delete entirely)
 2. Update the Root package table:
@@ -120,30 +120,30 @@ Expected references to update: `AGENTS.md`, `README.md`, `master-plan/STATUS.md`
    Fix any MISSING entries (either the file doesn't exist yet — check M59/M60 status — or the name in the table is wrong).
 
 **Verification:**
-- [ ] No `> **M5* pending:**` callouts remain in `DESIGN.md`
+- [ ] No `> **M5* pending:**` callouts remain in `ARCHITECTURE.md`
 - [ ] No reference to `outline.go`, `daily.go`, `pins.go`, `recents.go` (phantom files)
 - [ ] Every file in the module map exists (script above prints no MISSING)
 - [ ] `make test && make vet` pass (docs only — no code, but verify nothing broke)
 
 ---
 
-### WP2 — Rename `DESIGN.md` → `ARCHITECTURE.md` (30m)
+### WP2 — Rename `ARCHITECTURE.md` → `ARCHITECTURE.md` (30m)
 
 **Skip this WP if the owner decides against the rename.** Document the decision in the completion log either way.
 
 **Steps:**
-1. `git mv DESIGN.md ARCHITECTURE.md`
+1. `git mv ARCHITECTURE.md ARCHITECTURE.md`
 2. Find all references: `rg -l 'DESIGN\.md' --glob '*.md'`
 3. Update each reference to `ARCHITECTURE.md`:
    - `AGENTS.md` — the "Architecture reference" line
-   - `README.md` — if it links to DESIGN.md
+   - `README.md` — if it links to ARCHITECTURE.md
    - `master-plan/STATUS.md` — header link
    - `master-plan/PHASE-12-EXECUTION-PLAN.md` — any references
-   - `master-plan/milestones/*.md` — any milestone that links to DESIGN.md (grep to find which)
+   - `master-plan/milestones/*.md` — any milestone that links to ARCHITECTURE.md (grep to find which)
 4. Verify no stale links: `rg 'DESIGN\.md'` should return 0 results (or only historical references in `ARCHITECTURE-REVIEW-*.md` which are point-in-time and OK)
 
 **Verification:**
-- [ ] `test -f ARCHITECTURE.md && ! test -f DESIGN.md` passes
+- [ ] `test -f ARCHITECTURE.md && ! test -f ARCHITECTURE.md` passes
 - [ ] `rg 'DESIGN\.md' --glob '*.md' | grep -v ARCHITECTURE-REVIEW` returns 0 matches (review files are point-in-time, OK to leave)
 - [ ] All markdown links resolve (open `AGENTS.md`, click the architecture link — should go to `ARCHITECTURE.md`)
 
@@ -195,13 +195,13 @@ Expected references to update: `AGENTS.md`, `README.md`, `master-plan/STATUS.md`
 
 | File | Changes |
 |------|---------|
-| `DESIGN.md` (or `ARCHITECTURE.md` after WP2) | Module map update; remove M51/M52 pending callouts; theme section fix |
+| `ARCHITECTURE.md` (or `ARCHITECTURE.md` after WP2) | Module map update; remove M51/M52 pending callouts; theme section fix |
 | `AGENTS.md` | Verify/update styling section, navigation history file refs, keybinding helper mention |
 | `STATUS.md` | M53, M61 → ✅; update Last updated; verify test count |
 | `M53-documentation-sync.md` | Status → ✅ done (via M61) |
 | `README.md` | Update DESIGN.md → ARCHITECTURE.md link (if WP2 done) |
 | `master-plan/STATUS.md` | Update architecture review link if WP2 done |
-| `master-plan/milestones/*.md` | Update any DESIGN.md references (if WP2 done) |
+| `master-plan/milestones/*.md` | Update any ARCHITECTURE.md references (if WP2 done) |
 
 ## Test plan
 
@@ -209,19 +209,19 @@ Expected references to update: `AGENTS.md`, `README.md`, `master-plan/STATUS.md`
 |----|----------|------|-----|
 | T1 | Module map file existence check (script in WP1) | build | WP1 |
 | T2 | No `> **M5* pending:**` callouts in DESIGN/ARCHITECTURE.md | grep | WP1 |
-| T3 | No stale `DESIGN.md` references (post-WP2) | grep | WP2 |
+| T3 | No stale `ARCHITECTURE.md` references (post-WP2) | grep | WP2 |
 | T4 | `make test && make vet` pass | regression | WP3, WP4 |
 
 ## Acceptance criteria (milestone done)
 
-- [ ] WP1–WP4 complete (WP2 optional — document decision in completion log)
-- [ ] No `> **M5* pending:**` callouts in `DESIGN.md` / `ARCHITECTURE.md`
-- [ ] Every file in the module map exists (script verification)
-- [ ] `AGENTS.md` styling section references `m.palette`, not deprecated globals
-- [ ] `STATUS.md` M53 and M61 both ✅
-- [ ] `M53-documentation-sync.md` status updated to ✅ done (via M61)
-- [ ] Test count in STATUS matches reality ±2
-- [ ] `make test && make vet` pass
+- [x] WP1–WP4 complete (WP2 optional — document decision in completion log)
+- [x] No `> **M5* pending:**` callouts in ARCHITECTURE.md
+- [x] Every file in the module map exists (script verification)
+- [x] `AGENTS.md` styling section references `m.palette`, not deprecated globals
+- [x] `STATUS.md` M53 and M61 both ✅
+- [x] `M53-documentation-sync.md` status updated to ✅ done (via M61)
+- [x] Test count in STATUS matches reality ±2
+- [x] `make test && make vet` pass
 
 ## Rollback / risk
 
@@ -237,12 +237,12 @@ Expected references to update: `AGENTS.md`, `README.md`, `master-plan/STATUS.md`
 
 **Read first:**
 - This milestone file
-- The current `DESIGN.md` module map (to see what's stale)
+- The current `ARCHITECTURE.md` module map (to see what's stale)
 - `M53-documentation-sync.md` for context on what was already done
 - **Verify M59 and M60 are ✅ before starting** — this milestone documents their work
 
 **Do not:**
-- Rewrite the `DESIGN.md` architecture narrative — only fix the module map and remove stale callouts
+- Rewrite the `ARCHITECTURE.md` architecture narrative — only fix the module map and remove stale callouts
 - Add new sections — this is a sync, not an expansion
 - Touch any `.go` files — docs only
 
@@ -264,8 +264,8 @@ _Fill when done:_
 
 | Field | Value |
 |-------|-------|
-| Started | {YYYY-MM-DD} |
-| Completed | {YYYY-MM-DD} |
+| Started | 2026-06-21 |
+| Completed | 2026-06-21 |
 | Tests added | 0 (docs only) |
-| Rename decision | {yes/no — ARCHITECTURE.md or DESIGN.md} |
-| Notes | {any deviations; spot-check results} |
+| Rename decision | **Yes** — DESIGN.md renamed to ARCHITECTURE.md; all 11 markdown references updated (ARCHITECTURE-REVIEW-2026-06-13.md excluded — point-in-time) |
+| Notes | WP1: Updated module map with 32 entries covering all post-M59/M60 files; removed M51/M52 pending callouts; verified all files exist. WP2: `git mv DESIGN.md ARCHITECTURE.md`; bulk-updated references in 11 markdown files via Python script. WP3: Fixed AGENTS.md — removed stale "(pending rename)" callout; dropped phantom "handlers.go before" reference in Navigation History section. WP4: M53 → ✅; M61 → ✅; Partials table updated. 303 tests pass, `make vet` clean. |

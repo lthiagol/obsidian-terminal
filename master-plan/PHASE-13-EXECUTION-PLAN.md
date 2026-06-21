@@ -15,7 +15,7 @@ Phase 12 shipped M50–M58 but two milestones were marked ✅ in `STATUS.md` whi
 | Milestone | What was marked | What was actually done | What remains |
 |-----------|-----------------|------------------------|--------------|
 | M52 | ✅ done | WP1–WP5 done (model.go = 400 lines) | WP6: split `handlers.go` by mode — `handlers.go` is still 624 lines / 26 functions |
-| M53 | ✅ done | WP1 (KEYBINDINGS), WP3 (README), WP4 (STATUS audit) | WP2: DESIGN.md module map still has phantom files + M51/M52 pending callouts; AGENTS.md styling section still references deprecated globals |
+| M53 | ✅ done | WP1 (KEYBINDINGS), WP3 (README), WP4 (STATUS audit) | WP2: ARCHITECTURE.md module map still has phantom files + M51/M52 pending callouts; AGENTS.md styling section still references deprecated globals |
 
 Phase 13 closes these partials and adds a targeted DRY refactor pass (M60) that was identified during the 2026-06-21 plan audit but not in the original architecture review.
 
@@ -28,8 +28,8 @@ Phase 13 closes these partials and adds a targeted DRY refactor pass (M60) that 
 | D-1 | Reopen M52/M53 as 🟡 partial | Loses momentum; just create new milestones | **Reopen as 🟡 partial with explicit follow-up** — preserves the link to original acceptance criteria; new milestones M59/M61 own the remaining work |
 | D-2 | M52 WP6 as a single big PR | 624-line file split in one commit is hard to review | **Split into 6 WPs in M59** — extract subsystems first (in_note_search, history, profile_handler), then split mode handlers, then verify |
 | D-3 | Do DRY refactors inside M52 WP6 | Mixes file moves with behavior refactors | **Separate milestone M60** — pure file moves (M59) land first, then DRY refactors on the split files (M60). Each has independent rollback. |
-| D-4 | Update DESIGN.md as part of M53 | Module map depends on M59/M60 final file structure | **Defer DESIGN.md update to M61** — must run after M59/M60 so docs reflect reality, not in-flight refactors |
-| D-5 | Keep DESIGN.md filename | Inconsistent with ARCHITECTURE-REVIEW-*.md naming and template placeholder | **Recommend rename to ARCHITECTURE.md in M61 WP2** — optional, owner's call |
+| D-4 | Update ARCHITECTURE.md as part of M53 | Module map depends on M59/M60 final file structure | **Defer ARCHITECTURE.md update to M61** — must run after M59/M60 so docs reflect reality, not in-flight refactors |
+| D-5 | Keep ARCHITECTURE.md filename | Inconsistent with ARCHITECTURE-REVIEW-*.md naming and template placeholder | **Recommend rename to ARCHITECTURE.md in M61 WP2** — optional, owner's call |
 | D-6 | Detail Phase 99 milestones (M97–M99) now | They're low-priority and not near activation | **Keep as placeholders** — detail when reactivated (per 2026-06-21 user decision) |
 | D-7 | Activate M57 (package extraction) now | Reactivation criteria not met (no second contributor; model.go navigable post-M52) | **Keep M57 deferred** — flesh out WPs when criteria met |
 
@@ -44,7 +44,7 @@ Phase 13 (strict sequence — do not parallelize)
        ↓ (blocks M60 — refactors cleaner on split files)
   M60  WP1–WP3  DRY refactors: KeyMap helpers + text-input helper
        ↓ (blocks M61 — docs must reflect final file structure + helpers)
-  M61  WP1–WP4  Finish M53: DESIGN.md module map + AGENTS.md verify + optional rename
+  M61  WP1–WP4  Finish M53: ARCHITECTURE.md module map + AGENTS.md verify + optional rename
 ```
 
 **Minimum shippable Phase 13:** M59 alone (closes M52 partial, fixes the maintainability blocker). M60 and M61 can follow incrementally.
@@ -60,7 +60,7 @@ Phase 13 (strict sequence — do not parallelize)
 3. **Read-only constraint** — no milestone may write to vault.
 4. **Strict sequence** — M59 → M60 → M61. Do not start M60 until M59 is ✅. Do not start M61 until M60 is ✅.
 5. **Update STATUS after each milestone closes** — dates, test count delta, status emoji.
-6. **M61 must not update DESIGN.md module map until M59 and M60 are ✅** — otherwise the map will list files that don't exist yet.
+6. **M61 must not update ARCHITECTURE.md module map until M59 and M60 are ✅** — otherwise the map will list files that don't exist yet.
 
 ---
 
@@ -77,7 +77,7 @@ Phase 13 (strict sequence — do not parallelize)
 | **M60** | WP1 | `KeyMap.MatchDown/Up/Left/Right` + replace call sites | 1.5h | 8+ call sites updated; 0 old patterns remain |
 | | WP2 | `HandleTextInput` helper + refactor 3 call sites | 2h | search/command-palette/in-note-search refactored |
 | | WP3 | Unit tests for new helpers + verify | 1h | ~5 new tests; full suite passes |
-| **M61** | WP1 | Fix DESIGN.md module map | 1.5h | No pending callouts; every listed file exists |
+| **M61** | WP1 | Fix ARCHITECTURE.md module map | 1.5h | No pending callouts; every listed file exists |
 | | WP2 | Rename DESIGN.md → ARCHITECTURE.md (optional) | 30m | `git mv` + reference updates |
 | | WP3 | Verify AGENTS.md reflects post-M59/M60 reality | 30m | Styling section correct; file refs updated |
 | | WP4 | Final STATUS + milestone audit | 30m | M53, M61 → ✅; test count verified |
@@ -117,7 +117,7 @@ M52 (partial) ──M59──→ ✅ (closes M38 too)
 | `model.go` | `wc -l model.go` < 400 (unchanged from M52) |
 | DRY: nav helpers | `rg 'MatchKey\(msg, m\.keys\.(Down\|Up\|Left\|Right)\) \|\| MatchRune'` returns 0 |
 | DRY: text input | `rg 'case msg.Type == tea.KeyBackspace' handlers_search.go in_note_search.go` returns 0 |
-| DESIGN.md | No `> **M5* pending:**` callouts; every listed file exists |
+| ARCHITECTURE.md | No `> **M5* pending:**` callouts; every listed file exists |
 | AGENTS.md | Styling section references `m.palette`, not deprecated globals |
 | Plan hygiene | Every ✅ in STATUS has ✅ in milestone file (or 🟡 with documented follow-up) |
 

@@ -22,9 +22,9 @@ User Input → Update(msg) → new Model → View() → rendered output
 
 | Role | File | Responsibility |
 |------|------|---------------|
-| **Model** | `model.go` | Central state struct (`Model`), `Init()`, `Update()`, `View()`. All key dispatch, mode switching, layout. |
-| **View** | `model.go` | `View()` renders the full screen: tree panel + viewer panel + status bar + toasts. |
-| **Update** | `model.go`, `handlers.go` | `Update(msg)` dispatches to mode-specific handlers. |
+| **Model** | `model.go` | Central state struct (`Model`), `Init()`, `Update()`, mode dispatch. |
+| **View** | `render_layout.go` | `View()` renders the full screen: tree panel + viewer panel + status bar + toasts. |
+| **Update** | `model.go`, `handlers_*.go` | `Update(msg)` dispatches to mode-specific handlers. |
 
 ### Mode State Machine
 
@@ -60,24 +60,35 @@ Vault states:
 
 ## Module Map
 
-> **M52 pending:** Outline (`buildOutline`, `renderOutline`), recents (`addRecentNote`, `toggleRecents`, `renderRecents`), pinned notes (`togglePin`, `cyclePinned*`, `validatePins`), and daily note (`buildDailyNotePath`, `openDailyNote`) functions currently live in `model.go` and `handlers.go`. They will be extracted to their own files in M52.
-
 ### Root package (`main`)
 
 | File | Responsibility | Key Exports |
 |------|---------------|-------------|
 | `main.go` | Entry point, flag parsing, config loading, Bubble Tea program start | `main()` |
-| `model.go` | Central `Model` struct, `Init/Update/View`, mode dispatch, note opening, daily notes, recent notes, pinned notes, toast system, command palette cmd, layout | `Model`, `Mode*` constants |
-| `handlers.go` | Mode-specific key handlers (`handleBrowseKey`, `handleViewKey`, etc.), note-loading API (`loadNote`, `applyNote`, `openNote`), history navigation | `handle*Key`, `loadNote`, `applyNote`, `openNote`, `goBackHistory`, `goForwardHistory` |
+| `model.go` | Central `Model` struct, `Init/Update/View` dispatch, mode constants, global key handling, layout sizing | `Model`, `Mode*` constants |
+| `handlers_browse.go` | Browse mode key handler | `handleBrowseKey` |
+| `handlers_view.go` | View mode key handler | `handleViewKey` |
+| `handlers_search.go` | Secondary mode/overlay handlers: search, find, help, tags, backlinks, command palette, profile picker | `handleSearchKey`, `handleFindKey`, `handleHelpKey`, `handleTagsKey`, `handleBacklinkKey`, `handleCommandPaletteKey`, `handleProfilePickerKey` |
+| `handlers_note.go` | Note-loading API + mode transition helpers | `loadNote`, `applyNote`, `openNote`, `enterSearchMode`, `enterFindMode`, `enterHelpMode`, `enterTagsMode`, `noteNavKind` |
+| `in_note_search.go` | In-note search overlay | `activateInNoteSearch`, `handleInNoteSearchKey`, `updateInNoteSearch` |
+| `history.go` | Navigation history back/forward | `goBackHistory`, `goForwardHistory` |
+| `profile_handler.go` | Profile switching + theme application | `switchToProfile`, `setTheme` |
+| `vault_rescan.go` | Vault state machine + rescan logic | `checkVaultChanges`, `rescanVault` |
+| `pin_handler.go` | Pinned notes subsystem | `togglePin`, `cyclePinnedNext`, `cyclePinnedPrev`, `validatePins` |
+| `outline_handler.go` | Outline/TOC builder + renderer | `buildOutline`, `renderOutline` |
+| `daily_recent_handler.go` | Daily notes + recent notes overlay | `buildDailyNotePath`, `openDailyNote`, `addRecentNote`, `toggleRecents`, `renderRecents` |
+| `render_layout.go` | `View()` + panel renderers | `View`, `renderSearch*`, `renderBrokenVaultScreen`, `renderScanErrors` |
+| `preview.go` | Note preview pane | `renderPreview` |
+| `textinput.go` | Shared text-input handler | `HandleTextInput` |
 | `tree.go` | File tree widget: vault entry nesting, expand/collapse, cursor, filtering | `FileTree`, `NewFileTree` |
 | `viewer.go` | Markdown viewer widget: wraps the markdown render pipeline, wiki-link cycling | `MarkdownViewer`, `SetContent` |
 | `viewport.go` | Custom viewport: scroll, soft-wrap (ANSI-aware), X/Y offset | `viewport`, `softWrap` |
 | `vault.go` | Vault scanning, tree building, note loading, frontmatter parsing | `ScanVault`, `LoadNote`, `VaultEntry` |
 | `session.go` | Session state save/restore (tree expansion, cursor position) | `saveSession`, `restoreSession` |
 | `config.go` | YAML config loading, defaults, validation with auto-fix, profile and theme parsing | `Config`, `LoadConfig`, `ValidateConfig` |
-| `theme.go` | Color palettes, lipgloss styles, style rebuild | `Palette`, `activatePalette`, `lookupPalette` |
-| `keys.go` | Key binding definitions, vim + arrow key dispatch | `KeyMap`, `DefaultKeys`, `MatchKey`, `MatchRune` |
-| `mouse.go` | Mouse event handling: tree click, split drag, scroll, double-click | `handleMouse`, `opentreeItem` |
+| `theme.go` | Color palettes, lipgloss styles, style builders | `Palette`, `lookupPalette`, `markdownStyleFrom`, `searchStyleFrom` |
+| `keys.go` | Key binding definitions, vim + arrow key dispatch, navigation helpers | `KeyMap`, `DefaultKeys`, `MatchKey`, `MatchRune`, `MatchDown`, `MatchUp`, `MatchLeft`, `MatchRight` |
+| `mouse.go` | Mouse event handling: tree click, split drag, scroll, double-click | `handleMouse` |
 | `backlinks.go` | Backlinks panel widget (shown inside view mode) | `BacklinkPanel` |
 | `tags.go` | Tag browser/filter widget | `TagList` |
 | `statusbar.go` | Status bar: mode display, file name, key hints | `renderStatusBar`, `modeHints` |
@@ -87,6 +98,8 @@ Vault states:
 | `wikilink.go` | Wiki-link resolution (basename, alias, exact path) | `ResolveWikiLink`, `findAlias`, `findBasename` |
 | `yamlmini.go` | Custom mini YAML parser (no external dep) | `scanYAML`, `parseNestedMap`, `parseFlatMap` |
 | `profile_picker.go` | Profile selection widget | `ProfilePicker` |
+
+> **Note:** Files under ~250 lines are preferred. `model.go` is the intentional exception (~400 lines) because the `Model` struct, `Init()`, and `Update()` dispatcher are co-located.
 
 ### `internal/markdown/`
 
@@ -126,9 +139,10 @@ main() → configPathOrDefault() → LoadConfig() → NewModel()
 ### Opening a note
 
 ```
-Browse mode → Enter on a file → LoadNote(vaultPath, relativePath)
+Browse mode → Enter on a file → `openNote(path)` in `handlers_note.go` → `loadNote(vaultPath, relativePath)`
+  → `LoadNote(vaultPath, relativePath)` in `vault.go`
   → parseFrontmatter() → extract title, tags, aliases
-  → NewModel sets activeNote, mode = ModeView
+  → `applyNote(note, navUser)` in `handlers_note.go` sets activeNote, mode = ModeView
   → viewer.SetContent(note.Body, width)
     → StripFrontmatter()
     → ParseMarkdown() → []MarkdownLine
@@ -144,7 +158,7 @@ Model.Update(msg tea.KeyMsg)
   → check global keys (Ctrl+C, Ctrl+R, Ctrl+K, Ctrl+O, Ctrl+D, q, Q)
   → check overlays (command palette, recents, outline, scan errors)
   → check broken vault retry ('r')
-  → dispatch to mode handler (handleBrowseKey, handleViewKey, etc.)
+  → dispatch to mode handler (`handleBrowseKey`, `handleViewKey`, etc. in `handlers_*.go`)
   → mode handler calls tree.Update, viewer methods, etc.
   → returns (Model, Cmd)
 ```
@@ -243,16 +257,17 @@ Activate with `--profile` flag or `P` key in browse mode.
 
 ## Theme System
 
-> **M51 pending:** Theme colors currently use global `activatePalette()`. Post-M51 they will live on `Model.palette`.
-
 ### Architecture
 
 ```
-7 built-in palettes → activatePalette(p) → set global style variables (Accent, TreeStyle, etc.)
-                                      ↘ markdownStyleFrom(p, lineSpacing) → RendererStyle
-                                      ↘ searchStyleFrom(p) → search.Style
-                                      ↘ rebuildDerivedStyles(p) → compute composite styles
+7 built-in palettes → lookupPalette(name) → Palette stored on Model.palette
+                                       ↘ setTheme(model, name) updates Model.palette and derived styles
+                                       ↘ markdownStyleFrom(p, lineSpacing) → RendererStyle
+                                       ↘ searchStyleFrom(p) → search.Style
+                                       ↘ rebuildDerivedStyles(p) → compute composite styles
 ```
+
+Palette colors are read from `Model.palette` (set by `setTheme` in `profile_handler.go`). Package-level globals in `theme.go` are deprecated and kept only for test defaults.
 
 ### Available themes
 

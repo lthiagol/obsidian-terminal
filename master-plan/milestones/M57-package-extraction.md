@@ -409,7 +409,7 @@ rg -l '\bVaultEntry\b|\bVaultNote\b|\bVaultIndexes\b|\bScanVault\b|\bLoadNote\b|
    ```bash
    rg 'github.com/lthiagol/obsidian-terminal"' internal/  # should return 0 matches
    ```
-4. Update `DESIGN.md` / `ARCHITECTURE.md` module map (or defer to M61 if M61 hasn't run yet)
+4. Update `ARCHITECTURE.md` / `ARCHITECTURE.md` module map (or defer to M61 if M61 hasn't run yet)
 5. Update `STATUS.md`: M57 → ✅ done
 
 **Verification:**
@@ -456,7 +456,7 @@ rg -l '\bVaultEntry\b|\bVaultNote\b|\bVaultIndexes\b|\bScanVault\b|\bLoadNote\b|
 | `mouse.go` | Add `internal/vault` import (if needed) |
 | `profile_handler.go` | Add `internal/config` import; update `Config`/`Profile` references |
 | `STATUS.md` | M57 → ✅ |
-| `DESIGN.md` / `ARCHITECTURE.md` | Module map: add `internal/config`, `internal/vault`, `internal/session`, `internal/yamlmini` |
+| `ARCHITECTURE.md` / `ARCHITECTURE.md` | Module map: add `internal/config`, `internal/vault`, `internal/session`, `internal/yamlmini` |
 
 ## Test plan
 
@@ -484,7 +484,7 @@ rg -l '\bVaultEntry\b|\bVaultNote\b|\bVaultIndexes\b|\bScanVault\b|\bLoadNote\b|
 - [ ] All existing tests pass (298+)
 - [ ] `make test && make vet` pass
 - [ ] `STATUS.md` updated: M57 → ✅
-- [ ] `DESIGN.md` / `ARCHITECTURE.md` module map updated (or deferred to M61)
+- [ ] `ARCHITECTURE.md` / `ARCHITECTURE.md` module map updated (or deferred to M61)
 
 ## Rollback / risk
 

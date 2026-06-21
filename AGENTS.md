@@ -8,7 +8,7 @@ Instructions for AI agents working on this repository.
 
 **Key constraint: read-only.** Never add editing, writing, or vault-modification features.
 
-For architecture, data flow, module map, state machine, and design decisions, see [DESIGN.md](./DESIGN.md) (pending rename to `ARCHITECTURE.md` in M61).
+For architecture, data flow, module map, state machine, and design decisions, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ## Commands
 
@@ -48,7 +48,7 @@ Always run `make test && make vet` after making changes.
 
 ### Navigation History
 
-- Use `loadNote(path, kind)` for all navigation moves (lives in `handlers_note.go` after M59; `handlers.go` before)
+- Use `loadNote(path, kind)` for all navigation moves (lives in `handlers_note.go`)
 - `kind` is `noteNavKind`: `navUser` (explicit open), `navHistory` (back/forward), `navReload` (rescan)
 - `openNote(path)` is syntactic sugar for `loadNote(path, navUser)` — pushes to history/recents
 - `navHistory` — does NOT push to history or recents (prevents double-push)
@@ -91,4 +91,4 @@ Milestones M96 through M99 are low-priority and complex — they require new dep
 
 ## About this file
 
-`AGENTS.md` can be updated as the project evolves. Notify the user before changing it. Keep instructions actionable and specific. Don't duplicate information that belongs in [README.md](./README.md), [DESIGN.md](./DESIGN.md), or [master-plan/STATUS.md](./master-plan/STATUS.md).
+`AGENTS.md` can be updated as the project evolves. Notify the user before changing it. Keep instructions actionable and specific. Don't duplicate information that belongs in [README.md](./README.md), [ARCHITECTURE.md](./ARCHITECTURE.md), or [master-plan/STATUS.md](./master-plan/STATUS.md).

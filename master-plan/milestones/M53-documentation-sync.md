@@ -1,6 +1,6 @@
 # M53 — Documentation & Plan Sync
 
-**Status:** 🟡 partial → **M61**  
+**Status:** ✅ done (via M61)  
 **Execution plan:** [PHASE-12-EXECUTION-PLAN.md](../PHASE-12-EXECUTION-PLAN.md)
 
 ## Completion summary (2026-06-13)
@@ -8,8 +8,8 @@
 | WP | Status | Notes |
 |----|--------|-------|
 | WP1 — KEYBINDINGS.md | ✅ done | Matches `keys.go`, `help.go`, `model.go` global dispatch |
-| WP2 — DESIGN.md module map | ❌ **incomplete** | Module map still references phantom files (`outline.go`, `daily.go`, `pins.go`, `recents.go`); still has "M51 pending" and "M52 pending" callouts; missing 5 files extracted in M52 (`vault_rescan.go`, `pin_handler.go`, `outline_handler.go`, `daily_recent_handler.go`, `render_layout.go`). Finish in **M61**. |
-| WP3 — README + AGENTS.md | 🟡 partial | README updated. AGENTS.md styling section still references deprecated globals (`Accent`, `TreeStyle`, etc.) — M51 made these deprecated. Finish in **M61**. |
+| WP2 — DESIGN.md → ARCHITECTURE.md module map | ✅ done via M61 | Module map updated with all post-M59/M60 files (`handlers_browse.go` through `textinput.go`); M51/M52 pending callouts removed; phantom file references (`outline.go`, `daily.go`, `pins.go`, `recents.go`) eliminated; DESIGN.md renamed to ARCHITECTURE.md. |
+| WP3 — README + AGENTS.md | ✅ done via M61 | README updated. AGENTS.md styling section references `Model.palette`, not deprecated globals; navigation history references `handlers_note.go` (not `handlers.go`); M60 helpers (`MatchDown/Up/Left/Right`) documented. |
 | WP4 — STATUS + milestone audit | ✅ done | Test count matches reality ±5 |
 
 ## Goal
@@ -19,7 +19,7 @@ Eliminate plan/code drift so agents and contributors do not reintroduce fixed bu
 ## Out of scope
 
 - User-facing marketing copy
-- Rewriting DESIGN.md architecture narrative (only module map + testing section updates)
+- Rewriting the architecture narrative in ARCHITECTURE.md (only module map + testing section updates)
 - Translating docs
 
 ## Dependencies
@@ -60,7 +60,7 @@ Global:
 
 ---
 
-### WP2 — DESIGN.md module map (1h)
+### WP2 — ARCHITECTURE.md module map (1h)
 
 **Replace phantom entries:**
 
@@ -126,7 +126,7 @@ AGENTS.md:
 
 Do not change keybindings in this milestone — docs only. If doc reveals a code bug, file new finding / M50 follow-up.
 
-WP2 + AGENTS.md styling section are now owned by **M61**. M61 also considers renaming `DESIGN.md` → `ARCHITECTURE.md` to align with `ARCHITECTURE-REVIEW-*.md` naming and the master-plan template's `{ARCHITECTURE or DESIGN doc}` placeholder.
+WP2 + AGENTS.md styling section are now owned by **M61**. M61 also considers renaming `ARCHITECTURE.md` → `ARCHITECTURE.md` to align with `ARCHITECTURE-REVIEW-*.md` naming and the master-plan template's `{ARCHITECTURE or DESIGN doc}` placeholder.
 
 ## Estimated total
 

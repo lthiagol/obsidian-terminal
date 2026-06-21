@@ -114,7 +114,7 @@ Not required for milestone completion.
 ## Acceptance criteria
 
 - [x] WP1–WP4 complete
-- [x] `testutil_test.go` exists and is documented in DESIGN.md testing section (M53 follow-up ok → M61)
+- [x] `testutil_test.go` exists and is documented in ARCHITECTURE.md testing section (M53 follow-up ok → M61)
 - [x] No test that only asserts `!= nil` without behavior check
 - [x] `make test && make vet` pass
 

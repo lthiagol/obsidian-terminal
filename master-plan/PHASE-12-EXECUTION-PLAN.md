@@ -77,7 +77,7 @@ Deferred
 | **M55** | WP1 | Makefile bench target + workflow skeleton | 1h | `make bench` works locally |
 | | WP2 | GitHub Actions CI (test + vet) | 1h | Green CI on push |
 | **M53** | WP1 | KEYBINDINGS.md full pass | 2h | Matches keys.go/help.go |
-| | WP2 | DESIGN.md module map | 1h | No phantom files |
+| | WP2 | ARCHITECTURE.md module map | 1h | No phantom files |
 | | WP3 | README + AGENTS alignment | 1h | Theme/history rules accurate |
 | | WP4 | STATUS + milestone status audit | 30m | All ✅ verified |
 | **M51** | WP1 | Global read audit (grep + checklist) | 1h | List in milestone |

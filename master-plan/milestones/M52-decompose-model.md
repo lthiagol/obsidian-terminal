@@ -14,7 +14,7 @@
 | WP4 — Extract `daily_recent_handler.go` | ✅ done | Combined daily + recent into one file (renamed from `daily_handler.go` + `recent_handler.go`) |
 | WP5 — Extract `render_layout.go` | ✅ done | `View`, `renderSearch*`, `renderBrokenVaultScreen`, `renderScanErrors`, `showScanErrors`, `wordWrap` moved |
 | WP6 — Split `handlers.go` by mode | ✅ done via M59 | `handlers.go` (624 lines) decomposed into `handlers_browse.go` (95), `handlers_view.go` (123), `handlers_search.go` (167), `handlers_note.go` (91), `in_note_search.go` (109), `history.go` (25), `profile_handler.go` (37); `handlers.go` deleted |
-| WP7 — Verify + DESIGN update | 🟡 partial | `model.go` = 400 lines (✅ < 400). DESIGN.md module map NOT updated — defer to **M61** |
+| WP7 — Verify + DESIGN update | 🟡 partial | `model.go` = 400 lines (✅ < 400). ARCHITECTURE.md module map NOT updated — defer to **M61** |
 
 ## Goal
 
@@ -36,7 +36,7 @@ Reduce `model.go` to **core Model + Init/Update + layout dispatch** (~400 lines)
 
 - **After:** M51 (palette threading stable before View extraction)
 - **One WP per session/PR** — do not combine WP5 + WP6
-- **Follow-up:** M59 (handlers.go split), M61 (DESIGN.md module map update)
+- **Follow-up:** M59 (handlers.go split), M61 (ARCHITECTURE.md module map update)
 
 ## Revised success metrics (challenged)
 
@@ -124,13 +124,13 @@ Reduce `model.go` to **core Model + Init/Update + layout dispatch** (~400 lines)
 
 **Steps:**
 1. `wc -l model.go handlers*.go *_handler.go render_layout.go vault_rescan.go`
-2. Update DESIGN.md module map → **deferred to M61**
+2. Update ARCHITECTURE.md module map → **deferred to M61**
 3. Mark M38 ✅ in STATUS when model.go < 400
 
 **Verification:**
 - [x] `model.go` < 400 lines (actually 400 exactly)
 - [x] `make test && make vet` pass
-- [ ] DESIGN.md module map accurate (→ M61)
+- [ ] ARCHITECTURE.md module map accurate (→ M61)
 
 ---
 
@@ -141,7 +141,7 @@ Reduce `model.go` to **core Model + Init/Update + layout dispatch** (~400 lines)
 - [x] No behavior change (test suite green)
 - [x] Function → file map matches execution plan §7 (for WP1–WP5)
 - [ ] M38 marked ✅ (blocked on M59 completion)
-- [ ] DESIGN.md module map accurate (→ **M61**)
+- [ ] ARCHITECTURE.md module map accurate (→ **M61**)
 
 ## Rollback / risk
 
@@ -169,4 +169,4 @@ WP6 is now M59. Read [M59-finish-handlers-decomposition.md](./M59-finish-handler
 | Started | 2026-06-11 |
 | Completed (WP1–WP5) | 2026-06-13 |
 | Tests added | 0 (pure refactor) |
-| Notes | WP6 skipped → M59. DESIGN.md update → M61. |
+| Notes | WP6 skipped → M59. ARCHITECTURE.md update → M61. |
