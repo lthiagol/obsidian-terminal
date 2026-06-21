@@ -1,6 +1,6 @@
 # obsidian-terminal — Build Status
 
-**Last updated:** 2026-06-21 (M59 done: handlers.go decomposed; M52/M38 → ✅)
+**Last updated:** 2026-06-21 (M59, M60, M61 done; Phase 13 complete; all partials closed)
 **Language:** Go 1.26+ (see `go.mod`)
 **Architecture review:** [ARCHITECTURE-REVIEW-2026-06-13.md](./ARCHITECTURE-REVIEW-2026-06-13.md)  
 **Execution plan:** [PHASE-12-EXECUTION-PLAN.md](./PHASE-12-EXECUTION-PLAN.md) (Phase 12), [PHASE-13-EXECUTION-PLAN.md](./PHASE-13-EXECUTION-PLAN.md) (Phase 13)  
@@ -155,7 +155,7 @@ From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
 | M50: Navigation History Fix | ✅ done | 7 | 2026-06-13 | 2026-06-13 |
 | M51: Theme De-globalization (finish M37) | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
 | M52: Decompose model.go (finish M38) | ✅ done (via M59) | 0 | 2026-06-11 | 2026-06-21 |
-| M53: Documentation & Plan Sync | 🟡 partial → **M61** | 0 | 2026-06-13 | 2026-06-13 |
+| M53: Documentation & Plan Sync | ✅ done (via M61) | 0 | 2026-06-13 | 2026-06-21 |
 | M54: Incremental Vault Rescan | ✅ done (WP1 gate: 5k scan 74ms) | 0 | 2026-06-13 | 2026-06-13 |
 | M55: CI Pipeline | ✅ done | 0 | 2026-06-13 | 2026-06-13 |
 | M56: Test Infrastructure & Coverage | ✅ done | 7 | 2026-06-13 | 2026-06-13 |
@@ -164,7 +164,7 @@ From [architecture review 2026-06-13](./ARCHITECTURE-REVIEW-2026-06-13.md).
 
 **M52 done via M59:** WP1–WP5 done in M52 (extracted `vault_rescan.go`, `pin_handler.go`, `outline_handler.go`, `daily_recent_handler.go`, `render_layout.go`; `model.go` = 400 lines). WP6 (split `handlers.go` by mode) completed in M59 — `handlers.go` (624 lines) decomposed into `handlers_browse.go` (95), `handlers_view.go` (123), `handlers_search.go` (167), `handlers_note.go` (91), `in_note_search.go` (109), `history.go` (25), `profile_handler.go` (37); `handlers.go` deleted. All files < 250 lines. 298 tests pass.
 
-**M53 partial note:** WP1 (KEYBINDINGS), WP3 (README), WP4 (STATUS audit) done. WP2 (DESIGN.md module map) incomplete — module map still references phantom files (`outline.go`, `daily.go`, `pins.go`, `recents.go`) and has "M51/M52 pending" callouts. Finish in **M61**.
+**M53 done via M61:** WP1 (KEYBINDINGS), WP3 (README), WP4 (STATUS audit) done in M53. WP2 (DESIGN.md module map) completed in M61 — module map reflects all post-M59/M60 files, stale M51/M52 pending callouts removed, phantom file references eliminated, AGENTS.md styling section verified, DESIGN.md renamed to ARCHITECTURE.md. All docs in sync with code.
 
 ### Phase 13: Plan Remediation (Priority: 🟡 High)
 
@@ -173,8 +173,8 @@ Follow-ups to close partial milestones from Phase 12. See [PHASE-13-EXECUTION-PL
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
 | M59: Finish M52 — handlers.go Decomposition | ✅ done | 0 | 2026-06-21 | 2026-06-21 |
-| M60: DRY Refactors — KeyMap + Text-Input Helpers | ⏳ pending | 0 | — | — |
-| M61: Finish M53 — Doc Sync Completion (+ rename DESIGN.md → ARCHITECTURE.md) | ⏳ pending | 0 | — | — |
+| M60: DRY Refactors — KeyMap + Text-Input Helpers | ✅ done | 5 | 2026-06-21 | 2026-06-21 |
+| M61: Finish M53 — Doc Sync Completion (+ rename DESIGN.md → ARCHITECTURE.md) | ✅ done | 0 | 2026-06-21 | 2026-06-21 |
 
 ### Phase 99: Future (Low Priority)
 
@@ -185,7 +185,7 @@ Follow-ups to close partial milestones from Phase 12. See [PHASE-13-EXECUTION-PL
 | M98: Image Preview | ⏳ pending (placeholder — detail when reactivated) | 0 | — | — |
 | M99: Release Automation (Homebrew Formula PR) | ⏳ pending (tap + formula exist; WPs detailed 2026-06-21 — automate release→formula pipeline) | 0 | — | — |
 
-**Total Tests:** 298 (refresh with `go test ./... -v -count=1 | grep -c '^--- PASS'`)
+**Total Tests:** 303 (refresh with `go test ./... -v -count=1 | grep -c '^--- PASS'`)
 
 ## Execution Order
 
@@ -302,7 +302,7 @@ Closes partial milestones M52 and M53 from Phase 12, plus a targeted DRY refacto
 
 35. **M59** — Finish M52: handlers.go Decomposition (extract `in_note_search.go`, `history.go`, `profile_handler.go`; split `handlers.go` into mode files)
 36. **M60** — DRY Refactors: `KeyMap.MatchDown/Up/Left/Right` helpers + shared text-input handler
-37. **M61** — Finish M53: Doc Sync Completion (DESIGN.md module map, AGENTS.md styling section, optional rename to ARCHITECTURE.md)
+37. **M61** — Finish M53: Doc Sync Completion (ARCHITECTURE.md module map, AGENTS.md styling section, optional rename to ARCHITECTURE.md)
 
 **Rationale:** Strict sequence M59 → M60 → M61. M59 is pure file moves (low risk, gets `handlers.go` under 250 lines per file). M60 introduces helpers and replaces duplicated patterns within the now-split files. M61 documents the final state — must come last so docs reflect reality, not in-flight refactors.
 
@@ -350,7 +350,7 @@ Phase 13 (plan remediation):
 | M37 | ✅ done via M51 | No globals remain (deprecated vars kept for tests) |
 | M38 | ✅ done via M52 + M59 | No remaining |
 | M52 | ✅ done via M59 | No remaining — `handlers.go` split into 7 focused files, all < 250 lines |
-| M53 | 🟡 WP1, WP3, WP4 done | → **M61** — WP2: fix DESIGN.md module map (phantom files, M51/M52 callouts); update AGENTS.md styling section; optional rename to ARCHITECTURE.md |
+| M53 | ✅ done via M61 | No remaining — DESIGN.md → ARCHITECTURE.md rename, module map sync, AGENTS.md verified |
 
 ## Keybinding Conflicts Resolved
 

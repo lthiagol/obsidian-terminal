@@ -1,6 +1,6 @@
 # M60 — DRY Refactors: KeyMap + Text-Input Helpers
 
-**Status:** ⏳ pending  
+**Status:** ✅ done  
 **Phase:** 13 — Plan Remediation  
 **Priority:** 🟢 Medium  
 **Finding:** Observation during 2026-06-21 plan review (not in original architecture review)  
@@ -34,7 +34,7 @@ Each duplicate is ~10 lines of boilerplate that must be kept in sync.
 | Relation | Milestone / artifact |
 |----------|----------------------|
 | **Blocked by** | M59 (handlers.go split — refactors are cleaner on split files; avoids double-touching `handlers.go`) |
-| **Blocks** | M61 (DESIGN.md should document the new helpers) |
+| **Blocks** | M61 (ARCHITECTURE.md should document the new helpers) |
 | **Parallel-safe with** | nothing — touches the same files M59 just split |
 
 ## Design (approved for execution)
@@ -250,13 +250,13 @@ if newQuery, dismissed, handled := HandleTextInput(msg, m.searchState.Query()); 
 
 ## Acceptance criteria (milestone done)
 
-- [ ] WP1–WP3 complete
-- [ ] `rg 'MatchKey\(msg, m\.keys\.(Down|Up|Left|Right)\) \|\| MatchRune'` returns 0 matches
-- [ ] No `case msg.Type == tea.KeyBackspace:` in the 3 refactored handlers
-- [ ] New helper tests pass (~5 new tests)
-- [ ] No behavior change — original 298 tests still pass
-- [ ] `make test && make vet` pass
-- [ ] `STATUS.md` updated: M60 → ✅ with dates and test count delta
+- [x] WP1–WP3 complete
+- [x] `rg 'MatchKey\(msg, m\.keys\.(Down|Up|Left|Right)\) \|\| MatchRune'` returns 0 matches
+- [x] No `case msg.Type == tea.KeyBackspace:` in the 3 refactored handlers
+- [x] New helper tests pass (~5 new tests)
+- [x] No behavior change — original 298 tests still pass
+- [x] `make test && make vet` pass
+- [x] `STATUS.md` updated: M60 → ✅ with dates and test count delta
 
 ## Rollback / risk
 
@@ -298,7 +298,7 @@ _Fill when done:_
 
 | Field | Value |
 |-------|-------|
-| Started | {YYYY-MM-DD} |
-| Completed | {YYYY-MM-DD} |
-| Tests added | {N — expect ~5} |
-| Notes | {paste grep verification output; note any call sites where HandleTextInput didn't fit} |
+| Started | 2026-06-21 |
+| Completed | 2026-06-21 |
+| Tests added | 5 (4 KeyMap nav helper tests + 1 HandleTextInput table-driven test) |
+| Notes | WP1 replaced 22 call sites of `MatchKey(msg, m.keys.*) \|\| MatchRune(msg, m.keys.*Rune)` across `handlers_browse.go`, `handlers_view.go`, `handlers_search.go`, `outline_handler.go`, `daily_recent_handler.go`. WP2 refactored 3 text-input call sites (`handleSearchOrFind`, `handleCommandPaletteKey`, `handleInNoteSearchKey`) to use new `HandleTextInput` helper. All 303 tests pass; `make vet` clean. |

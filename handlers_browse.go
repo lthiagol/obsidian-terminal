@@ -43,22 +43,22 @@ func (m Model) handleBrowseKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+	case m.keys.MatchDown(msg):
 		m.fileTree.MoveDown()
 		if m.previewVisible {
 			m.previewPath = ""
 		}
 		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+	case m.keys.MatchUp(msg):
 		m.fileTree.MoveUp()
 		if m.previewVisible {
 			m.previewPath = ""
 		}
 		return m, nil
-	case MatchKey(msg, m.keys.Left) || MatchRune(msg, m.keys.LeftRune):
+	case m.keys.MatchLeft(msg):
 		m.fileTree.collapse()
 		return m, nil
-	case MatchKey(msg, m.keys.Right) || MatchRune(msg, m.keys.RightRune):
+	case m.keys.MatchRight(msg):
 		m.fileTree.expand()
 		return m, nil
 	case MatchRune(msg, m.keys.TopRune):

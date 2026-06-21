@@ -54,10 +54,14 @@ func (m *Model) cycleInNoteMatch(dir int) {
 }
 
 func (m *Model) handleInNoteSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	if msg.Type == tea.KeyEsc {
-		m.inNoteSearchActive = false
-		m.inNoteSearchQuery = ""
-		m.inNoteMatches = nil
+	if newQuery, dismissed, handled := HandleTextInput(msg, m.inNoteSearchQuery); handled {
+		if dismissed {
+			m.inNoteSearchActive = false
+			m.inNoteSearchQuery = ""
+			m.inNoteMatches = nil
+		} else {
+			m.updateInNoteSearch(newQuery)
+		}
 		return m, nil
 	}
 	if msg.Type == tea.KeyEnter {
@@ -66,22 +70,12 @@ func (m *Model) handleInNoteSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.inNoteMatches = nil
 		return m, nil
 	}
-	if msg.Type == tea.KeyBackspace {
-		if len(m.inNoteSearchQuery) > 0 {
-			m.updateInNoteSearch(m.inNoteSearchQuery[:len(m.inNoteSearchQuery)-1])
-		}
-		return m, nil
-	}
 	if MatchRune(msg, 'n') {
 		m.cycleInNoteMatch(1)
 		return m, nil
 	}
 	if MatchRune(msg, 'N') {
 		m.cycleInNoteMatch(-1)
-		return m, nil
-	}
-	if len(msg.Runes) > 0 {
-		m.updateInNoteSearch(m.inNoteSearchQuery + string(msg.Runes))
 		return m, nil
 	}
 	return m, nil

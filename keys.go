@@ -63,6 +63,26 @@ func MatchRune(msg tea.KeyMsg, r rune) bool {
 	return false
 }
 
+// MatchDown returns true if msg matches the Down key binding (KeyType or Rune).
+func (k KeyMap) MatchDown(msg tea.KeyMsg) bool {
+	return MatchKey(msg, k.Down) || MatchRune(msg, k.DownRune)
+}
+
+// MatchUp returns true if msg matches the Up key binding.
+func (k KeyMap) MatchUp(msg tea.KeyMsg) bool {
+	return MatchKey(msg, k.Up) || MatchRune(msg, k.UpRune)
+}
+
+// MatchLeft returns true if msg matches the Left key binding.
+func (k KeyMap) MatchLeft(msg tea.KeyMsg) bool {
+	return MatchKey(msg, k.Left) || MatchRune(msg, k.LeftRune)
+}
+
+// MatchRight returns true if msg matches the Right key binding.
+func (k KeyMap) MatchRight(msg tea.KeyMsg) bool {
+	return MatchKey(msg, k.Right) || MatchRune(msg, k.RightRune)
+}
+
 // DefaultKeys returns the default vim+arrow key bindings.
 func DefaultKeys() KeyMap {
 	return KeyMap{

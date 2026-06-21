@@ -127,12 +127,12 @@ func (m Model) handleRecentsKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case msg.Type == tea.KeyEsc:
 		m.recentVisible = false
 		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+	case m.keys.MatchDown(msg):
 		if m.recentCursor < len(m.recentNotes)-1 {
 			m.recentCursor++
 		}
 		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+	case m.keys.MatchUp(msg):
 		if m.recentCursor > 0 {
 			m.recentCursor--
 		}

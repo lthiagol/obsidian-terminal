@@ -109,12 +109,12 @@ func (m Model) handleOutlineKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case msg.Type == tea.KeyEsc || MatchRune(msg, m.keys.Outline):
 		m.outlineVisible = false
 		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+	case m.keys.MatchDown(msg):
 		if m.outlineCursor < len(m.outlineItems)-1 {
 			m.outlineCursor++
 		}
 		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+	case m.keys.MatchUp(msg):
 		if m.outlineCursor > 0 {
 			m.outlineCursor--
 		}

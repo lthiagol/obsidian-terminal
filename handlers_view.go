@@ -81,10 +81,10 @@ func (m Model) handleViewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+	case m.keys.MatchDown(msg):
 		m.viewer.ScrollDown(1)
 		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+	case m.keys.MatchUp(msg):
 		m.viewer.ScrollUp(1)
 		return m, nil
 	case MatchRune(msg, m.keys.TopRune):

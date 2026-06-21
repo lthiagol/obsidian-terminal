@@ -13,22 +13,19 @@ func (m Model) handleFindKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) handleSearchOrFind(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch {
-	case msg.Type == tea.KeyEsc:
-		m.mode = m.prevMode
-		return m, nil
-	case msg.Type == tea.KeyBackspace:
-		if len(m.searchState.Query()) > 0 {
-			m.searchState.SetQuery(m.searchState.Query()[:len(m.searchState.Query())-1])
+	if newQuery, dismissed, handled := HandleTextInput(msg, m.searchState.Query()); handled {
+		if dismissed {
+			m.mode = m.prevMode
+		} else {
+			m.searchState.SetQuery(newQuery)
 		}
 		return m, nil
-	case msg.Type == tea.KeyRunes && len(msg.Runes) > 0:
-		m.searchState.SetQuery(m.searchState.Query() + string(msg.Runes))
-		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+	}
+	switch {
+	case m.keys.MatchDown(msg):
 		m.searchState.MoveDown()
 		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+	case m.keys.MatchUp(msg):
 		m.searchState.MoveUp()
 		return m, nil
 	case msg.Type == tea.KeyEnter:
@@ -46,10 +43,10 @@ func (m Model) handleHelpKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case msg.Type == tea.KeyEsc:
 		m.mode = m.prevMode
 		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+	case m.keys.MatchDown(msg):
 		m.helpScroll++
 		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+	case m.keys.MatchUp(msg):
 		if m.helpScroll > 0 {
 			m.helpScroll--
 		}
@@ -63,10 +60,10 @@ func (m Model) handleBacklinkKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case msg.Type == tea.KeyEsc || MatchRune(msg, 'b'):
 		m.backlinkMode = false
 		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+	case m.keys.MatchDown(msg):
 		m.backlinkPanel.MoveDown()
 		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+	case m.keys.MatchUp(msg):
 		m.backlinkPanel.MoveUp()
 		return m, nil
 	case msg.Type == tea.KeyEnter:
@@ -84,10 +81,10 @@ func (m Model) handleTagsKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case msg.Type == tea.KeyEsc:
 		m.mode = m.prevMode
 		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+	case m.keys.MatchDown(msg):
 		m.tagList.MoveDown()
 		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+	case m.keys.MatchUp(msg):
 		m.tagList.MoveUp()
 		return m, nil
 	case msg.Type == tea.KeyEnter:
@@ -109,26 +106,22 @@ func (m Model) handleTagsKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) handleCommandPaletteKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch {
-	case msg.Type == tea.KeyEsc:
-		m.commandPaletteVisible = false
-		return m, nil
-	case msg.Type == tea.KeyBackspace:
-		if len(m.commandPaletteQuery) > 0 {
-			m.commandPaletteQuery = m.commandPaletteQuery[:len(m.commandPaletteQuery)-1]
+	if newQuery, dismissed, handled := HandleTextInput(msg, m.commandPaletteQuery); handled {
+		if dismissed {
+			m.commandPaletteVisible = false
+		} else {
+			m.commandPaletteQuery = newQuery
 			m.commandPaletteSearch()
 		}
 		return m, nil
-	case msg.Type == tea.KeyRunes && len(msg.Runes) > 0:
-		m.commandPaletteQuery += string(msg.Runes)
-		m.commandPaletteSearch()
-		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+	}
+	switch {
+	case m.keys.MatchDown(msg):
 		if m.commandPaletteCursor < len(m.commandPaletteResults)-1 {
 			m.commandPaletteCursor++
 		}
 		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+	case m.keys.MatchUp(msg):
 		if m.commandPaletteCursor > 0 {
 			m.commandPaletteCursor--
 		}
@@ -150,10 +143,10 @@ func (m Model) handleProfilePickerKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Otherwise return to previous mode
 		m.mode = m.prevMode
 		return m, nil
-	case MatchKey(msg, m.keys.Down) || MatchRune(msg, m.keys.DownRune):
+	case m.keys.MatchDown(msg):
 		m.profilePicker.MoveDown()
 		return m, nil
-	case MatchKey(msg, m.keys.Up) || MatchRune(msg, m.keys.UpRune):
+	case m.keys.MatchUp(msg):
 		m.profilePicker.MoveUp()
 		return m, nil
 	case msg.Type == tea.KeyEnter:

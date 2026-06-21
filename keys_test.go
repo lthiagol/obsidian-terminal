@@ -71,3 +71,59 @@ func TestKeyDispatch_BothVimAndArrows(t *testing.T) {
 		t.Error("Enter should NOT match QuitRune")
 	}
 }
+
+func TestKeyMap_MatchDown(t *testing.T) {
+	keys := DefaultKeys()
+	if !keys.MatchDown(tea.KeyMsg{Type: tea.KeyDown}) {
+		t.Error("KeyDown should match MatchDown")
+	}
+	if !keys.MatchDown(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}}) {
+		t.Error("'j' should match MatchDown")
+	}
+	if keys.MatchDown(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'k'}}) {
+		t.Error("'k' should NOT match MatchDown")
+	}
+	if keys.MatchDown(tea.KeyMsg{Type: tea.KeyEnter}) {
+		t.Error("Enter should NOT match MatchDown")
+	}
+}
+
+func TestKeyMap_MatchUp(t *testing.T) {
+	keys := DefaultKeys()
+	if !keys.MatchUp(tea.KeyMsg{Type: tea.KeyUp}) {
+		t.Error("KeyUp should match MatchUp")
+	}
+	if !keys.MatchUp(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'k'}}) {
+		t.Error("'k' should match MatchUp")
+	}
+	if keys.MatchUp(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}}) {
+		t.Error("'j' should NOT match MatchUp")
+	}
+}
+
+func TestKeyMap_MatchLeft(t *testing.T) {
+	keys := DefaultKeys()
+	if !keys.MatchLeft(tea.KeyMsg{Type: tea.KeyLeft}) {
+		t.Error("KeyLeft should match MatchLeft")
+	}
+	if !keys.MatchLeft(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'h'}}) {
+		t.Error("'h' should match MatchLeft")
+	}
+	if keys.MatchLeft(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'l'}}) {
+		t.Error("'l' should NOT match MatchLeft")
+	}
+}
+
+func TestKeyMap_MatchRight(t *testing.T) {
+	keys := DefaultKeys()
+	if !keys.MatchRight(tea.KeyMsg{Type: tea.KeyRight}) {
+		t.Error("KeyRight should match MatchRight")
+	}
+	if !keys.MatchRight(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'l'}}) {
+		t.Error("'l' should match MatchRight")
+	}
+	if keys.MatchRight(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'h'}}) {
+		t.Error("'h' should NOT match MatchRight")
+	}
+}
+
