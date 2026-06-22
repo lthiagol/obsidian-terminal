@@ -183,7 +183,7 @@ Follow-ups to close partial milestones from Phase 12. See [PHASE-13-EXECUTION-PL
 | M96: Graph View (ASCII, deferred from M49) | ✅ done | 20 | 2026-06-21 | 2026-06-21 |
 | M97: Export to PDF/HTML | ⏳ pending (placeholder — detail when reactivated) | 0 | — | — |
 | M98: Image Preview | ⏳ pending (placeholder — detail when reactivated) | 0 | — | — |
-| M99: Release Automation (Homebrew Formula PR) | 🟡 code-complete (WP1+WP4 done; WP2 PAT + WP3 first release are manual) | 0 | 2026-06-21 | — |
+| M99: Release Automation (Homebrew Formula PR) | ✅ done | 0 | 2026-06-21 | 2026-06-22 |
 
 **Total Tests:** 323 (refresh with `go test ./... -v -count=1 | grep -c '^--- PASS'`)
 

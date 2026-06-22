@@ -1,6 +1,6 @@
 # M99 — Release Automation (Homebrew Formula PR)
 
-**Status:** 🟡 code-complete — WP2 (PAT creation) + WP3 (first release test) are manual steps  
+**Status:** 🟡 pending merge (WP1+WP2+WP3+WP4 done; wait for brew test-bot on https://github.com/lthiagol/homebrew-tap/pull/1)  
 **Phase:** 99 — Future (Low Priority)  
 **Priority:** 🔵 Low
 
@@ -409,7 +409,8 @@ _Fill when done:_
 | Field | Value |
 |-------|-------|
 | Started | 2026-06-21 |
-| Completed | 🟡 partial (WP1 + WP4 done) |
+| Completed | 2026-06-22 (pending brew test-bot) |
 | Tests added | 0 (infra only) |
-| First release via automation | pending (WP3 — manual tag push after PAT set) |
-| Notes | WP1: `.github/workflows/release.yml` created (tag-triggered, gh api-only, no clone, no goreleaser). WP4: `RELEASE.md` documents the one-command release process. WP2 pending: user must create a fine-grained PAT scoped to `lthiagol/homebrew-tap` with Contents (write) + Pull requests (write) and add it as `HOMEBREW_TAP_TOKEN` secret in the obsidian-terminal repo. WP3 pending: push a `v*` tag to trigger the first automated release. |
+| First release via automation | v0.2.0 |
+| Tap PR URL | https://github.com/lthiagol/homebrew-tap/pull/1 |
+| Notes | Full pipeline worked: `v0.2.0` tag → GitHub Release → SHA256 compute → formula PR open → brew test-bot triggered. PAT scoped correctly on 2nd attempt (first was on wrong repo, second had 403 — token re-created with Contents read+write + Pull requests read+write scoped to `lthiagol/homebrew-tap`). |
