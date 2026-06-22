@@ -72,6 +72,8 @@ func modeHints(mode Mode) string {
 		return "type search | Enter open | Esc cancel"
 	case ModeHelp:
 		return "j/k scroll | Esc back"
+	case ModeGraph:
+		return "j/k move | Enter open | l scope | f focus | r refresh | Esc back"
 	default:
 		return ""
 	}

@@ -21,6 +21,7 @@ This document contains the complete keybinding reference for obsidian-terminal. 
 | `Ctrl+D` | Open daily note | Navigate to today's note |
 | `Ctrl+O` | Recent notes / go back | In View mode: go back in history; otherwise: toggle recent notes |
 | `Ctrl+K` | Command palette | Open command palette overlay |
+| `Ctrl+G` | Graph view | Enter graph mode (browse: global, view: local on active note) |
 | `Ctrl+←` | Shrink tree panel | Decrease tree width by 5 |
 | `Ctrl+→` | Grow tree panel | Increase tree width by 5 |
 | `Ctrl+\` | Reset tree width | Restore default tree width (1/4 of screen) |
@@ -149,6 +150,18 @@ This document contains the complete keybinding reference for obsidian-terminal. 
 | `k` / `↑` | Move up | Profile list navigation |
 | `Enter` | Switch to selected profile | |
 | `Esc` | Cancel / quit | Returns to browse or quit if no vault loaded |
+
+### Graph Mode
+
+| Key | Action | Notes |
+|-----|--------|-------|
+| `j` / `↓` | Move to next node | Graph node navigation |
+| `k` / `↑` | Move to previous node | Graph node navigation |
+| `Enter` | Open selected note | Follows wiki-link to open note in View mode |
+| `l` | Toggle scope | Switch between global and local graph |
+| `f` | Focus on selected | Rebuild local graph centered on selected node |
+| `r` | Refresh graph | Rebuild graph from indexes |
+| `Esc` | Return to previous mode | |
 
 ### Broken Vault State
 

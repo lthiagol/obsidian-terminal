@@ -74,6 +74,8 @@ func (m Model) View() string {
 				}
 				rightPanel = viewerOutput
 			}
+		case ModeGraph:
+			rightPanel = m.renderGraph()
 		default:
 			if m.mode == ModeBrowse && m.previewVisible {
 				rightPanel = m.renderPreview()

@@ -70,11 +70,24 @@ func buildHelpLines(p Palette) []string {
 			},
 		},
 		{
+			title: "Graph",
+			bindings: []string{
+				"Ctrl+G  — open graph (browse: global, view: local)",
+				"j / k   — move between nodes",
+				"Enter   — open selected note",
+				"l       — toggle global ↔ local scope",
+				"f       — focus local graph on selected node",
+				"r       — rebuild graph from indexes",
+				"Esc     — return to previous mode",
+			},
+		},
+		{
 			title: "Global",
 			bindings: []string{
 				"?      — toggle this help",
 				"q      — quit",
 				"Ctrl+D — open daily note",
+				"Ctrl+G — open graph view",
 				"Ctrl+O — recent notes",
 				"Ctrl+K — command palette",
 				"Ctrl+R — rescan vault",

@@ -1,6 +1,6 @@
 # M96 — Graph View (ASCII)
 
-**Status:** ⏳ pending (deferred from M49)  
+**Status:** ✅ done  
 **Phase:** 99 — Future (Low Priority)  
 **Priority:** 🔵 Low  
 **Finding:** M47 deferred; STATUS non-goals updated — read-only ASCII graph is in charter  
@@ -584,7 +584,7 @@ _Fill when done:_
 
 | Field | Value |
 |-------|-------|
-| Started | — |
-| Completed | — |
-| Tests added | {expect ~20} |
-| Notes | {paste `wc -l graph.go graph_test.go handlers_graph.go`; note any deviations} |
+| Started | 2026-06-21 |
+| Completed | 2026-06-21 |
+| Tests added | 20 |
+| Notes | All WPs executed in one session. graph.go (458 lines), graph_test.go (495 lines). model.go → 411 lines (+11 for ModeGraph). `make build && make test && make vet` all pass. 323 total tests. Deviations: T14 uses `os.WriteFile` + `ScanVault` for real vault fixture; T17 similarly creates real notes; KEYBINDINGS.md + help.go + statusbar.go updated with Graph section. |

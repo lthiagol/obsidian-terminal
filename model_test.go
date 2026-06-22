@@ -361,7 +361,7 @@ func TestHelpPanel_ShowsAllSections(t *testing.T) {
 		t.Fatalf("NewModel error: %v", model.(Model).err)
 	}
 
-	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 50})
+	model, _ = model.Update(tea.WindowSizeMsg{Width: 100, Height: 60})
 	model, _ = model.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'?'}})
 	view := model.View()
 

@@ -1,6 +1,6 @@
 # obsidian-terminal — Build Status
 
-**Last updated:** 2026-06-21 (M59, M60, M61 done; Phase 13 complete; all partials closed)
+**Last updated:** 2026-06-21 (M96: Graph View done; 323 tests)
 **Language:** Go 1.26+ (see `go.mod`)
 **Architecture review:** [ARCHITECTURE-REVIEW-2026-06-13.md](./ARCHITECTURE-REVIEW-2026-06-13.md)  
 **Execution plan:** [PHASE-12-EXECUTION-PLAN.md](./PHASE-12-EXECUTION-PLAN.md) (Phase 12), [PHASE-13-EXECUTION-PLAN.md](./PHASE-13-EXECUTION-PLAN.md) (Phase 13)  
@@ -180,12 +180,12 @@ Follow-ups to close partial milestones from Phase 12. See [PHASE-13-EXECUTION-PL
 
 | Milestone | Status | Tests | Started | Completed |
 |-----------|--------|-------|---------|-----------|
-| M96: Graph View (ASCII, deferred from M49) | ⏳ pending (WPs detailed 2026-06-21) | 0 | — | — |
+| M96: Graph View (ASCII, deferred from M49) | ✅ done | 20 | 2026-06-21 | 2026-06-21 |
 | M97: Export to PDF/HTML | ⏳ pending (placeholder — detail when reactivated) | 0 | — | — |
 | M98: Image Preview | ⏳ pending (placeholder — detail when reactivated) | 0 | — | — |
 | M99: Release Automation (Homebrew Formula PR) | ⏳ pending (tap + formula exist; WPs detailed 2026-06-21 — automate release→formula pipeline) | 0 | — | — |
 
-**Total Tests:** 303 (refresh with `go test ./... -v -count=1 | grep -c '^--- PASS'`)
+**Total Tests:** 323 (refresh with `go test ./... -v -count=1 | grep -c '^--- PASS'`)
 
 ## Execution Order
 

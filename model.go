@@ -47,6 +47,7 @@ const (
 	ModeHelp
 	ModeTags
 	ModeProfilePicker
+	ModeGraph
 )
 
 func (m Mode) String() string {
@@ -65,6 +66,8 @@ func (m Mode) String() string {
 		return "TAGS"
 	case ModeProfilePicker:
 		return "PROFILES"
+	case ModeGraph:
+		return "GRAPH"
 	default:
 		return "???"
 	}
@@ -145,6 +148,8 @@ type Model struct {
 	commandPaletteQuery   string
 	commandPaletteCursor  int
 	commandPaletteResults []Command
+
+	graph GraphModel
 }
 
 // NewModel creates a Model by scanning the vault at cfg.VaultPath.
@@ -340,6 +345,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.openCommandPalette()
 			return m, nil
 		}
+		if msg.Type == m.keys.GraphToggle {
+			m.enterGraphMode()
+			return m, nil
+		}
 
 		if (m.mode == ModeBrowse || m.mode == ModeView) && !m.commandPaletteVisible && !m.recentVisible && !m.outlineVisible && !m.scanErrorsVisible && (MatchRune(msg, m.keys.QuitRune) || MatchRune(msg, 'Q')) {
 			m.quitting = true
@@ -392,6 +401,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleTagsKey(msg)
 		case ModeProfilePicker:
 			return m.handleProfilePickerKey(msg)
+		case ModeGraph:
+			return m.handleGraphKey(msg)
 		}
 	}
 

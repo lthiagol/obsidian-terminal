@@ -38,6 +38,8 @@ type KeyMap struct {
 	ShrinkTree tea.KeyType // ShrinkTree decreases the tree panel width.
 	GrowTree   tea.KeyType // GrowTree increases the tree panel width.
 	ResetTree  tea.KeyType // ResetTree restores the default tree panel width.
+
+	GraphToggle tea.KeyType // GraphToggle opens the graph view (Ctrl+G).
 }
 
 // MatchKey reports whether msg matches any of the given key types.
@@ -115,5 +117,6 @@ func DefaultKeys() KeyMap {
 		ShrinkTree:    tea.KeyCtrlLeft,
 		GrowTree:      tea.KeyCtrlRight,
 		ResetTree:     tea.KeyCtrlBackslash,
+		GraphToggle:   tea.KeyCtrlG,
 	}
 }
