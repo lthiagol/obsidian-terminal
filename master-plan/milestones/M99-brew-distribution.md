@@ -1,6 +1,6 @@
 # M99 — Release Automation (Homebrew Formula PR)
 
-**Status:** ⏳ pending (placeholder — detail when reactivated)  
+**Status:** 🟡 code-complete — WP2 (PAT creation) + WP3 (first release test) are manual steps  
 **Phase:** 99 — Future (Low Priority)  
 **Priority:** 🔵 Low
 
@@ -408,8 +408,8 @@ _Fill when done:_
 
 | Field | Value |
 |-------|-------|
-| Started | — |
-| Completed | — |
-| Tests added | 0 (infra only — e2e verification is manual) |
-| First release via automation | {tag, e.g. v0.2.0} |
-| Notes | {any deviations; tap PR URL for first release} |
+| Started | 2026-06-21 |
+| Completed | 🟡 partial (WP1 + WP4 done) |
+| Tests added | 0 (infra only) |
+| First release via automation | pending (WP3 — manual tag push after PAT set) |
+| Notes | WP1: `.github/workflows/release.yml` created (tag-triggered, gh api-only, no clone, no goreleaser). WP4: `RELEASE.md` documents the one-command release process. WP2 pending: user must create a fine-grained PAT scoped to `lthiagol/homebrew-tap` with Contents (write) + Pull requests (write) and add it as `HOMEBREW_TAP_TOKEN` secret in the obsidian-terminal repo. WP3 pending: push a `v*` tag to trigger the first automated release. |

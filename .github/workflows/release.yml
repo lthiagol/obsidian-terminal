@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set tag variable
+        id: tag
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.tag.outputs.version }}" \
+            --title "${{ steps.tag.outputs.version }}" \
+            --generate-notes \
+            --verify-tag
+
+      - name: Compute SHA256 of source tarball
+        id: sha
+        run: |
+          TAG="${{ steps.tag.outputs.version }}"
+          URL="https://github.com/lthiagol/obsidian-terminal/archive/refs/tags/${TAG}.tar.gz"
+          curl -fsSL "$URL" -o source.tar.gz
+          SHA=$(sha256sum source.tar.gz | awk '{print $1}')
+          echo "sha256=$SHA" >> $GITHUB_OUTPUT
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Bump formula in homebrew-tap via API
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          TAG: ${{ steps.tag.outputs.version }}
+          NEW_URL: ${{ steps.sha.outputs.url }}
+          NEW_SHA: ${{ steps.sha.outputs.sha256 }}
+        run: |
+          TAP="lthiagol/homebrew-tap"
+          FORMULA="Formula/obsidian-terminal.rb"
+          BRANCH="bump-obsidian-terminal-${TAG}"
+
+          FILE_JSON=$(gh api "repos/${TAP}/contents/${FORMULA}")
+          FILE_SHA=$(echo "$FILE_JSON" | jq -r '.sha')
+          FILE_B64=$(echo "$FILE_JSON" | jq -r '.content')
+
+          MAIN_SHA=$(gh api "repos/${TAP}/git/refs/heads/main" | jq -r '.object.sha')
+
+          gh api "repos/${TAP}/git/refs" \
+            -X POST \
+            -f ref="refs/heads/${BRANCH}" \
+            -f sha="${MAIN_SHA}"
+
+          echo "$FILE_B64" | base64 -d > formula.rb
+          sed -i -E "s|url \".*\"|url \"${NEW_URL}\"|" formula.rb
+          sed -i -E "s|sha256 \".*\"|sha256 \"${NEW_SHA}\"|" formula.rb
+          NEW_B64=$(base64 -w 0 formula.rb)
+
+          echo "--- Updated formula ---"
+          cat formula.rb
+
+          gh api "repos/${TAP}/contents/${FORMULA}" \
+            -X PUT \
+            -f message="Bump obsidian-terminal to ${TAG}" \
+            -f content="${NEW_B64}" \
+            -f branch="${BRANCH}" \
+            -f sha="${FILE_SHA}"
+
+          gh pr create \
+            --repo "${TAP}" \
+            --base main \
+            --head "${BRANCH}" \
+            --title "Bump obsidian-terminal to ${TAG}" \
+            --body "Automated bump triggered by tag push in [obsidian-terminal](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${TAG})."
