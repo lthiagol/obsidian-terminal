@@ -1,0 +1,93 @@
+name: stable-ci
+
+on:
+  push:
+    branches: [stable]
+    tags: ['v*']
+  pull_request:
+    branches: [stable]
+  workflow_dispatch:
+
+jobs:
+  ci:
+    name: lint + test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+
+      - name: gofmt check
+        run: |
+          if [ "$(gofmt -l . | wc -l)" -ne 0 ]; then
+            echo "Files needing gofmt:"
+            gofmt -l .
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go test
+        run: go test ./... -count=1
+
+      - name: go build
+        run: go build -o /dev/null .
+
+  tap-update:
+    name: open homebrew-tap bump PR
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout homebrew-tap (wip)
+        uses: actions/checkout@v4
+        with:
+          repository: lthiagol/homebrew-tap
+          ref: wip
+          path: homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      - name: Compute version + source SHA256
+        id: meta
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          SHA=$(curl -sL "https://github.com/${GITHUB_REPOSITORY}/archive/refs/tags/${GITHUB_REF_NAME}.tar.gz" | sha256sum | cut -d' ' -f1)
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Update formula on a new branch
+        working-directory: homebrew-tap
+        run: |
+          BRANCH="bump-obsidian-terminal-v${{ steps.meta.outputs.version }}"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name  "github-actions[bot]"
+          git checkout -b "$BRANCH" 2>/dev/null || git checkout "$BRANCH"
+          sed -i.bak -E "s|^  url \".*\"|  url \"https://github.com/${{ github.repository }}/archive/refs/tags/${{ github.ref_name }}.tar.gz\"|; s|^  sha256 \".*\"|  sha256 \"${{ steps.meta.outputs.sha }}\"|" Formula/obsidian-terminal.rb
+          rm -f Formula/obsidian-terminal.rb.bak
+          git add Formula/obsidian-terminal.rb
+          git commit -m "obsidian-terminal: bump to ${{ github.ref_name }}" || echo "no changes"
+          git push -u origin "$BRANCH" --force
+
+      - name: Open PR against homebrew-tap:wip
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          BRANCH="bump-obsidian-terminal-v${{ steps.meta.outputs.version }}"
+          VERSION="${{ steps.meta.outputs.version }}"
+          SHA="${{ steps.meta.outputs.sha }}"
+          cat > /tmp/pr_body.md <<PRBODY
+          Auto-bump from ${{ github.repository }} tag v${VERSION}.
+
+          Source: https://github.com/${{ github.repository }}/archive/refs/tags/v${VERSION}.tar.gz
+          SHA256: ${SHA}
+
+          This PR targets wip. Merge wip -> stable when ready to publish.
+          PRBODY
+          gh pr create --repo lthiagol/homebrew-tap --base wip --head "$BRANCH" --title "obsidian-terminal: bump to v${VERSION}" --body-file /tmp/pr_body.md || echo "PR already exists for this bump"

@@ -1,4 +1,4 @@
-# Go build output
+# Build output
 obsidian-terminal
 *.exe
 *.exe~
@@ -6,7 +6,7 @@ obsidian-terminal
 *.so
 *.dylib
 
-# Test binaries
+# Test binary
 *.test
 
 # Go workspace
@@ -24,7 +24,7 @@ go.work.sum
 .DS_Store
 Thumbs.db
 
-# Env / secrets (defense-in-depth)
+# Env
 .env
 .env.local
 
