@@ -64,8 +64,13 @@ jobs:
 
       - name: Update formula on a new branch
         working-directory: homebrew-tap
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
           BRANCH="bump-obsidian-terminal-v${{ steps.meta.outputs.version }}"
+          # The default GITHUB_TOKEN can't write to other repos. Inject our
+          # PAT into the remote URL so the subsequent push authenticates.
+          git remote set-url origin "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/lthiagol/homebrew-tap.git"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name  "github-actions[bot]"
           git checkout -b "$BRANCH" 2>/dev/null || git checkout "$BRANCH"
