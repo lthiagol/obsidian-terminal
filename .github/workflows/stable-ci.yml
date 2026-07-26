@@ -46,11 +46,11 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Checkout homebrew-tap (wip)
+      - name: Checkout homebrew-tap
         uses: actions/checkout@v4
         with:
           repository: lthiagol/homebrew-tap
-          ref: wip
+          ref: stable
           path: homebrew-tap
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
 
@@ -74,7 +74,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name  "github-actions[bot]"
           git checkout -b "$BRANCH" 2>/dev/null || git checkout "$BRANCH"
-          sed -i.bak -E "s|^  url \".*\"|  url \"https://github.com/${{ github.repository }}/archive/refs/tags/${{ github.ref_name }}.tar.gz\"|; s|^  sha256 \".*\"|  sha256 \"${{ steps.meta.outputs.sha }}\"|" Formula/obsidian-terminal.rb
+          sed -i.bak -E "s|^  url \".*\"|  url \"https://github.com/${{ github.repository }}/archive/refs/tags/${{ github.ref_name }}.tar.gz\"|; s|^  sha256 \".*\"|  sha256 \"${{ steps.meta.outputs.sha }}\"|; s|^  homepage \".*\"|  homepage \"https://github.com/${{ github.repository }}\"|" Formula/obsidian-terminal.rb
           rm -f Formula/obsidian-terminal.rb.bak
           git add Formula/obsidian-terminal.rb
           git commit -m "obsidian-terminal: bump to ${{ github.ref_name }}" || echo "no changes"
@@ -93,6 +93,6 @@ jobs:
           Source: https://github.com/${{ github.repository }}/archive/refs/tags/v${VERSION}.tar.gz
           SHA256: ${SHA}
 
-          This PR targets wip. Merge wip -> stable when ready to publish.
+          This PR targets stable. CI runs brew audit + style on the formula.
           PRBODY
-          gh pr create --repo lthiagol/homebrew-tap --base wip --head "$BRANCH" --title "obsidian-terminal: bump to v${VERSION}" --body-file /tmp/pr_body.md || echo "PR already exists for this bump"
+          gh pr create --repo lthiagol/homebrew-tap --base stable --head "$BRANCH" --title "obsidian-terminal: bump to v${VERSION}" --body-file /tmp/pr_body.md || echo "PR already exists for this bump"
