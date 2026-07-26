@@ -1,0 +1,35 @@
+# Go build output
+obsidian-terminal
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+
+# Go workspace
+go.work
+go.work.sum
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env / secrets (defense-in-depth)
+.env
+.env.local
+
+# Session tooling (subagents) — never commit
+.pi-subagents/
+
+# Legacy CI config from Codeberg (replaced by .github/workflows/)
+.woodpecker/
