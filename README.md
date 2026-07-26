@@ -32,20 +32,20 @@ A terminal-based TUI for browsing and reading [Obsidian](https://obsidian.md) va
 The tap is hosted on Codeberg, so add it once with the full URL:
 
 ```bash
-brew tap lthiagol/tap https://codeberg.org/lthiagol/homebrew-tap
+brew tap lthiagol/tap
 brew install lthiagol/tap/obsidian-terminal
 ```
 
 ### Go install
 
 ```bash
-go install codeberg.org/lthiagol/obsidian-terminal@latest
+go install github.com/lthiagol/obsidian-terminal@latest
 ```
 
 ### Build from source
 
 ```bash
-git clone https://codeberg.org/lthiagol/obsidian-terminal.git
+git clone https://github.com/lthiagol/obsidian-terminal.git
 cd obsidian-terminal
 make build
 ```

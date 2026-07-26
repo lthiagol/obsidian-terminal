@@ -24,7 +24,7 @@ git tag -a vMAJOR.MINOR.PATCH -m "Release vMAJOR.MINOR.PATCH"
 git push origin vMAJOR.MINOR.PATCH
 
 # 3. Watch the Release workflow in the Actions tab
-#    https://codeberg.org/lthiagol/obsidian-terminal/actions
+#    https://github.com/lthiagol/obsidian-terminal/actions
 
 # 4. Wait for the formula PR to appear in lthiagol/homebrew-tap
 #    https://github.com/lthiagol/homebrew-tap/pulls
