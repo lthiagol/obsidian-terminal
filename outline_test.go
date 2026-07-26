@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"codeberg.org/lthiagol/obsidian-terminal/internal/markdown"
+	"github.com/lthiagol/obsidian-terminal/internal/markdown"
 )
 
 func TestExtractHeadings(t *testing.T) {

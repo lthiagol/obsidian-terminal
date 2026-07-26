@@ -6,8 +6,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"codeberg.org/lthiagol/obsidian-terminal/internal/ansiext"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lthiagol/obsidian-terminal/internal/ansiext"
 )
 
 // BlockType classifies a markdown block element.

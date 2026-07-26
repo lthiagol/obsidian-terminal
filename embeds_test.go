@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"codeberg.org/lthiagol/obsidian-terminal/internal/markdown"
+	"github.com/lthiagol/obsidian-terminal/internal/markdown"
 )
 
 func TestEmbed_ParseNotation(t *testing.T) {

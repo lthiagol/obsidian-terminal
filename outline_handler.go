@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"codeberg.org/lthiagol/obsidian-terminal/internal/markdown"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lthiagol/obsidian-terminal/internal/markdown"
 )
 
 func (m *Model) buildOutline() {

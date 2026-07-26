@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"codeberg.org/lthiagol/obsidian-terminal/internal/markdown"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lthiagol/obsidian-terminal/internal/markdown"
 )
 
 // MarkdownViewer renders and navigates markdown content.

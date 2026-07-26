@@ -1,4 +1,4 @@
-module codeberg.org/lthiagol/obsidian-terminal
+module github.com/lthiagol/obsidian-terminal
 
 go 1.26.4
 

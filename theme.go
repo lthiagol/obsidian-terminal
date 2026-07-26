@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"codeberg.org/lthiagol/obsidian-terminal/internal/markdown"
-	"codeberg.org/lthiagol/obsidian-terminal/internal/search"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lthiagol/obsidian-terminal/internal/markdown"
+	"github.com/lthiagol/obsidian-terminal/internal/search"
 )
 
 // Palette holds a complete set of UI colors for a theme.

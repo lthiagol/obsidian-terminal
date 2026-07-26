@@ -5,9 +5,9 @@ import (
 	"sort"
 	"strings"
 
-	"codeberg.org/lthiagol/obsidian-terminal/internal/search"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lthiagol/obsidian-terminal/internal/search"
 )
 
 type Command struct {

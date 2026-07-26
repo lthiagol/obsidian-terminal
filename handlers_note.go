@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"codeberg.org/lthiagol/obsidian-terminal/internal/search"
+	"github.com/lthiagol/obsidian-terminal/internal/search"
 )
 
 type noteNavKind int

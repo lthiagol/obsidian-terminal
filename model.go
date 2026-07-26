@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"codeberg.org/lthiagol/obsidian-terminal/internal/search"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/lthiagol/obsidian-terminal/internal/search"
 )
 
 // TickMsg is sent every second by the timer to check for vault changes.

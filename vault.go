@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"codeberg.org/lthiagol/obsidian-terminal/internal/markdown"
+	"github.com/lthiagol/obsidian-terminal/internal/markdown"
 )
 
 // VaultIndexes holds all indexes built during vault scanning.
